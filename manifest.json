@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "SENTINELA Bridge",
+  "version": "1.0.0",
+  "description": "Bridge entre SENTINELA-7 e busca pública do Facebook",
+  "permissions": ["tabs", "scripting", "storage"],
+  "host_permissions": [
+    "https://www.facebook.com/*",
+    "https://m.facebook.com/*",
+    "https://www.instagram.com/*",
+    "https://www.tiktok.com/*"
+  ],
+  "background": { "service_worker": "background.js" },
+  "content_scripts": [
+    {
+      "matches": ["http://localhost/*", "https://*/*", "file:///*"],
+      "js": ["content-sentinel.js"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
+  "action": { "default_title": "SENTINELA Bridge" }
+}
