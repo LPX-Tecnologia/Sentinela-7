@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SENTINELA-7 · MAPA TÁTICO</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<style>
+:root{
+  --neon:#00f0ff;
+  --gold:#ffb300;
+  --bg:#02060b;
+  --danger:#ff2d55;
+  --ok:#00ff9d;
+  --panel:rgba(0,240,255,.05);
+  --line:rgba(0,240,255,.25);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:
+    radial-gradient(circle at 20% 0%, rgba(0,240,255,.10), transparent 45%),
+    radial-gradient(circle at 85% 100%, rgba(255,179,0,.10), transparent 45%),
+    var(--bg);
+  color:var(--neon);
+  font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    linear-gradient(rgba(0,240,255,.05) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,240,255,.05) 1px,transparent 1px);
+  background-size:44px 44px;
+  mask-image:radial-gradient(circle at 50% 40%,#000 20%,transparent 85%);
+}
+body::after{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:9998;
+  background:repeating-linear-gradient(180deg,rgba(0,0,0,0) 0 3px,rgba(0,0,0,.22) 3px 4px);
+  opacity:.45;
+}
+.wrap{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:16px}
+
+/* ---------- HEADER ---------- */
+header{
+  display:flex;align-items:center;gap:16px;
+  border:1px solid var(--line);
+  background:linear-gradient(90deg,rgba(0,240,255,.08),rgba(0,0,0,0));
+  padding:12px 16px;border-radius:4px;
+  clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,18px 100%,0 calc(100% - 18px));
+  box-shadow:0 0 24px rgba(0,240,255,.15), inset 0 0 30px rgba(0,240,255,.05);
+}
+.logo{width:54px;height:54px;flex:0 0 54px;color:var(--neon);filter:drop-shadow(0 0 8px var(--neon));animation:breathe 3s ease-in-out infinite}
+.logo svg{width:100%;height:100%}
+@keyframes breathe{0%,100%{opacity:.75;filter:drop-shadow(0 0 6px var(--neon))}50%{opacity:1;filter:drop-shadow(0 0 16px var(--neon))}}
+.brand h1{font-size:clamp(17px,3.4vw,28px);letter-spacing:.22em;font-weight:800;text-shadow:0 0 10px var(--neon),0 0 30px rgba(0,240,255,.5)}
+.brand h1 span{color:var(--gold);text-shadow:0 0 10px var(--gold)}
+.brand p{font-size:9px;letter-spacing:.26em;color:rgba(0,240,255,.55);margin-top:4px}
+.status{
+  margin-left:auto;font-size:10px;letter-spacing:.2em;padding:6px 12px;
+  border:1px solid var(--ok);color:var(--ok);border-radius:2px;
+  box-shadow:0 0 14px rgba(0,255,157,.35);white-space:nowrap;
+}
+.status::before{content:"●";margin-right:6px;animation:blink 1.4s infinite}
+.status.warn{border-color:var(--gold);color:var(--gold);box-shadow:0 0 14px rgba(255,179,0,.35)}
+.status.danger{border-color:var(--danger);color:var(--danger);box-shadow:0 0 14px rgba(255,45,85,.4)}
+@keyframes blink{50%{opacity:.15}}
+
+.notice{
+  margin-top:12px;font-size:10.5px;letter-spacing:.08em;line-height:1.6;
+  border-left:3px solid var(--gold);background:rgba(255,179,0,.07);
+  padding:9px 14px;color:rgba(255,179,0,.9);border-radius:2px;
+}
+.notice b{color:#ffd166}
+
+/* ---------- GRID ---------- */
+.grid{display:grid;grid-template-columns:1.25fr .95fr;gap:16px;margin-top:16px}
+@media(max-width:960px){.grid{grid-template-columns:1fr}}
+
+.card{
+  border:1px solid var(--line);border-radius:4px;background:var(--panel);
+  padding:14px;position:relative;
+  box-shadow:inset 0 0 40px rgba(0,240,255,.04);
+}
+.card::before{content:"";position:absolute;top:0;left:0;width:34px;height:2px;background:var(--gold);box-shadow:0 0 12px var(--gold)}
+.card h2{font-size:10px;letter-spacing:.3em;color:var(--gold);margin-bottom:12px;text-shadow:0 0 8px rgba(255,179,0,.6);font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.card h2 em{font-style:normal;color:rgba(0,240,255,.4);letter-spacing:.14em;font-size:9px}
+
+/* ---------- MAPA ---------- */
+.map-wrap{position:relative;width:100%;height:480px;border:1px solid var(--line);border-radius:3px;overflow:hidden;
+  box-shadow:0 0 30px rgba(0,240,255,.15), inset 0 0 40px rgba(0,240,255,.06);}
+@media(max-width:600px){.map-wrap{height:360px}}
+#map{position:absolute;inset:0;background:#02060b}
+.map-wrap::after{
+  content:"";position:absolute;left:0;right:0;height:160px;top:0;pointer-events:none;z-index:450;
+  background:linear-gradient(180deg,transparent,rgba(0,240,255,.16),transparent);
+  animation:scanline 6s linear infinite;
+}
+@keyframes scanline{from{top:-160px}to{top:100%}}
+.leaflet-container{background:#02060b !important;font-family:inherit !important}
+.leaflet-tile-pane{filter:hue-rotate(150deg) saturate(1.15) brightness(.95) contrast(1.05)}
+.leaflet-control-attribution{background:rgba(2,6,11,.7) !important;color:rgba(0,240,255,.5) !important;font-size:8px !important}
+.leaflet-control-attribution a{color:rgba(0,240,255,.7) !important}
+.leaflet-bar a{background:#04121a !important;color:var(--neon) !important;border-color:var(--line) !important}
+.leaflet-bar a:hover{background:#062430 !important}
+
+/* marcadores customizados */
+.mk{
+  width:16px;height:16px;border-radius:50%;background:var(--gold);
+  box-shadow:0 0 12px var(--gold),0 0 26px var(--gold);
+  border:2px solid rgba(255,255,255,.7);position:relative;
+}
+.mk.hot{background:var(--danger);box-shadow:0 0 14px var(--danger),0 0 32px var(--danger);animation:pulseMk .8s infinite}
+.mk span{
+  position:absolute;left:20px;top:-3px;font-size:9px;letter-spacing:.14em;color:#dffcff;
+  white-space:nowrap;text-shadow:0 0 8px #000,0 0 12px var(--neon);
+}
+@keyframes pulseMk{50%{transform:scale(1.6);opacity:.7}}
+.mk-me{
+  width:16px;height:16px;border-radius:50%;background:var(--neon);
+  box-shadow:0 0 18px var(--neon);border:2px solid #fff;position:relative;
+}
+.mk-me::after{
+  content:"";position:absolute;inset:-9px;border-radius:50%;
+  border:1px solid var(--neon);animation:ripple 2s infinite;
+}
+@keyframes ripple{0%{transform:scale(.6);opacity:.9}100%{transform:scale(1.8);opacity:0}}
+
+/* barra de endereço sob o mapa */
+.geobar{
+  margin-top:10px;border:1px solid var(--line);border-left:2px solid var(--neon);
+  background:rgba(0,240,255,.04);padding:10px 12px;border-radius:2px;
+  display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:10px;letter-spacing:.08em;
+}
+.geobar .lbl{color:rgba(0,240,255,.45);letter-spacing:.22em;font-size:8.5px}
+.geobar .val{color:#dffcff}
+.geobar .sp{margin-left:auto;color:var(--gold);font-size:9px;letter-spacing:.16em}
+
+/* ---------- CONTROLES ---------- */
+.ctrl{margin-bottom:14px}
+.ctrl label{display:flex;justify-content:space-between;font-size:10px;letter-spacing:.18em;color:rgba(0,240,255,.75);margin-bottom:8px}
+.ctrl label b{color:var(--gold);text-shadow:0 0 8px rgba(255,179,0,.6)}
+input[type=range]{-webkit-appearance:none;width:100%;height:3px;background:rgba(0,240,255,.2);outline:none;border-radius:2px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--gold);box-shadow:0 0 14px var(--gold);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border:0;border-radius:50%;background:var(--gold);box-shadow:0 0 14px var(--gold);cursor:pointer}
+
+.toggles{display:flex;gap:8px;flex-wrap:wrap}
+.tg{
+  flex:1;min-width:118px;font-size:9.5px;letter-spacing:.14em;padding:9px 8px;cursor:pointer;
+  border:1px solid var(--line);background:transparent;color:rgba(0,240,255,.6);
+  border-radius:2px;transition:.2s;font-family:inherit;text-align:center;
+}
+.tg.on{color:var(--ok);border-color:var(--ok);box-shadow:0 0 14px rgba(0,255,157,.3);background:rgba(0,255,157,.06)}
+.tg.gold{border-color:var(--gold);color:var(--gold)}
+.tg.gold:hover{background:rgba(255,179,0,.12);box-shadow:0 0 14px rgba(255,179,0,.3)}
+.tg:active{transform:scale(.97)}
+
+/* ---------- FORMULÁRIO ---------- */
+.form-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.form-row > *{flex:1;min-width:120px}
+input[type=text],input[type=tel]{
+  width:100%;background:rgba(0,240,255,.05);border:1px solid var(--line);color:#dffcff;
+  padding:9px 10px;font-family:inherit;font-size:11px;letter-spacing:.06em;border-radius:2px;outline:none;
+  transition:.2s;
+}
+input[type=text]::placeholder,input[type=tel]::placeholder{color:rgba(0,240,255,.3);letter-spacing:.1em}
+input[type=text]:focus,input[type=tel]:focus{border-color:var(--neon);box-shadow:0 0 14px rgba(0,240,255,.25);background:rgba(0,240,255,.08)}
+.social-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.coords{
+  font-size:9.5px;letter-spacing:.1em;color:rgba(0,240,255,.65);
+  border:1px dashed rgba(0,240,255,.25);padding:8px 10px;border-radius:2px;
+  background:rgba(0,240,255,.02);margin-bottom:10px;min-height:34px;display:flex;align-items:center;
+}
+.coords.ok{color:var(--ok);border-color:rgba(0,255,157,.4)}
+.btn-add{
+  width:100%;padding:11px;border:1px solid var(--ok);background:rgba(0,255,157,.1);color:var(--ok);
+  font-family:inherit;font-size:10px;letter-spacing:.22em;cursor:pointer;border-radius:2px;transition:.2s;
+}
+.btn-add:hover{background:rgba(0,255,157,.25);box-shadow:0 0 20px rgba(0,255,157,.4)}
+.btn-add:disabled{opacity:.35;cursor:not-allowed;box-shadow:none;background:transparent}
+
+.hint{font-size:8.5px;letter-spacing:.12em;color:rgba(0,240,255,.4);margin-top:8px;line-height:1.7}
+
+/* ---------- LISTA DE ALVOS ---------- */
+.target{
+  border:1px solid rgba(0,240,255,.18);border-left:2px solid var(--neon);
+  padding:10px 12px;margin-bottom:10px;border-radius:2px;
+  background:rgba(0,240,255,.03);transition:.25s;
+}
+.target.hot{border-left-color:var(--danger);background:rgba(255,45,85,.08)}
+.target .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.target .name{font-size:11.5px;letter-spacing:.14em;color:#dffcff}
+.target .dist{font-size:11px;color:var(--gold);letter-spacing:.06em;white-space:nowrap}
+.target.hot .dist{color:var(--danger)}
+.target .num{font-size:9.5px;color:rgba(0,240,255,.55);letter-spacing:.06em;margin-top:3px}
+.target .addr{font-size:9px;color:rgba(0,240,255,.42);letter-spacing:.04em;margin-top:5px;line-height:1.5}
+.target .bar{height:3px;background:rgba(0,240,255,.12);margin-top:8px;border-radius:2px;overflow:hidden}
+.target .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--ok),var(--gold),var(--danger));transition:width .7s linear}
+.target .acts{display:flex;gap:6px;margin-top:9px}
+.mini{
+  font-size:8.5px;letter-spacing:.12em;padding:5px 8px;cursor:pointer;font-family:inherit;
+  border:1px solid var(--line);background:transparent;color:rgba(0,240,255,.6);border-radius:2px;transition:.2s;
+}
+.mini:hover{border-color:var(--neon);color:var(--neon);box-shadow:0 0 10px rgba(0,240,255,.25)}
+.mini.del:hover{border-color:var(--danger);color:var(--danger);box-shadow:0 0 10px rgba(255,45,85,.3)}
+
+.empty{
+  text-align:center;padding:22px 10px;font-size:9.5px;letter-spacing:.18em;
+  color:rgba(0,240,255,.35);border:1px dashed rgba(0,240,255,.2);border-radius:2px;
+}
+
+/* ---------- OVERLAY ALERTA ---------- */
+.overlay{
+  position:fixed;inset:0;z-index:9999;display:none;
+  background:radial-gradient(circle at 50% 40%,rgba(255,45,85,.22),rgba(2,6,11,.96) 60%);
+  backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px;
+}
+.overlay.show{display:flex;animation:fadein .25s}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.alert{
+  width:min(540px,100%);max-height:92vh;overflow-y:auto;
+  border:1px solid var(--danger);border-radius:4px;
+  background:linear-gradient(180deg,rgba(255,45,85,.1),rgba(2,6,11,.96));
+  box-shadow:0 0 60px rgba(255,45,85,.45),inset 0 0 60px rgba(255,45,85,.08);
+  padding:22px;position:relative;animation:pop .3s cubic-bezier(.2,1.4,.5,1);
+}
+@keyframes pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+.alert .hdr{font-size:11px;letter-spacing:.34em;color:var(--danger);text-align:center;text-shadow:0 0 14px var(--danger);animation:blink 1s infinite}
+.alert .codename{font-size:clamp(21px,5.5vw,32px);letter-spacing:.12em;text-align:center;margin:14px 0 6px;color:#fff;text-shadow:0 0 18px var(--danger),0 0 40px rgba(255,45,85,.6)}
+.alert .phone{text-align:center;font-size:12px;letter-spacing:.18em;color:var(--neon);margin-bottom:14px}
+.alert .distbox{text-align:center;border-top:1px solid rgba(255,45,85,.3);border-bottom:1px solid rgba(255,45,85,.3);padding:14px 0;margin-bottom:14px}
+.alert .distbox b{font-size:34px;color:var(--gold);text-shadow:0 0 20px var(--gold);letter-spacing:.04em}
+.alert .distbox span{display:block;font-size:9px;letter-spacing:.3em;color:rgba(0,240,255,.55);margin-top:4px}
+.locbox{
+  border:1px solid rgba(0,240,255,.25);border-left:2px solid var(--neon);
+  background:rgba(0,240,255,.05);padding:11px 13px;border-radius:2px;margin-bottom:16px;
+}
+.locbox .k{font-size:8.5px;letter-spacing:.28em;color:rgba(0,240,255,.45);display:block;margin-bottom:5px}
+.locbox .v{font-size:11.5px;color:#dffcff;letter-spacing:.04em;line-height:1.6}
+.locbox .v b{color:var(--gold)}
+.socials{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-bottom:16px}
+.soc{font-size:9px;letter-spacing:.1em;padding:6px 10px;border-radius:2px;border:1px solid var(--line);color:#cdf9ff;background:rgba(0,240,255,.06)}
+.soc b{color:var(--gold);font-weight:600;margin-left:5px}
+.alert .btns{display:flex;gap:10px}
+.alert button{flex:1;padding:12px;font-family:inherit;font-size:10px;letter-spacing:.18em;cursor:pointer;border-radius:2px;transition:.2s}
+.btn-ok{border:1px solid var(--ok);background:rgba(0,255,157,.1);color:var(--ok)}
+.btn-ok:hover{background:rgba(0,255,157,.25);box-shadow:0 0 20px rgba(0,255,157,.4)}
+.btn-mute{border:1px solid var(--line);background:transparent;color:rgba(0,240,255,.6)}
+.btn-mute:hover{border-color:var(--neon);color:var(--neon)}
+
+footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,255,.28);margin:26px 0 12px;line-height:1.8}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="logo">
+      <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linejoin="round">
+        <path d="M50 7C24 7 12 29 12 48c0 24 17 45 38 45s38-21 38-45C88 29 76 7 50 7Z"/>
+        <ellipse cx="33" cy="47" rx="11" ry="7.5" transform="rotate(-22 33 47)" fill="currentColor" stroke="none"/>
+        <ellipse cx="67" cy="47" rx="11" ry="7.5" transform="rotate(22 67 47)" fill="currentColor" stroke="none"/>
+        <path d="M42 70h16" stroke-width="2.6" opacity=".8"/>
+      </svg>
+    </div>
+    <div class="brand">
+      <h1>SENTINELA<span>-7</span></h1>
+      <p>PROTOCOLO JARDAS · MAPA TÁTICO · v0.2</p>
+    </div>
+    <div class="status" id="statusTxt">INICIALIZANDO</div>
+  </header>
+
+  <div class="notice">
+    ⚠ <b>FERRAMENTA DE USO PESSOAL / EDUCACIONAL.</b> Você digita os números e <u>você mesmo</u> posiciona cada alvo no mapa
+    (pela sua localização, por endereço ou clicando no mapa). O app <b>não rastreia chips de terceiros</b> — ele mede a
+    distância entre a sua posição GPS real e os pontos que você cadastrou, e usa geocodificação reversa (OpenStreetMap)
+    para falar o nome da rua e pontos de referência.
+  </div>
+
+  <div class="grid">
+
+    <!-- ===== COLUNA ESQUERDA: MAPA ===== -->
+    <div>
+      <div class="card">
+        <h2>◈ MAPA TÁTICO <em id="mapInfo">AGUARDANDO GPS…</em></h2>
+        <div class="map-wrap">
+          <div id="map"></div>
+        </div>
+        <div class="geobar">
+          <div>
+            <div class="lbl">SUA POSIÇÃO</div>
+            <div class="val" id="myCoords">—</div>
+          </div>
+          <div style="flex:1;min-width:180px">
+            <div class="lbl">ENDEREÇO ATUAL</div>
+            <div class="val" id="myAddr">Aguardando GPS…</div>
+          </div>
+          <div class="sp" id="myAcc">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== COLUNA DIREITA ===== -->
+    <div>
+      <!-- CONTROLES -->
+      <div class="card" style="margin-bottom:16px">
+        <h2>◈ PROTOCOLO DE APROXIMAÇÃO</h2>
+        <div class="ctrl">
+          <label>RAIO DE ALERTA <b id="thVal">150 m</b></label>
+          <input type="range" id="threshold" min="20" max="2000" value="150" step="10">
+        </div>
+        <div class="toggles">
+          <button class="tg on" id="tgVoice">🔊 VOZ ATIVA</button>
+          <button class="tg on" id="tgSound">🎵 ALARME</button>
+          <button class="tg" id="tgTrack">📍 SEGUIR GPS</button>
+        </div>
+        <div class="toggles" style="margin-top:8px">
+          <button class="tg gold" id="tgCenter">🎯 CENTRALIZAR</button>
+          <button class="tg gold" id="tgScan">▶ RELATÓRIO DE VOZ</button>
+        </div>
+      </div>
+
+      <!-- NOVO ALVO -->
+      <div class="card" style="margin-bottom:16px">
+        <h2>◈ CADASTRAR ALVO <em>NÚMERO REAL</em></h2>
+
+        <div class="form-row">
+          <input type="text" id="fName" placeholder="CODINOME (ex: ALVO-05)" maxlength="18">
+          <input type="tel"  id="fNum"  placeholder="NÚMERO (+55 11 99999-0000)" maxlength="24">
+        </div>
+
+        <div class="social-grid">
+          <input type="text" id="fFb" placeholder="Facebook (opcional)">
+          <input type="text" id="fIg" placeholder="Instagram (opcional)">
+          <input type="text" id="fTk" placeholder="TikTok (opcional)">
+          <input type="text" id="fKw" placeholder="Kwai (opcional)">
+        </div>
+
+        <div class="coords" id="fCoords">📍 Nenhuma localização definida</div>
+
+        <div class="toggles" style="margin-bottom:10px">
+          <button class="tg gold" id="btnMyLoc" type="button">📡 MINHA POSIÇÃO</button>
+          <button class="tg gold" id="btnPick"  type="button">🖱 CLICAR NO MAPA</button>
+        </div>
+        <div class="form-row" style="margin-bottom:10px">
+          <input type="text" id="fAddr" placeholder="Buscar endereço (rua, nº, cidade)">
+          <button class="tg gold" id="btnSearch" type="button" style="flex:0 0 90px">🔍 BUSCAR</button>
+        </div>
+
+        <button class="btn-add" id="btnAdd" disabled>+ ADICIONAR AO MONITORAMENTO</button>
+        <div class="hint">Digite o número real. Escolha a posição por GPS, endereço ou clique no mapa.</div>
+      </div>
+
+      <!-- LISTA -->
+      <div class="card">
+        <h2>◈ ALVOS MONITORADOS <em id="listCount">0</em></h2>
+        <div id="list"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    SENTINELA-7 · MAPAS © OPENSTREETMAP · GEOCODIFICAÇÃO © NOMINATIM<br>
+    FERRAMENTA EDUCACIONAL · NÃO REALIZA RASTREAMENTO DE TERCEIROS
+  </footer>
+</div>
+
+<!-- OVERLAY DE ALERTA -->
+<div class="overlay" id="overlay">
+  <div class="alert">
+    <div class="hdr">▲ ALVO EM APROXIMAÇÃO ▲</div>
+    <div class="codename" id="aName">—</div>
+    <div class="phone" id="aPhone">—</div>
+
+    <div class="distbox">
+      <b id="aDist">0</b>
+      <span>METROS DE DISTÂNCIA</span>
+    </div>
+
+    <div class="locbox">
+      <span class="k">◈ LOCALIZAÇÃO DO ALVO</span>
+      <div class="v" id="aAddr">Consultando via satélite…</div>
+    </div>
+
+    <div class="socials" id="aSocials"></div>
+
+    <div class="btns">
+      <button class="btn-ok" id="aOk">CIENTE</button>
+      <button class="btn-mute" id="aMute">SILENCIAR 60s</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+/* ================================================================
+   SENTINELA-7 v0.2 — MAPA TÁTICO COM GPS REAL
+   ----------------------------------------------------------------
+   • Mapa Leaflet sobre OpenStreetMap (tiles CartoDB Dark Matter)
+   • Geolocalização real do navegador (watchPosition)
+   • Geocodificação reversa via Nominatim → rua + pontos de referência
+   • Voz em pt-BR via Web Speech API
+   • Alvos cadastrados por VOCÊ (não há rastreamento de terceiros)
+   ================================================================ */
+
+const STORAGE_KEY = 'sentinela7.targets.v2';
+const GEO_TTL     = 10 * 60 * 1000;   // 10 min de cache de endereço
+
+/* ---------------- ESTADO ---------------- */
+let map, meMarker, thCircle, meLatLng = null;
+let targets = [];
+let threshold = 150;
+let voiceOn = true, soundOn = true;
+let mutedUntil = 0;
+let audioCtx = null;
+let picking = false, pickMarker = null;
+let formLatLng = null;
+let myGeoCache = { addr:'', ts:0, latlng:null };
+
+/* ---------------- ELEMENTOS ---------------- */
+const $ = id => document.getElementById(id);
+const listEl   = $('list');
+const overlay  = $('overlay');
+
+/* ================================================================
+   1. MAPA
+   ================================================================ */
+function initMap(){
+  map = L.map('map', {
+    zoomControl: true,
+    attributionControl: true,
+    preferCanvas: true
+  }).setView([-23.5505, -46.6333], 15);
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    maxZoom: 19,
+    subdomains: 'abcd',
+    attribution: '&copy; OpenStreetMap &copy; CARTO'
+  }).addTo(map);
+
+  // círculo do raio de alerta
+  thCircle = L.circle([-23.5505, -46.6333], {
+    radius: threshold,
+    color: '#ffb300',
+    weight: 1,
+    dashArray: '6 6',
+    fillColor: '#ffb300',
+    fillOpacity: 0.05,
+    interactive: false
+  }).addTo(map);
+
+  // clique no mapa para posicionar alvo
+  map.on('click', e => {
+    if(!picking) return;
+    setFormLocation(e.latlng.lat, e.latlng.lng);
+    if(pickMarker) map.removeLayer(pickMarker);
+    pickMarker = L.marker(e.latlng, {
+      icon: L.divIcon({className:'', html:'<div class="mk hot"></div>', iconSize:[16,16], iconAnchor:[8,8]})
+    }).addTo(map);
+    picking = false;
+    $('btnPick').classList.remove('on');
+    $('btnPick').textContent = '🖱 CLICAR NO MAPA';
+    map.getContainer().style.cursor = '';
+  });
+}
+
+/* ================================================================
+   2. GEOLOCALIZAÇÃO REAL
+   ================================================================ */
+function startGPS(){
+  if(!('geolocation' in navigator)){
+    setStatus('SEM GPS', 'warn');
+    $('myAddr').textContent = 'Geolocalização não suportada neste navegador.';
+    return;
+  }
+  setStatus('BUSCANDO GPS', 'warn');
+
+  navigator.geolocation.watchPosition(
+    pos => {
+      const { latitude:lat, longitude:lon, accuracy:acc } = pos.coords;
+      const first = !meLatLng;
+      meLatLng = L.latLng(lat, lon);
+
+      if(!meMarker){
+        meMarker = L.marker(meLatLng, {
+          icon: L.divIcon({className:'', html:'<div class="mk-me"></div>', iconSize:[16,16], iconAnchor:[8,8]}),
+          zIndexOffset: 1000
+        }).addTo(map);
+      } else {
+        meMarker.setLatLng(meLatLng);
+      }
+
+      thCircle.setLatLng(meLatLng).setRadius(threshold);
+
+      $('myCoords').textContent = lat.toFixed(6) + ', ' + lon.toFixed(6);
+      $('myAcc').textContent = '± ' + Math.round(acc) + ' m';
+      $('mapInfo').textContent = 'GPS ATIVO';
+      setStatus('VARRENDO', '');
+
+      if(first || !myGeoCache.latlng || meLatLng.distanceTo(myGeoCache.latlng) > 60){
+        myGeoCache.latlng = meLatLng;
+        reverseGeocode(lat, lon).then(g => {
+          const txt = g.road
+            ? `${g.road}${g.ref ? ' · próximo a ' + g.ref : ''}`
+            : (g.display || 'Endereço não identificado');
+          $('myAddr').textContent = txt;
+        });
+      }
+
+      if(first){
+        map.setView(meLatLng, 16);
+        updateAll();
+      }
+    },
+    err => {
+      setStatus('GPS NEGADO', 'danger');
+      $('myAddr').textContent = 'Permissão de localização negada. Usando posição padrão (São Paulo).';
+      if(!meLatLng){
+        meLatLng = L.latLng(-23.5505, -46.6333);
+        meMarker = L.marker(meLatLng, {
+          icon: L.divIcon({className:'', html:'<div class="mk-me"></div>', iconSize:[16,16], iconAnchor:[8,8]})
+        }).addTo(map);
+        thCircle.setLatLng(meLatLng).setRadius(threshold);
+      }
+      updateAll();
+    },
+    { enableHighAccuracy:true, maximumAge:5000, timeout:15000 }
+  );
+}
+
+/* ================================================================
+   3. GEOCODIFICAÇÃO (Nominatim / OpenStreetMap)
+   ================================================================ */
+async function reverseGeocode(lat, lon){
+  try{
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
+              + `&zoom=18&addressdetails=1&accept-language=pt-BR`;
+    const r = await fetch(url, { headers:{ 'Accept':'application/json' } });
+    if(!r.ok) throw 0;
+    const j = await r.json();
+    const a = j.address || {};
+
+    const road = a.road || a.pedestrian || a.footway || a.path || a.cycleway ||
+                 a.residential || a.suburb || a.neighbourhood || '';
+
+    // pontos de referência: comércio, praça, escola, etc.
+    const refParts = [
+      a.amenity, a.shop, a.tourism, a.leisure, a.building,
+      a.neighbourhood, a.suburb, a.city_district
+    ].filter(Boolean);
+
+    const ref = [...new Set(refParts)].slice(0,2).join(', ');
+
+    return {
+      road,
+      ref,
+      display: j.display_name || '',
+      number: a.house_number || ''
+    };
+  }catch(e){
+    return { road:'', ref:'', display:'', number:'' };
+  }
+}
+
+async function geocodeAddress(q){
+  const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1`
+            + `&accept-language=pt-BR&q=${encodeURIComponent(q)}`;
+  const r = await fetch(url, { headers:{ 'Accept':'application/json' } });
+  const j = await r.json();
+  if(!j.length) return null;
+  return { lat: parseFloat(j[0].lat), lon: parseFloat(j[0].lon), name: j[0].display_name };
+}
+
+/* retorna {road, ref, display} com cache */
+async function getTargetGeo(t){
+  const now = Date.now();
+  if(t._geo && (now - t._geo.ts) < GEO_TTL) return t._geo;
+  const g = await reverseGeocode(t.lat, t.lon);
+  t._geo = { ...g, ts: now };
+  saveTargets();
+  return t._geo;
+}
+
+/* ================================================================
+   4. DISTÂNCIA
+   ================================================================ */
+function distTo(t){
+  if(!meLatLng) return Infinity;
+  return meLatLng.distanceTo(L.latLng(t.lat, t.lon)); // metros (Leaflet usa haversine)
+}
+
+/* ================================================================
+   5. RENDERIZAÇÃO
+   ================================================================ */
+function render(){
+  $('listCount').textContent = targets.length;
+
+  if(!targets.length){
+    listEl.innerHTML = '<div class="empty">NENHUM ALVO CADASTRADO<br>USE O PAINEL ACIMA PARA ADICIONAR</div>';
+    return;
+  }
+
+  const sorted = [...targets].sort((a,b) => distTo(a) - distTo(b));
+
+  listEl.innerHTML = sorted.map(t => {
+    const d = distTo(t);
+    const hot = d <= threshold;
+    const dTxt = isFinite(d) ? (d < 1000 ? Math.round(d) + ' m' : (d/1000).toFixed(2) + ' km') : '—';
+    const barW = isFinite(d) ? Math.min(d / (threshold * 2.2) * 100, 100) : 100;
+    const geo = t._geo && t._geo.road ? `${t._geo.road}${t._geo.ref ? ' · ' + t._geo.ref : ''}` : 'Endereço não consultado';
+
+    return `
+      <div class="target ${hot ? 'hot' : ''}" data-id="${t.id}">
+        <div class="top">
+          <span class="name">${escapeHtml(t.codename)}</span>
+          <span class="dist">${dTxt}</span>
+        </div>
+        <div class="num">${escapeHtml(t.numero)}</div>
+        <div class="addr">📍 ${escapeHtml(geo)}</div>
+        <div class="bar"><i style="width:${barW}%"></i></div>
+        <div class="acts">
+          <button class="mini" data-act="loc">🔊 FALAR LOCAL</button>
+          <button class="mini" data-act="go">🗺 IR ATÉ</button>
+          <button class="mini del" data-act="del">✕ REMOVER</button>
+        </div>
+      </div>`;
+  }).join('');
+
+  // ações
+  listEl.querySelectorAll('.mini').forEach(btn => {
+    btn.onclick = async e => {
+      e.stopPropagation();
+      const id = +btn.closest('.target').dataset.id;
+      const t = targets.find(x => x.id === id);
+      if(!t) return;
+      if(btn.dataset.act === 'del'){
+        targets = targets.filter(x => x.id !== id);
+        if(t._marker) map.removeLayer(t._marker);
+        saveTargets(); render();
+      }
+      if(btn.dataset.act === 'go'){
+        map.setView([t.lat, t.lon], 17);
+      }
+      if(btn.dataset.act === 'loc'){
+        speakTargetLocation(t);
+      }
+    };
+  });
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* marcadores no mapa */
+function renderMarkers(){
+  targets.forEach(t => {
+    const hot = distTo(t) <= threshold;
+    const latlng = [t.lat, t.lon];
+
+    if(!t._marker){
+      t._marker = L.marker(latlng, { icon: mkIcon(t, hot) }).addTo(map);
+      t._marker.on('click', () => showAlert(t, true));
+    } else {
+      t._marker.setLatLng(latlng);
+      t._marker.setIcon(mkIcon(t, hot));
+    }
+  });
+}
+
+function mkIcon(t, hot){
+  return L.divIcon({
+    className: '',
+    html: `<div class="mk ${hot ? 'hot' : ''}"><span>${escapeHtml(t.codename)}</span></div>`,
+    iconSize: [16,16],
+    iconAnchor: [8,8]
+  });
+}
+
+/* ================================================================
+   6. ATUALIZAÇÃO / LOOP
+   ================================================================ */
+function updateAll(){
+  render();
+  renderMarkers();
+}
+
+setInterval(() => {
+  if(!meLatLng || !targets.length) return;
+
+  let anyHot = false;
+
+  targets.forEach(t => {
+    const d = distTo(t);
+    const hot = d <= threshold;
+
+    if(hot){
+      anyHot = true;
+      if(!t._armed && Date.now() > mutedUntil){
+        t._armed = true;
+        showAlert(t, false, d);
+      }
+    } else if(d > threshold * 1.25){
+      t._armed = false;
+    }
+  });
+
+  setStatus(anyHot ? 'ALVO PRÓXIMO' : 'VARRENDO', anyHot ? 'danger' : '');
+  updateAll();
+}, 1200);
+
+function setStatus(txt, cls){
+  const el = $('statusTxt');
+  el.textContent = txt;
+  el.className = 'status' + (cls ? ' ' + cls : '');
+}
+
+/* ================================================================
+   7. VOZ E ÁUDIO
+   ================================================================ */
+function beep(times = 3){
+  if(!soundOn) return;
+  try{
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    for(let i = 0; i < times; i++){
+      const t0 = audioCtx.currentTime + i * 0.22;
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.type = 'square';
+      o.frequency.setValueAtTime(i % 2 ? 1180 : 880, t0);
+      o.connect(g); g.connect(audioCtx.destination);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(0.15, t0 + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.16);
+      o.start(t0); o.stop(t0 + 0.18);
+    }
+  }catch(e){}
+}
+
+function speak(text){
+  if(!voiceOn || !('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'pt-BR';
+  u.rate = 1.0;
+  u.pitch = 0.88;
+  u.volume = 1;
+  const v = window.speechSynthesis.getVoices().find(x => x.lang && x.lang.startsWith('pt'));
+  if(v) u.voice = v;
+  window.speechSynthesis.speak(u);
+}
+
+function fmtDist(m){
+  if(m < 1000) return Math.round(m) + ' metros';
+  return (m/1000).toFixed(2).replace('.', ',') + ' quilômetros';
+}
+
+/* fala: rua + ponto de referência */
+async function speakTargetLocation(t){
+  const d = distTo(t);
+  const g = await getTargetGeo(t);
+  const rua = g.road ? `na ${g.road}${g.number ? ', número ' + g.number : ''}` : 'em local não identificado';
+  const ref = g.ref ? `, próximo a ${g.ref}` : '';
+  speak(`Alvo ${t.codename}. ${fmtDist(d)} de distância. Localizado ${rua}${ref}.`);
+}
+
+/* ================================================================
+   8. ALERTA
+   ================================================================ */
+let currentAlert = null;
+
+async function showAlert(t, manual, distOverride){
+  currentAlert = t;
+  const d = distOverride ?? distTo(t);
+
+  $('aName').textContent  = t.codename;
+  $('aPhone').textContent = t.numero;
+  $('aDist').textContent  = Math.round(d);
+
+  // sociais
+  const socs = [];
+  if(t.socials.facebook)  socs.push(['Facebook', t.socials.facebook]);
+  if(t.socials.instagram) socs.push(['Instagram', t.socials.instagram]);
+  if(t.socials.tiktok)    socs.push(['TikTok', t.socials.tiktok]);
+  if(t.socials.kwai)      socs.push(['Kwai', t.socials.kwai]);
+  $('aSocials').innerHTML = socs.length
+    ? socs.map(([k,v]) => `<span class="soc">${k}<b>${escapeHtml(v)}</b></span>`).join('')
+    : '<span class="soc" style="opacity:.5">SEM REDES CADASTRADAS</span>';
+
+  overlay.classList.add('show');
+  beep(3);
+
+  // endereço + voz
+  $('aAddr').textContent = 'Consultando via satélite…';
+  const g = await getTargetGeo(t);
+  const rua = g.road ? `${g.road}${g.number ? ', ' + g.number : ''}` : 'Local não identificado';
+  const ref = g.ref ? `<br><b>Referência:</b> ${escapeHtml(g.ref)}` : '';
+  $('aAddr').innerHTML = `📍 ${escapeHtml(rua)}${ref}`;
+
+  const fala = `Atenção. Alvo ${t.codename} ${manual ? 'selecionado' : 'detectado'} a ${fmtDist(d)}. `
+             + `Localizado ${g.road ? 'na ' + g.road : 'em local não identificado'}`
+             + `${g.ref ? ', próximo a ' + g.ref : ''}.`;
+  speak(fala);
+}
+
+function closeAlert(){
+  overlay.classList.remove('show');
+  setStatus('VARRENDO', '');
+}
+
+$('aOk').onclick = closeAlert;
+$('aMute').onclick = () => {
+  mutedUntil = Date.now() + 60000;
+  if('speechSynthesis' in window) window.speechSynthesis.cancel();
+  closeAlert();
+};
+
+/* ================================================================
+   9. CADASTRO DE ALVO
+   ================================================================ */
+function setFormLocation(lat, lon, label){
+  formLatLng = { lat, lon };
+  $('fCoords').textContent = `📍 ${lat.toFixed(6)}, ${lon.toFixed(6)}${label ? ' · ' + label : ''}`;
+  $('fCoords').classList.add('ok');
+  validateForm();
+}
+
+function validateForm(){
+  const ok = $('fName').value.trim() && $('fNum').value.trim() && formLatLng;
+  $('btnAdd').disabled = !ok;
+}
+
+['fName','fNum'].forEach(id => $(id).addEventListener('input', validateForm));
+
+$('btnMyLoc').onclick = () => {
+  if(!meLatLng) return alert('GPS ainda não disponível. Aguarde ou permita a localização.');
+  setFormLocation(meLatLng.lat, meLatLng.lng, 'minha posição');
+  map.setView(meLatLng, 17);
+};
+
+$('btnPick').onclick = function(){
+  picking = !picking;
+  this.classList.toggle('on', picking);
+  this.textContent = picking ? '🖱 CLIQUE NO MAPA…' : '🖱 CLICAR NO MAPA';
+  map.getContainer().style.cursor = picking ? 'crosshair' : '';
+};
+
+$('btnSearch').onclick = async function(){
+  const q = $('fAddr').value.trim();
+  if(!q) return;
+  this.textContent = '…';
+  const r = await geocodeAddress(q);
+  this.textContent = '🔍 BUSCAR';
+  if(!r) return alert('Endereço não encontrado.');
+  setFormLocation(r.lat, r.lon, r.name.split(',').slice(0,2).join(','));
+  map.setView([r.lat, r.lon], 17);
+  if(pickMarker) map.removeLayer(pickMarker);
+  pickMarker = L.marker([r.lat, r.lon], {
+    icon: L.divIcon({className:'', html:'<div class="mk hot"></div>', iconSize:[16,16], iconAnchor:[8,8]})
+  }).addTo(map);
+};
+
+$('btnAdd').onclick = () => {
+  const t = {
+    id: Date.now(),
+    codename: $('fName').value.trim().toUpperCase(),
+    numero: $('fNum').value.trim(),
+    lat: formLatLng.lat,
+    lon: formLatLng.lng,
+    socials: {
+      facebook:  $('fFb').value.trim(),
+      instagram: $('fIg').value.trim(),
+      tiktok:    $('fTk').value.trim(),
+      kwai:      $('fKw').value.trim()
+    },
+    _armed: false,
+    _geo: null
+  };
+
+  targets.push(t);
+  saveTargets();
+  updateAll();
+
+  // consulta o endereço em background
+  getTargetGeo(t).then(() => render());
+
+  // limpa formulário
+  ['fName','fNum','fFb','fIg','fTk','fKw','fAddr'].forEach(id => $(id).value = '');
+  formLatLng = null;
+  $('fCoords').textContent = '📍 Nenhuma localização definida';
+  $('fCoords').classList.remove('ok');
+  if(pickMarker){ map.removeLayer(pickMarker); pickMarker = null; }
+  picking = false;
+  $('btnPick').classList.remove('on');
+  $('btnPick').textContent = '🖱 CLICAR NO MAPA';
+  map.getContainer().style.cursor = '';
+  validateForm();
+
+  map.setView([t.lat, t.lon], 17);
+  speak(`Alvo ${t.codename} adicionado ao monitoramento.`);
+};
+
+/* ================================================================
+   10. CONTROLES
+   ================================================================ */
+$('threshold').addEventListener('input', e => {
+  threshold = +e.target.value;
+  $('thVal').textContent = threshold >= 1000
+    ? (threshold/1000).toFixed(1).replace('.', ',') + ' km'
+    : threshold + ' m';
+  if(thCircle) thCircle.setRadius(threshold);
+  targets.forEach(t => { if(distTo(t) > threshold * 1.25) t._armed = false; });
+  updateAll();
+});
+
+$('tgVoice').onclick = function(){
+  voiceOn = !voiceOn;
+  this.classList.toggle('on', voiceOn);
+  this.textContent = voiceOn ? '🔊 VOZ ATIVA' : '🔇 VOZ OFF';
+  if(!voiceOn && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+};
+
+$('tgSound').onclick = function(){
+  soundOn = !soundOn;
+  this.classList.toggle('on', soundOn);
+  this.textContent = soundOn ? '🎵 ALARME' : '🔕 ALARME OFF';
+};
+
+let followGPS = false;
+$('tgTrack').onclick = function(){
+  followGPS = !followGPS;
+  this.classList.toggle('on', followGPS);
+};
+
+map && null; // (map criado no init)
+
+$('tgCenter').onclick = () => {
+  if(meLatLng) map.setView(meLatLng, 17);
+  else alert('GPS ainda não disponível.');
+};
+
+$('tgScan').onclick = async () => {
+  if(!targets.length){ speak('Nenhum alvo cadastrado.'); return; }
+  beep(1);
+  const sorted = [...targets].sort((a,b) => distTo(a) - distTo(b));
+  speak(`Relatório tático. ${targets.length} alvos monitorados.`);
+  for(const t of sorted){
+    const g = await getTargetGeo(t);
+    const d = distTo(t);
+    const rua = g.road ? `na ${g.road}` : 'local não identificado';
+    const ref = g.ref ? `, próximo a ${g.ref}` : '';
+    speak(`Alvo ${t.codename}, ${fmtDist(d)}, ${rua}${ref}.`);
+    await new Promise(r => setTimeout(r, 2200));
+  }
+};
+
+/* ================================================================
+   11. PERSISTÊNCIA
+   ================================================================ */
+function saveTargets(){
+  try{
+    const clean = targets.map(t => ({
+      id:t.id, codename:t.codename, numero:t.numero,
+      lat:t.lat, lon:t.lon, socials:t.socials, _geo:t._geo
+    }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(clean));
+  }catch(e){}
+}
+
+function loadTargets(){
+  try{
+    const s = localStorage.getItem(STORAGE_KEY);
+    if(s) targets = JSON.parse(s).map(t => ({ ...t, _armed:false }));
+  }catch(e){ targets = []; }
+}
+
+/* ================================================================
+   12. BOOT
+   ================================================================ */
+(function boot(){
+  initMap();
+
+  // repassa o followGPS pro watch
+  const origUpdate = updateAll;
+  updateAll = function(){
+    origUpdate();
+    if(followGPS && meLatLng) map.panTo(meLatLng, { animate:true, duration:.6 });
+  };
+
+  loadTargets();
+  updateAll();
+  startGPS();
+
+  setTimeout(() => {
+    if(!meLatLng) setStatus('SEM GPS', 'warn');
+  }, 4000);
+
+  if('speechSynthesis' in window){
+    window.speechSynthesis.onvoiceschanged = () => {};
+  }
+})();
+</script>
+</body>
+</html>
