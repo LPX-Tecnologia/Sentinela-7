@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SENTINELA-7 · IMPORTAÇÃO EM MASSA</title>
+<title>SENTINELA-7 · BRIDGE + MAPA</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
 :root{
@@ -62,6 +62,7 @@ header{
   padding:9px 14px;color:rgba(255,179,0,.9);border-radius:2px}
 .notice b{color:#ffd166}
 .notice.blue{border-left-color:var(--neon);background:rgba(0,240,255,.05);color:rgba(0,240,255,.85)}
+.notice.danger{border-left-color:var(--danger);background:rgba(255,45,85,.06);color:rgba(255,180,200,.9)}
 
 .grid{display:grid;grid-template-columns:1.25fr .95fr;gap:16px;margin-top:16px}
 @media(max-width:960px){.grid{grid-template-columns:1fr}}
@@ -190,11 +191,19 @@ textarea{resize:vertical;min-height:80px;line-height:1.6}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 .social-preview{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
-.social-preview .sp-item{font-size:9px;letter-spacing:.06em;padding:7px 9px;border-radius:2px;
+.social-preview .sp-item{
+  font-size:9px;letter-spacing:.06em;padding:7px 9px;border-radius:2px;
   border:1px solid var(--line);background:rgba(0,240,255,.04);
-  color:#cdf9ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.social-preview .sp-item b{color:var(--gold);font-weight:600;margin-right:5px}
-.social-preview .sp-item.empty{opacity:.35}
+  color:#cdf9ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  display:flex;align-items:center;gap:6px;min-height:32px;
+  transition:background .2s,border-color .2s,color .2s;
+}
+.social-preview .sp-item b{color:var(--gold);font-weight:600;flex:0 0 auto}
+.social-preview .sp-item span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.social-preview .sp-item.empty{opacity:.55}
+.social-preview .sp-item.found{border-color:rgba(0,255,157,.5);background:rgba(0,255,157,.06);color:#c9ffe7}
+.social-preview .sp-item.loading{border-color:rgba(255,179,0,.5);background:rgba(255,179,0,.05);color:var(--gold)}
+.social-preview .sp-item.notfound{border-color:rgba(0,240,255,.2);background:rgba(0,240,255,.02);opacity:.5}
 
 .coords{font-size:9.5px;letter-spacing:.08em;color:rgba(0,240,255,.65);
   border:1px dashed rgba(0,240,255,.25);padding:8px 10px;border-radius:2px;
@@ -206,7 +215,6 @@ textarea{resize:vertical;min-height:80px;line-height:1.6}
 .btn-add:hover{background:rgba(0,255,157,.25);box-shadow:0 0 20px rgba(0,255,157,.4)}
 .btn-add:disabled{opacity:.35;cursor:not-allowed;box-shadow:none;background:transparent}
 
-/* IMPORTAR */
 .import-methods{display:grid;gap:10px;margin-bottom:12px}
 .imp-block{border:1px solid rgba(0,240,255,.2);border-left:2px solid var(--neon);
   background:rgba(0,240,255,.03);padding:11px 12px;border-radius:2px}
@@ -286,6 +294,13 @@ textarea{resize:vertical;min-height:80px;line-height:1.6}
 .btn-mute:hover{border-color:var(--neon);color:var(--neon)}
 
 footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,255,.28);margin:26px 0 12px;line-height:1.8}
+
+/* Badge da extensão */
+#extBadge{
+  position:fixed;top:14px;right:14px;z-index:9997;
+  font-size:9px;letter-spacing:.2em;padding:5px 10px;border-radius:2px;
+  font-family:ui-monospace,monospace;pointer-events:none;
+}
 </style>
 </head>
 <body>
@@ -302,19 +317,23 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
     </div>
     <div class="brand">
       <h1>SENTINELA<span>-7</span></h1>
-      <p>PROTOCOLO JARDAS · IMPORTAÇÃO · v0.5</p>
+      <p>PROTOCOLO JARDAS · BRIDGE CHROME · v0.6</p>
     </div>
     <div class="status" id="statusTxt">INICIALIZANDO</div>
   </header>
 
   <div class="notice">
-    ⚠ <b>USO PESSOAL / EDUCACIONAL.</b> Importe apenas contatos que você tem autorização para tratar.
-    A busca por número é <b>SIMULAÇÃO OSINT</b> — nenhuma API pública devolve redes sociais reais de um telefone.
+    ⚠ <b>USO PESSOAL / EDUCACIONAL.</b> Importe apenas contatos autorizados. A busca por rede social usa a <b>sua sessão logada</b> na extensão Chrome (bridge).
+  </div>
+
+  <div class="notice danger">
+    ⚠ <b>AVISO:</b> consultas automatizadas na busca do Facebook/Instagram/TikTok violam os Termos dessas plataformas.
+    Sua conta pode ser <b>banida</b>. Use <b>conta secundária</b> para testes. Não escale para clientes pagantes sem migrar para API paga (Apify/Datagma).
   </div>
 
   <div class="notice blue">
-    ℹ <b>REALIDADE TÉCNICA:</b> nenhum site consegue ler contatos do WhatsApp (salvos ou não salvos) —
-    isso é dado privado do app. Os métodos abaixo são o que <u>é tecnicamente possível</u> a partir do navegador.
+    ℹ <b>BRIDGE:</b> o selo no canto superior direito mostra se a extensão Chrome está instalada.
+    Sem ela, a busca por redes cai no modo <b>SIMULAÇÃO</b>.
   </div>
 
   <div class="grid">
@@ -372,13 +391,10 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
         </div>
       </div>
 
-      <!-- ============ IMPORTAÇÃO ============ -->
       <div class="card">
         <h2>◈ IMPORTAR CONTATOS <em>EM MASSA</em></h2>
 
         <div class="import-methods">
-
-          <!-- MÉTODO 1: Contact Picker API -->
           <div class="imp-block" id="blkPicker">
             <h3>📱 CONTATOS DO CELULAR (nativo)</h3>
             <p id="pickerMsg">Abre o seletor nativo do sistema. Você escolhe quais contatos importar.
@@ -388,39 +404,33 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
             </button>
           </div>
 
-          <!-- MÉTODO 2: Arquivo -->
           <div class="imp-block">
             <h3>📁 IMPORTAR ARQUIVO (.vcf / .csv / .txt)</h3>
-            <p>Exporte seus contatos do <b>Google Contacts</b>, <b>iCloud</b> ou qualquer app e jogue aqui.
-               Aceita vCard (.vcf), CSV e lista de números pura.</p>
+            <p>Exporte do <b>Google Contacts</b>, <b>iCloud</b> ou qualquer app e jogue aqui.</p>
             <label class="btn-import" for="fileInput">📂 ESCOLHER ARQUIVO</label>
             <input type="file" id="fileInput" accept=".vcf,.csv,.txt,text/vcard,text/csv,text/plain" multiple>
           </div>
 
-          <!-- MÉTODO 3: Colar lista -->
           <div class="imp-block">
             <h3>📋 COLAR LISTA DE NÚMEROS</h3>
-            <p>Cole um número por linha (com ou sem nome, formato <code>Nome, +55 11 9…</code> ou só o número).</p>
-            <textarea id="pasteArea" placeholder="+55 11 99999-0001&#10;+55 21 98888-0002&#10;Maria Silva, +55 31 97777-0003&#10;(11) 96666-0004"></textarea>
+            <p>Cole um número por linha. Aceita <code>Nome, +55 11 9…</code> ou só o número.</p>
+            <textarea id="pasteArea" placeholder="+55 11 99999-0001&#10;+55 21 98888-0002&#10;Maria Silva, +55 31 97777-0003"></textarea>
             <button class="btn-import" id="btnPaste" type="button" style="margin-top:8px">
               ⚡ IMPORTAR TEXTO COLADO
             </button>
           </div>
-
         </div>
 
         <div class="import-log" id="importLog">
           ⟨ log de importação ⟩ Nada importado ainda.
         </div>
         <div class="hint">
-          Todos os contatos entram posicionados na <b>sua localização atual</b>.
-          Depois você pode reposicionar clicando em <b>🗺 IR</b> ou usando o cadastro manual.
+          Todos os contatos entram na <b>sua localização atual</b>. Depois use <b>📌 MOVER AQUI</b> na lista para reposicionar.
         </div>
       </div>
 
-      <!-- CADASTRO MANUAL -->
       <div class="card">
-        <h2>◈ CADASTRAR ALVO <em>INDIVIDUAL</em></h2>
+        <h2>◈ CADASTRAR ALVO <em>BUSCA REAL + OSINT</em></h2>
         <div class="form-row" style="margin-bottom:10px">
           <input type="tel" id="fNum" placeholder="NÚMERO (+55 11 99999-0000)" maxlength="24">
           <button class="tg gold" id="btnOsint" type="button" style="flex:0 0 110px">🔎 BUSCAR</button>
@@ -431,12 +441,14 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
         <div class="form-row">
           <input type="text" id="fName" placeholder="CODINOME (auto se vazio)" maxlength="18">
         </div>
+
         <div class="social-preview" id="socialPreview">
-          <div class="sp-item empty"><b>FB</b>—</div>
-          <div class="sp-item empty"><b>IG</b>—</div>
-          <div class="sp-item empty"><b>TT</b>—</div>
-          <div class="sp-item empty"><b>WA</b>—</div>
+          <div class="sp-item empty" id="spFB"><b>FB</b><span>—</span></div>
+          <div class="sp-item empty" id="spIG"><b>IG</b><span>—</span></div>
+          <div class="sp-item empty" id="spTT"><b>TT</b><span>—</span></div>
+          <div class="sp-item empty" id="spWA"><b>WA</b><span>—</span></div>
         </div>
+
         <div class="coords" id="fCoords">📍 Nenhuma localização definida</div>
         <div class="toggles" style="margin-bottom:10px">
           <button class="tg gold" id="btnMyLoc" type="button">📡 MINHA POSIÇÃO</button>
@@ -447,6 +459,10 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
           <button class="tg gold" id="btnSearch" type="button" style="flex:0 0 90px">🔍 IR</button>
         </div>
         <button class="btn-add" id="btnAdd" disabled>+ ADICIONAR AO MONITORAMENTO</button>
+        <div class="hint">
+          FB / IG / TT com spinner giram consultando a <b>sua sessão logada</b> via extensão.
+          WhatsApp é preenchido pela simulação (não há API real para isso).
+        </div>
       </div>
 
       <div class="card">
@@ -462,7 +478,7 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 
   <footer>
     SENTINELA-7 · MAPAS © ESRI / MAXAR · GEOCODIFICAÇÃO © PHOTON / KOMOOT<br>
-    FERRAMENTA EDUCACIONAL · NÃO REALIZA RASTREAMENTO DE TERCEIROS
+    FERRAMENTA EDUCACIONAL · USO RESPONSÁVEL
   </footer>
 </div>
 
@@ -487,13 +503,14 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 /* =================================================================
-   SENTINELA-7 v0.5 — IMPORTAÇÃO EM MASSA
-   • Contact Picker API (Chrome Android)
-   • VCF / CSV / TXT
-   • Colar texto
+   SENTINELA-7 v0.6
+   • Bridge com extensão Chrome (busca real na sessão logada)
+   • Tiles Esri (satélite, sem chave)
+   • Sonar sobreposto ao mapa, centrado no GPS
+   • Importação em massa (picker / arquivo / colar)
    ================================================================= */
 
-const STORAGE_KEY = 'sentinela7.targets.v5';
+const STORAGE_KEY = 'sentinela7.targets.v6';
 const GEO_TTL     = 10 * 60 * 1000;
 
 let map, meMarker, thCircle, meLatLng = null;
@@ -514,7 +531,136 @@ const sonarRangeEl = $('sonarRange');
 const importLog = $('importLog');
 
 /* ----------------------------------------------------------------
-   1. MAPA
+   1. BRIDGE COM EXTENSÃO CHROME
+   ---------------------------------------------------------------- */
+const SENTINELA_BRIDGE = {
+  ready: false,
+  pending: new Map(),
+
+  init(){
+    window.addEventListener('message', e => {
+      const d = e.data;
+      if(!d || !d.__sentinela) return;
+      if(d.type === 'READY'){
+        this.ready = true;
+        console.log('[SENTINELA] Bridge detectado ✓');
+        this.updateBadge(true);
+      }
+      if(d.type === 'RESULT'){
+        const cb = this.pending.get(d.requestId);
+        if(cb){ this.pending.delete(d.requestId); cb(d.data); }
+      }
+    });
+    setInterval(() => this.updateBadge(this.ready), 2500);
+    this.updateBadge(false);
+  },
+
+  updateBadge(present){
+    let el = document.getElementById('extBadge');
+    if(!el){
+      el = document.createElement('div');
+      el.id = 'extBadge';
+      document.body.appendChild(el);
+    }
+    el.textContent = present ? '◈ BRIDGE ATIVO' : '◈ BRIDGE AUSENTE';
+    el.style.color       = present ? '#00ff9d' : '#ffb300';
+    el.style.border      = `1px solid ${present ? '#00ff9d' : '#ffb300'}`;
+    el.style.background  = 'rgba(2,6,11,.85)';
+    el.style.boxShadow   = `0 0 12px ${present ? 'rgba(0,255,157,.4)' : 'rgba(255,179,0,.3)'}`;
+  },
+
+  lookup(network, number){
+    return new Promise(resolve => {
+      if(!this.ready){ resolve({ error:'Extensão não instalada' }); return; }
+      const requestId = 'r' + Date.now() + Math.random().toString(36).slice(2,6);
+      this.pending.set(requestId, resolve);
+      window.postMessage({ __sentinela:true, type:'LOOKUP', network, number, requestId }, '*');
+      setTimeout(() => {
+        if(this.pending.has(requestId)){
+          this.pending.delete(requestId);
+          resolve({ error:'Timeout na extensão' });
+        }
+      }, 30000);
+    });
+  }
+};
+SENTINELA_BRIDGE.init();
+
+/* ----------------------------------------------------------------
+   2. ENRIQUECIMENTO COM SPINNER REAL
+   ---------------------------------------------------------------- */
+async function enrichNumber(numero){
+  const campos = {
+    facebook:  document.querySelector('#spFB span'),
+    instagram: document.querySelector('#spIG span'),
+    tiktok:    document.querySelector('#spTT span')
+  };
+  const blocos = {
+    facebook:  $('spFB'),
+    instagram: $('spIG'),
+    tiktok:    $('spTT')
+  };
+
+  const redes = ['facebook','instagram','tiktok'];
+
+  // estado "consultando…" em todas
+  redes.forEach(r => {
+    const b = blocos[r];
+    b.className = 'sp-item loading';
+    campos[r].innerHTML = '<span style="display:inline-block;width:11px;height:11px;border:2px solid rgba(255,179,0,.2);border-top-color:#ffb300;border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:6px;"></span>consultando…';
+  });
+
+  const resultados = {};
+
+  for(const rede of redes){
+    let r;
+    if(SENTINELA_BRIDGE.ready){
+      r = await SENTINELA_BRIDGE.lookup(rede, numero);
+    } else {
+      // fallback: simulação marcada
+      const sim = simulateOsint(numero);
+      const fake = {
+        facebook:  sim?.facebook,
+        instagram: sim?.instagram,
+        tiktok:    sim?.tiktok
+      }[rede];
+      r = { handle: fake, name: fake, url:'', simulated:true };
+      await new Promise(res => setTimeout(res, 500 + Math.random()*700));
+    }
+    resultados[rede] = r;
+
+    const valor = r.handle || r.name;
+    const b = blocos[rede];
+
+    if(r.error || !valor){
+      b.className = 'sp-item notfound';
+      campos[rede].textContent = r.error || '— não encontrado';
+    } else {
+      b.className = 'sp-item found';
+      campos[rede].textContent = '✓ ' + valor + (r.simulated ? ' (sim)' : '');
+      b.title = r.url || '';
+      campos[rede].dataset.value = valor;
+      campos[rede].dataset.url   = r.url || '';
+    }
+  }
+
+  // WhatsApp: só via simulação
+  const simWA = simulateOsint(numero)?.whatsapp || '';
+  const bWA = $('spWA');
+  if(simWA){
+    bWA.className = 'sp-item found';
+    document.querySelector('#spWA span').textContent = '✓ ' + simWA + ' (sim)';
+    document.querySelector('#spWA span').dataset.value = simWA;
+  } else {
+    bWA.className = 'sp-item notfound';
+    document.querySelector('#spWA span').textContent = '—';
+  }
+
+  return resultados;
+}
+
+/* ----------------------------------------------------------------
+   3. MAPA
    ---------------------------------------------------------------- */
 function initMap(){
   map = L.map('map',{ zoomControl:true, preferCanvas:true, worldCopyJump:true })
@@ -551,7 +697,7 @@ function initMap(){
 }
 
 /* ----------------------------------------------------------------
-   2. GPS
+   4. GPS
    ---------------------------------------------------------------- */
 function startGPS(){
   if(!('geolocation' in navigator)){
@@ -593,7 +739,7 @@ function startGPS(){
     },
     err => {
       setStatus('GPS NEGADO','danger');
-      $('myAddr').textContent = 'Permissão negada. Usando posição padrão (São Paulo).';
+      $('myAddr').textContent = 'Permissão negada. Usando posição padrão.';
       if(!meLatLng){
         meLatLng = L.latLng(-23.5505,-46.6333);
         meMarker = L.marker(meLatLng,{
@@ -609,7 +755,7 @@ function startGPS(){
 }
 
 /* ----------------------------------------------------------------
-   3. GEOCODIFICAÇÃO (Photon)
+   5. GEOCODIFICAÇÃO (Photon)
    ---------------------------------------------------------------- */
 async function reverseGeocode(lat, lon){
   try{
@@ -652,7 +798,7 @@ async function getTargetGeo(t){
 }
 
 /* ----------------------------------------------------------------
-   4. OSINT SIMULADO
+   6. OSINT SIMULADO
    ---------------------------------------------------------------- */
 function hashPhone(num){
   const digits = num.replace(/\D/g,'');
@@ -682,7 +828,7 @@ function simulateOsint(numero){
 }
 
 /* ----------------------------------------------------------------
-   5. IMPORTAÇÃO — núcleo comum
+   7. IMPORTAÇÃO EM MASSA
    ---------------------------------------------------------------- */
 function normalizePhone(raw){
   if(!raw) return '';
@@ -696,10 +842,9 @@ function validPhone(p){
   return d.length >= 8 && d.length <= 15;
 }
 
-/** Adiciona um lote de {name, phone} aos alvos, posicionados em meLatLng */
 function addBatch(items, sourceLabel){
   if(!meLatLng){
-    importLog.innerHTML = '<span class="ln err">✗ GPS ainda não disponível. Aguarde a localização e tente de novo.</span>';
+    importLog.innerHTML = '<span class="ln err">✗ GPS ainda não disponível.</span>';
     importLog.className = 'import-log';
     return { ok:0, fail:0, dup:0 };
   }
@@ -736,10 +881,8 @@ function addBatch(items, sourceLabel){
     result.ok++;
   });
 
-  saveTargets();
-  updateAll();
+  saveTargets(); updateAll();
 
-  // consulta endereços em background (limita a 5 por vez pra não sobrecarregar)
   let i = 0;
   (function step(){
     if(i >= targets.length) return;
@@ -757,35 +900,28 @@ function logImport(r, source){
   const parts = [`<span class="ln"><b>◈ ${source}</b></span>`];
   if(r.ok)   parts.push(`<span class="ln">✓ ${r.ok} contato(s) importado(s)</span>`);
   if(r.dup)  parts.push(`<span class="ln">≡ ${r.dup} duplicado(s) ignorado(s)</span>`);
-  if(r.fail) parts.push(`<span class="ln err">✗ ${r.fail} inválido(s) ignorado(s)</span>`);
+  if(r.fail) parts.push(`<span class="ln err">✗ ${r.fail} inválido(s)</span>`);
   if(!r.ok && !r.dup && !r.fail) parts.push('<span class="ln">— nada a importar</span>');
   importLog.innerHTML = parts.join('');
   importLog.className = 'import-log' + (r.ok ? ' ok' : '');
 }
 
-/* ---------- MÉTODO 1: Contact Picker API ---------- */
+/* Contact Picker API */
 (function setupPicker(){
   const blk = $('blkPicker');
   const btn = $('btnPicker');
   const msg = $('pickerMsg');
-
   const supported = ('contacts' in navigator) && ('ContactsManager' in window);
-
   if(!supported){
     blk.classList.add('unavailable');
     btn.disabled = true;
     btn.textContent = '✕ NÃO DISPONÍVEL NESTE NAVEGADOR';
-    msg.innerHTML = 'Este navegador não suporta a <b>Contact Picker API</b>. ' +
-                    'Use o método de <b>arquivo</b> ou <b>colar lista</b> abaixo. ' +
-                    '(Suporte: Chrome no Android, com HTTPS.)';
+    msg.innerHTML = 'Este navegador não suporta a <b>Contact Picker API</b>. Use arquivo ou colar lista. (Chrome Android + HTTPS.)';
     return;
   }
-
   btn.onclick = async () => {
     try{
-      const props = ['name','tel'];
-      const opts  = { multiple: true };
-      const list  = await navigator.contacts.select(props, opts);
+      const list = await navigator.contacts.select(['name','tel'], { multiple:true });
       if(!list || !list.length){
         importLog.innerHTML = '<span class="ln">— seleção cancelada</span>';
         return;
@@ -794,27 +930,24 @@ function logImport(r, source){
         name: (c.name && c.name[0]) || '',
         phone: (c.tel && c.tel[0]) || ''
       })).filter(x => x.phone);
-
-      addBatch(items, 'CONTACT PICKER (celular)');
+      addBatch(items, 'CONTACT PICKER');
     }catch(err){
-      importLog.innerHTML = `<span class="ln err">✗ ${err.message || 'Erro ao abrir seletor'}</span>`;
+      importLog.innerHTML = `<span class="ln err">✗ ${err.message || 'Erro'}</span>`;
     }
   };
 })();
 
-/* ---------- MÉTODO 2: Arquivo (.vcf / .csv / .txt) ---------- */
+/* Arquivo */
 $('fileInput').addEventListener('change', async e => {
   const files = [...e.target.files];
   if(!files.length) return;
-
   let all = [];
   for(const f of files){
     const txt = await f.text();
-    const items = parseContactsFile(txt, f.name);
-    all = all.concat(items);
+    all = all.concat(parseContactsFile(txt, f.name));
   }
   if(!all.length){
-    importLog.innerHTML = '<span class="ln err">✗ Nenhum número encontrado no(s) arquivo(s).</span>';
+    importLog.innerHTML = '<span class="ln err">✗ Nenhum número encontrado.</span>';
     e.target.value = '';
     return;
   }
@@ -824,55 +957,34 @@ $('fileInput').addEventListener('change', async e => {
 
 function parseContactsFile(txt, filename){
   const lower = filename.toLowerCase();
-  if(lower.endsWith('.vcf') || txt.includes('BEGIN:VCARD')){
-    return parseVCard(txt);
-  }
-  // CSV / TXT — heurística simples
+  if(lower.endsWith('.vcf') || txt.includes('BEGIN:VCARD')) return parseVCard(txt);
   return parseLooseList(txt);
 }
-
 function parseVCard(txt){
   const out = [];
-  // divide em blocos VCARD
   const cards = txt.split(/BEGIN:VCARD/i).slice(1);
   cards.forEach(card => {
     const nameMatch = card.match(/\nFN[^:]*:(.+)/i) || card.match(/\nN[^:]*:(.+)/i);
     let name = nameMatch ? nameMatch[1].trim().replace(/;+/g,' ').trim() : '';
-
     const tels = [];
     const re = /\nTEL[^:]*:(.+)/gi;
     let m;
     while((m = re.exec(card)) !== null){
-      // pode ter múltiplos separados por ;
-      m[1].split(';').forEach(t => {
-        const v = t.trim();
-        if(v) tels.push(v);
-      });
+      m[1].split(';').forEach(t => { const v = t.trim(); if(v) tels.push(v); });
     }
-    tels.forEach(t => out.push({ name, phone: t }));
+    tels.forEach(t => out.push({ name, phone:t }));
   });
   return out;
 }
-
 function parseLooseList(txt){
   const out = [];
-  const lines = txt.split(/\r?\n/);
-  lines.forEach(line => {
+  txt.split(/\r?\n/).forEach(line => {
     line = line.trim();
-    if(!line) return;
-    if(line.startsWith('#') || line.startsWith('//')) return;
-
-    // tenta "Nome, +55 11 9..." ou "Nome;+55..."
+    if(!line || line.startsWith('#') || line.startsWith('//')) return;
     let name = '', phone = '';
     const sepMatch = line.match(/^([^,;]+)[,;](.+)$/);
-    if(sepMatch && /\d{6,}/.test(sepMatch[2])){
-      name = sepMatch[1].trim();
-      phone = sepMatch[2].trim();
-    } else {
-      phone = line;
-    }
-
-    // extrai o telefone (primeira sequência com ≥8 dígitos permitindo + - () espaço)
+    if(sepMatch && /\d{6,}/.test(sepMatch[2])){ name = sepMatch[1].trim(); phone = sepMatch[2].trim(); }
+    else phone = line;
     const phoneMatch = phone.match(/\+?\d[\d\s\-().]{6,}\d/);
     if(!phoneMatch) return;
     out.push({ name, phone: phoneMatch[0] });
@@ -880,33 +992,19 @@ function parseLooseList(txt){
   return out;
 }
 
-/* ---------- MÉTODO 3: Colar lista ---------- */
 $('btnPaste').onclick = () => {
   const txt = $('pasteArea').value;
-  if(!txt.trim()){
-    importLog.innerHTML = '<span class="ln err">✗ Cole algum número antes de importar.</span>';
-    return;
-  }
+  if(!txt.trim()){ importLog.innerHTML = '<span class="ln err">✗ Cole algum número.</span>'; return; }
   const items = parseLooseList(txt);
-  if(!items.length){
-    importLog.innerHTML = '<span class="ln err">✗ Nenhum número válido encontrado no texto.</span>';
-    return;
-  }
+  if(!items.length){ importLog.innerHTML = '<span class="ln err">✗ Nenhum número válido.</span>'; return; }
   const r = addBatch(items, 'TEXTO COLADO');
   if(r.ok) $('pasteArea').value = '';
 };
 
 /* ----------------------------------------------------------------
-   6. FORMULÁRIO MANUAL
+   8. FORMULÁRIO MANUAL
    ---------------------------------------------------------------- */
 const osintStatus = $('osintStatus');
-const socialPreview = $('socialPreview');
-function renderSocialPreview(data){
-  const cells = [['FB',data?.facebook],['IG',data?.instagram],['TT',data?.tiktok],['WA',data?.whatsapp]];
-  socialPreview.innerHTML = cells.map(([k,v]) =>
-    `<div class="sp-item ${v?'':'empty'}"><b>${k}</b>${v?escapeHtml(v):'—'}</div>`).join('');
-}
-renderSocialPreview(null);
 
 $('btnOsint').onclick = async () => {
   const num = $('fNum').value.trim();
@@ -915,18 +1013,49 @@ $('btnOsint').onclick = async () => {
     osintStatus.innerHTML = '⚠ Número inválido.';
     return;
   }
+
+  // reset visual dos slots
+  ['spFB','spIG','spTT','spWA'].forEach(id => {
+    const el = $(id);
+    el.className = 'sp-item empty';
+    el.querySelector('span').textContent = '—';
+    el.querySelector('span').dataset.value = '';
+    el.querySelector('span').dataset.url = '';
+  });
+
   osintStatus.className = 'osint-status load';
-  osintStatus.innerHTML = '<span class="spin"></span> Consultando bases abertas…';
-  await new Promise(r => setTimeout(r, 700));
+  osintStatus.innerHTML = '<span class="spin"></span> Iniciando busca…';
+
+  // 1) simulação local para codinome
   const data = simulateOsint(num);
   lastOsintData = data;
-  osintStatus.className = 'osint-status ok';
-  osintStatus.innerHTML = `✓ Perfil sintetizado · <b style="color:var(--gold)">${data.codename}</b> · <span style="opacity:.6">SIMULAÇÃO</span>`;
-  renderSocialPreview(data);
   if(!$('fName').value.trim()) $('fName').value = data.codename;
   validateForm();
+
+  osintStatus.innerHTML = SENTINELA_BRIDGE.ready
+    ? '<span class="spin"></span> Consultando Facebook, Instagram e TikTok (sessão logada)…'
+    : '<span class="spin"></span> Bridge ausente — usando simulação…';
+
+  // 2) busca real via bridge
+  const res = await enrichNumber(num);
+
+  // 3) integra ao lastOsintData
+  if(res.facebook?.handle || res.facebook?.name) lastOsintData.facebook = res.facebook.handle || res.facebook.name;
+  if(res.instagram?.handle || res.instagram?.name) lastOsintData.instagram = res.instagram.handle || res.instagram.name;
+  if(res.tiktok?.handle   || res.tiktok?.name)   lastOsintData.tiktok   = res.tiktok.handle   || res.tiktok.name;
+
   beep(1);
-  speak(`Perfil sintetizado. Codinome ${data.codename}.`);
+  const achou = Object.values(res).filter(r => r && !r.error && (r.handle || r.name)).length;
+  const modo = SENTINELA_BRIDGE.ready ? 'via sessão logada' : 'SIMULAÇÃO (bridge ausente)';
+
+  if(achou > 0){
+    osintStatus.className = 'osint-status ok';
+    osintStatus.innerHTML = `✓ ${achou} de 3 redes localizadas · <span style="opacity:.6">${modo}</span>`;
+    speak(`Perfil localizado em ${achou} redes.`);
+  } else {
+    osintStatus.className = 'osint-status err';
+    osintStatus.innerHTML = `⚠ Nenhuma rede localizada · <span style="opacity:.6">${modo}</span>`;
+  }
 };
 
 function setFormLocation(lat, lon, label){
@@ -969,20 +1098,25 @@ $('btnSearch').onclick = async function(){
   }).addTo(map);
 };
 $('btnAdd').onclick = () => {
-  if(!lastOsintData || lastOsintData.codename !== $('fName').value.trim().toUpperCase()){
-    lastOsintData = simulateOsint($('fNum').value.trim());
-  }
+  // pega handles que estiverem nos slots (vindos da extensão ou simulação)
+  const vFB = document.querySelector('#spFB span')?.dataset.value || lastOsintData?.facebook  || '';
+  const vIG = document.querySelector('#spIG span')?.dataset.value || lastOsintData?.instagram || '';
+  const vTT = document.querySelector('#spTT span')?.dataset.value || lastOsintData?.tiktok    || '';
+  const vWA = document.querySelector('#spWA span')?.dataset.value || lastOsintData?.whatsapp  || '';
+
+  if(!lastOsintData) lastOsintData = simulateOsint($('fNum').value.trim());
+
   const t = {
     id: Date.now(),
     codename: $('fName').value.trim().toUpperCase() || lastOsintData.codename,
     numero: normalizePhone($('fNum').value.trim()),
     lat: formLatLng.lat, lon: formLatLng.lon,
     socials: {
-      facebook:  lastOsintData?.facebook  || '',
-      instagram: lastOsintData?.instagram || '',
-      tiktok:    lastOsintData?.tiktok    || '',
-      whatsapp:  lastOsintData?.whatsapp  || '',
-      kwai:      lastOsintData?.kwai      || ''
+      facebook:  vFB,
+      instagram: vIG,
+      tiktok:    vTT,
+      whatsapp:  vWA,
+      kwai:      lastOsintData?.kwai || ''
     },
     _armed:false, _geo:null
   };
@@ -996,7 +1130,13 @@ $('btnAdd').onclick = () => {
   $('fCoords').classList.remove('ok');
   osintStatus.className = 'osint-status';
   osintStatus.innerHTML = '⟨ aguardando número ⟩ Digite um telefone e clique em BUSCAR.';
-  renderSocialPreview(null);
+  ['spFB','spIG','spTT','spWA'].forEach(id => {
+    const el = $(id);
+    el.className = 'sp-item empty';
+    el.querySelector('span').textContent = '—';
+    el.querySelector('span').dataset.value = '';
+    el.querySelector('span').dataset.url = '';
+  });
   if(pickMarker){ map.removeLayer(pickMarker); pickMarker = null; }
   picking = false;
   $('btnPick').classList.remove('on');
@@ -1008,7 +1148,7 @@ $('btnAdd').onclick = () => {
 };
 
 /* ----------------------------------------------------------------
-   7. DISTÂNCIA / RUMO
+   9. DISTÂNCIA / RUMO
    ---------------------------------------------------------------- */
 function distTo(t){ return meLatLng ? meLatLng.distanceTo(L.latLng(t.lat,t.lon)) : Infinity; }
 function bearingTo(t){
@@ -1024,7 +1164,7 @@ function escapeHtml(s){
 }
 
 /* ----------------------------------------------------------------
-   8. SONAR SOBREPOSTO
+   10. SONAR
    ---------------------------------------------------------------- */
 let sonarBlips = {};
 function sonarRangeMeters(){ return Math.max(threshold * 3, 500); }
@@ -1067,7 +1207,7 @@ function renderSonarBlips(){
 }
 
 /* ----------------------------------------------------------------
-   9. LISTA / MARCADORES
+   11. LISTA / MARCADORES
    ---------------------------------------------------------------- */
 function render(){
   $('listCount').textContent = targets.length;
@@ -1084,6 +1224,8 @@ function render(){
     const geo = t._geo && t._geo.road
       ? `${t._geo.road}${t._geo.ref ? ' · '+t._geo.ref : ''}`
       : 'Endereço não consultado';
+    const socTxt = [t.socials.instagram, t.socials.facebook, t.socials.tiktok]
+      .filter(Boolean).slice(0,2).join(' · ') || '—';
     return `
       <div class="target ${hot?'hot':''}" data-id="${t.id}">
         <div class="top">
@@ -1092,6 +1234,7 @@ function render(){
         </div>
         <div class="num">${escapeHtml(t.numero)}</div>
         <div class="addr">📍 ${escapeHtml(geo)}</div>
+        <div class="addr">🔗 ${escapeHtml(socTxt)}</div>
         <div class="bar"><i style="width:${barW}%"></i></div>
         <div class="acts">
           <button class="mini" data-act="loc">🔊 FALAR</button>
@@ -1118,7 +1261,7 @@ function render(){
         if(!meLatLng) return alert('GPS indisponível.');
         t.lat = meLatLng.lat; t.lon = meLatLng.lng; t._geo = null;
         saveTargets(); updateAll(); getTargetGeo(t).then(render);
-        speak(`Alvo ${t.codename} reposicionado na sua localização.`);
+        speak(`Alvo ${t.codename} reposicionado.`);
       }
       if(btn.dataset.act==='loc') speakTargetLocation(t);
     };
@@ -1148,7 +1291,7 @@ function mkIcon(t,hot){
 function updateAll(){ render(); renderMarkers(); positionSonar(); renderSonarBlips(); }
 
 /* ----------------------------------------------------------------
-   10. LOOP
+   12. LOOP
    ---------------------------------------------------------------- */
 setInterval(() => {
   if(!meLatLng) return;
@@ -1174,7 +1317,7 @@ function setStatus(txt, cls){
 }
 
 /* ----------------------------------------------------------------
-   11. VOZ / ÁUDIO
+   13. VOZ / ÁUDIO
    ---------------------------------------------------------------- */
 function beep(times=3){
   if(!soundOn) return;
@@ -1213,7 +1356,7 @@ async function speakTargetLocation(t){
 }
 
 /* ----------------------------------------------------------------
-   12. ALERTA
+   14. ALERTA
    ---------------------------------------------------------------- */
 async function showAlert(t, manual, distOverride){
   const d = distOverride ?? distTo(t);
@@ -1253,7 +1396,7 @@ $('aMute').onclick = () => {
 };
 
 /* ----------------------------------------------------------------
-   13. CONTROLES
+   15. CONTROLES
    ---------------------------------------------------------------- */
 $('threshold').addEventListener('input', e => {
   threshold = +e.target.value;
@@ -1325,7 +1468,7 @@ $('btnExport').onclick = () => {
 };
 
 /* ----------------------------------------------------------------
-   14. PERSISTÊNCIA
+   16. PERSISTÊNCIA
    ---------------------------------------------------------------- */
 function saveTargets(){
   try{
@@ -1344,7 +1487,7 @@ function loadTargets(){
 }
 
 /* ----------------------------------------------------------------
-   15. BOOT
+   17. BOOT
    ---------------------------------------------------------------- */
 (function boot(){
   initMap();
@@ -1353,11 +1496,6 @@ function loadTargets(){
   startGPS();
   setTimeout(() => { if(!meLatLng) setStatus('SEM GPS','warn'); }, 4000);
   window.addEventListener('resize', () => { positionSonar(); renderSonarBlips(); });
-
-  // detecta suporte à Contact Picker API para exibir aviso apropriado
-  if(!('contacts' in navigator)){
-    console.info('[SENTINELA-7] Contact Picker API indisponível — use arquivo ou colar lista.');
-  }
 })();
 </script>
 </body>
