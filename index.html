@@ -3,31 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SENTINELA-7 · MAPA TÁTICO</title>
-
+<title>SENTINELA-7 · SONAR + OSINT</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-
 <style>
 :root{
-  --neon:#00f0ff;
-  --gold:#ffb300;
-  --bg:#02060b;
-  --danger:#ff2d55;
-  --ok:#00ff9d;
-  --panel:rgba(0,240,255,.05);
-  --line:rgba(0,240,255,.25);
+  --neon:#00f0ff; --gold:#ffb300; --bg:#02060b;
+  --danger:#ff2d55; --ok:#00ff9d;
+  --panel:rgba(0,240,255,.05); --line:rgba(0,240,255,.25);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
 body{
   background:
     radial-gradient(circle at 20% 0%, rgba(0,240,255,.10), transparent 45%),
     radial-gradient(circle at 85% 100%, rgba(255,179,0,.10), transparent 45%),
     var(--bg);
-  color:var(--neon);
-  font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
-  min-height:100vh;
-  overflow-x:hidden;
+  color:var(--neon); font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  min-height:100vh; overflow-x:hidden;
 }
 body::before{
   content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
@@ -44,7 +35,7 @@ body::after{
 }
 .wrap{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:16px}
 
-/* ---------- HEADER ---------- */
+/* HEADER */
 header{
   display:flex;align-items:center;gap:16px;
   border:1px solid var(--line);
@@ -59,187 +50,237 @@ header{
 .brand h1{font-size:clamp(17px,3.4vw,28px);letter-spacing:.22em;font-weight:800;text-shadow:0 0 10px var(--neon),0 0 30px rgba(0,240,255,.5)}
 .brand h1 span{color:var(--gold);text-shadow:0 0 10px var(--gold)}
 .brand p{font-size:9px;letter-spacing:.26em;color:rgba(0,240,255,.55);margin-top:4px}
-.status{
-  margin-left:auto;font-size:10px;letter-spacing:.2em;padding:6px 12px;
+.status{margin-left:auto;font-size:10px;letter-spacing:.2em;padding:6px 12px;
   border:1px solid var(--ok);color:var(--ok);border-radius:2px;
-  box-shadow:0 0 14px rgba(0,255,157,.35);white-space:nowrap;
-}
+  box-shadow:0 0 14px rgba(0,255,157,.35);white-space:nowrap}
 .status::before{content:"●";margin-right:6px;animation:blink 1.4s infinite}
 .status.warn{border-color:var(--gold);color:var(--gold);box-shadow:0 0 14px rgba(255,179,0,.35)}
 .status.danger{border-color:var(--danger);color:var(--danger);box-shadow:0 0 14px rgba(255,45,85,.4)}
 @keyframes blink{50%{opacity:.15}}
 
-.notice{
-  margin-top:12px;font-size:10.5px;letter-spacing:.08em;line-height:1.6;
+.notice{margin-top:12px;font-size:10.5px;letter-spacing:.06em;line-height:1.65;
   border-left:3px solid var(--gold);background:rgba(255,179,0,.07);
-  padding:9px 14px;color:rgba(255,179,0,.9);border-radius:2px;
-}
+  padding:9px 14px;color:rgba(255,179,0,.9);border-radius:2px}
 .notice b{color:#ffd166}
 
-/* ---------- GRID ---------- */
 .grid{display:grid;grid-template-columns:1.25fr .95fr;gap:16px;margin-top:16px}
 @media(max-width:960px){.grid{grid-template-columns:1fr}}
 
-.card{
-  border:1px solid var(--line);border-radius:4px;background:var(--panel);
-  padding:14px;position:relative;
-  box-shadow:inset 0 0 40px rgba(0,240,255,.04);
-}
+.card{border:1px solid var(--line);border-radius:4px;background:var(--panel);
+  padding:14px;position:relative;box-shadow:inset 0 0 40px rgba(0,240,255,.04)}
 .card::before{content:"";position:absolute;top:0;left:0;width:34px;height:2px;background:var(--gold);box-shadow:0 0 12px var(--gold)}
-.card h2{font-size:10px;letter-spacing:.3em;color:var(--gold);margin-bottom:12px;text-shadow:0 0 8px rgba(255,179,0,.6);font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.card h2{font-size:10px;letter-spacing:.3em;color:var(--gold);margin-bottom:12px;
+  text-shadow:0 0 8px rgba(255,179,0,.6);font-weight:600;display:flex;justify-content:space-between;align-items:center}
 .card h2 em{font-style:normal;color:rgba(0,240,255,.4);letter-spacing:.14em;font-size:9px}
 
-/* ---------- MAPA ---------- */
-.map-wrap{position:relative;width:100%;height:480px;border:1px solid var(--line);border-radius:3px;overflow:hidden;
-  box-shadow:0 0 30px rgba(0,240,255,.15), inset 0 0 40px rgba(0,240,255,.06);}
-@media(max-width:600px){.map-wrap{height:360px}}
+/* MAPA */
+.map-wrap{position:relative;width:100%;height:460px;border:1px solid var(--line);border-radius:3px;overflow:hidden;
+  box-shadow:0 0 30px rgba(0,240,255,.15), inset 0 0 40px rgba(0,240,255,.06)}
+@media(max-width:600px){.map-wrap{height:340px}}
 #map{position:absolute;inset:0;background:#02060b}
-.map-wrap::after{
-  content:"";position:absolute;left:0;right:0;height:160px;top:0;pointer-events:none;z-index:450;
-  background:linear-gradient(180deg,transparent,rgba(0,240,255,.16),transparent);
-  animation:scanline 6s linear infinite;
-}
-@keyframes scanline{from{top:-160px}to{top:100%}}
+.map-wrap::after{content:"";position:absolute;left:0;right:0;height:150px;top:0;pointer-events:none;z-index:450;
+  background:linear-gradient(180deg,transparent,rgba(0,240,255,.14),transparent);
+  animation:scanline 6s linear infinite}
+@keyframes scanline{from{top:-150px}to{top:100%}}
 .leaflet-container{background:#02060b !important;font-family:inherit !important}
 .leaflet-tile-pane{filter:hue-rotate(150deg) saturate(1.15) brightness(.95) contrast(1.05)}
-.leaflet-control-attribution{background:rgba(2,6,11,.7) !important;color:rgba(0,240,255,.5) !important;font-size:8px !important}
+.leaflet-control-attribution{background:rgba(2,6,11,.75) !important;color:rgba(0,240,255,.5) !important;font-size:8px !important}
 .leaflet-control-attribution a{color:rgba(0,240,255,.7) !important}
 .leaflet-bar a{background:#04121a !important;color:var(--neon) !important;border-color:var(--line) !important}
-.leaflet-bar a:hover{background:#062430 !important}
 
-/* marcadores customizados */
-.mk{
-  width:16px;height:16px;border-radius:50%;background:var(--gold);
+.mk{width:16px;height:16px;border-radius:50%;background:var(--gold);
   box-shadow:0 0 12px var(--gold),0 0 26px var(--gold);
-  border:2px solid rgba(255,255,255,.7);position:relative;
-}
+  border:2px solid rgba(255,255,255,.7);position:relative}
 .mk.hot{background:var(--danger);box-shadow:0 0 14px var(--danger),0 0 32px var(--danger);animation:pulseMk .8s infinite}
-.mk span{
-  position:absolute;left:20px;top:-3px;font-size:9px;letter-spacing:.14em;color:#dffcff;
-  white-space:nowrap;text-shadow:0 0 8px #000,0 0 12px var(--neon);
-}
+.mk span{position:absolute;left:20px;top:-3px;font-size:9px;letter-spacing:.14em;color:#dffcff;
+  white-space:nowrap;text-shadow:0 0 8px #000,0 0 12px var(--neon)}
 @keyframes pulseMk{50%{transform:scale(1.6);opacity:.7}}
-.mk-me{
-  width:16px;height:16px;border-radius:50%;background:var(--neon);
-  box-shadow:0 0 18px var(--neon);border:2px solid #fff;position:relative;
-}
-.mk-me::after{
-  content:"";position:absolute;inset:-9px;border-radius:50%;
-  border:1px solid var(--neon);animation:ripple 2s infinite;
-}
+.mk-me{width:16px;height:16px;border-radius:50%;background:var(--neon);
+  box-shadow:0 0 18px var(--neon);border:2px solid #fff;position:relative}
+.mk-me::after{content:"";position:absolute;inset:-9px;border-radius:50%;
+  border:1px solid var(--neon);animation:ripple 2s infinite}
 @keyframes ripple{0%{transform:scale(.6);opacity:.9}100%{transform:scale(1.8);opacity:0}}
 
-/* barra de endereço sob o mapa */
-.geobar{
-  margin-top:10px;border:1px solid var(--line);border-left:2px solid var(--neon);
+.geobar{margin-top:10px;border:1px solid var(--line);border-left:2px solid var(--neon);
   background:rgba(0,240,255,.04);padding:10px 12px;border-radius:2px;
-  display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:10px;letter-spacing:.08em;
-}
+  display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:10px;letter-spacing:.06em}
 .geobar .lbl{color:rgba(0,240,255,.45);letter-spacing:.22em;font-size:8.5px}
-.geobar .val{color:#dffcff}
+.geobar .val{color:#dffcff;word-break:break-word}
 .geobar .sp{margin-left:auto;color:var(--gold);font-size:9px;letter-spacing:.16em}
 
-/* ---------- CONTROLES ---------- */
+/* CONTROLES */
 .ctrl{margin-bottom:14px}
 .ctrl label{display:flex;justify-content:space-between;font-size:10px;letter-spacing:.18em;color:rgba(0,240,255,.75);margin-bottom:8px}
 .ctrl label b{color:var(--gold);text-shadow:0 0 8px rgba(255,179,0,.6)}
 input[type=range]{-webkit-appearance:none;width:100%;height:3px;background:rgba(0,240,255,.2);outline:none;border-radius:2px}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--gold);box-shadow:0 0 14px var(--gold);cursor:pointer}
 input[type=range]::-moz-range-thumb{width:16px;height:16px;border:0;border-radius:50%;background:var(--gold);box-shadow:0 0 14px var(--gold);cursor:pointer}
-
 .toggles{display:flex;gap:8px;flex-wrap:wrap}
-.tg{
-  flex:1;min-width:118px;font-size:9.5px;letter-spacing:.14em;padding:9px 8px;cursor:pointer;
+.tg{flex:1;min-width:118px;font-size:9.5px;letter-spacing:.14em;padding:9px 8px;cursor:pointer;
   border:1px solid var(--line);background:transparent;color:rgba(0,240,255,.6);
-  border-radius:2px;transition:.2s;font-family:inherit;text-align:center;
-}
+  border-radius:2px;transition:.2s;font-family:inherit;text-align:center}
 .tg.on{color:var(--ok);border-color:var(--ok);box-shadow:0 0 14px rgba(0,255,157,.3);background:rgba(0,255,157,.06)}
 .tg.gold{border-color:var(--gold);color:var(--gold)}
 .tg.gold:hover{background:rgba(255,179,0,.12);box-shadow:0 0 14px rgba(255,179,0,.3)}
 .tg:active{transform:scale(.97)}
 
-/* ---------- FORMULÁRIO ---------- */
 .form-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
 .form-row > *{flex:1;min-width:120px}
-input[type=text],input[type=tel]{
-  width:100%;background:rgba(0,240,255,.05);border:1px solid var(--line);color:#dffcff;
-  padding:9px 10px;font-family:inherit;font-size:11px;letter-spacing:.06em;border-radius:2px;outline:none;
-  transition:.2s;
-}
+input[type=text],input[type=tel]{width:100%;background:rgba(0,240,255,.05);border:1px solid var(--line);color:#dffcff;
+  padding:9px 10px;font-family:inherit;font-size:11px;letter-spacing:.05em;border-radius:2px;outline:none;transition:.2s}
 input[type=text]::placeholder,input[type=tel]::placeholder{color:rgba(0,240,255,.3);letter-spacing:.1em}
 input[type=text]:focus,input[type=tel]:focus{border-color:var(--neon);box-shadow:0 0 14px rgba(0,240,255,.25);background:rgba(0,240,255,.08)}
-.social-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
-.coords{
-  font-size:9.5px;letter-spacing:.1em;color:rgba(0,240,255,.65);
+
+.osint-status{
+  border:1px dashed rgba(0,240,255,.3);background:rgba(0,240,255,.03);
+  padding:9px 11px;border-radius:2px;font-size:9.5px;letter-spacing:.1em;
+  color:rgba(0,240,255,.6);margin-bottom:10px;min-height:36px;
+  display:flex;align-items:center;gap:8px;line-height:1.5
+}
+.osint-status.ok{color:var(--ok);border-color:rgba(0,255,157,.4);border-style:solid}
+.osint-status.load{color:var(--gold);border-color:rgba(255,179,0,.5)}
+.osint-status .spin{width:12px;height:12px;border:2px solid rgba(255,179,0,.2);border-top-color:var(--gold);
+  border-radius:50%;animation:spin .8s linear infinite;flex:0 0 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.social-preview{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.social-preview .sp-item{
+  font-size:9px;letter-spacing:.08em;padding:7px 9px;border-radius:2px;
+  border:1px solid var(--line);background:rgba(0,240,255,.04);
+  color:#cdf9ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap
+}
+.social-preview .sp-item b{color:var(--gold);font-weight:600;margin-right:5px}
+.social-preview .sp-item.empty{opacity:.35}
+
+.coords{font-size:9.5px;letter-spacing:.08em;color:rgba(0,240,255,.65);
   border:1px dashed rgba(0,240,255,.25);padding:8px 10px;border-radius:2px;
-  background:rgba(0,240,255,.02);margin-bottom:10px;min-height:34px;display:flex;align-items:center;
-}
+  background:rgba(0,240,255,.02);margin-bottom:10px;min-height:34px;display:flex;align-items:center}
 .coords.ok{color:var(--ok);border-color:rgba(0,255,157,.4)}
-.btn-add{
-  width:100%;padding:11px;border:1px solid var(--ok);background:rgba(0,255,157,.1);color:var(--ok);
-  font-family:inherit;font-size:10px;letter-spacing:.22em;cursor:pointer;border-radius:2px;transition:.2s;
-}
+
+.btn-add{width:100%;padding:11px;border:1px solid var(--ok);background:rgba(0,255,157,.1);color:var(--ok);
+  font-family:inherit;font-size:10px;letter-spacing:.22em;cursor:pointer;border-radius:2px;transition:.2s}
 .btn-add:hover{background:rgba(0,255,157,.25);box-shadow:0 0 20px rgba(0,255,157,.4)}
 .btn-add:disabled{opacity:.35;cursor:not-allowed;box-shadow:none;background:transparent}
 
-.hint{font-size:8.5px;letter-spacing:.12em;color:rgba(0,240,255,.4);margin-top:8px;line-height:1.7}
+.hint{font-size:8.5px;letter-spacing:.1em;color:rgba(0,240,255,.4);margin-top:8px;line-height:1.7}
 
-/* ---------- LISTA DE ALVOS ---------- */
-.target{
-  border:1px solid rgba(0,240,255,.18);border-left:2px solid var(--neon);
+/* LISTA */
+.target{border:1px solid rgba(0,240,255,.18);border-left:2px solid var(--neon);
   padding:10px 12px;margin-bottom:10px;border-radius:2px;
-  background:rgba(0,240,255,.03);transition:.25s;
-}
+  background:rgba(0,240,255,.03);transition:.25s}
 .target.hot{border-left-color:var(--danger);background:rgba(255,45,85,.08)}
 .target .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .target .name{font-size:11.5px;letter-spacing:.14em;color:#dffcff}
 .target .dist{font-size:11px;color:var(--gold);letter-spacing:.06em;white-space:nowrap}
 .target.hot .dist{color:var(--danger)}
-.target .num{font-size:9.5px;color:rgba(0,240,255,.55);letter-spacing:.06em;margin-top:3px}
-.target .addr{font-size:9px;color:rgba(0,240,255,.42);letter-spacing:.04em;margin-top:5px;line-height:1.5}
+.target .num{font-size:9.5px;color:rgba(0,240,255,.55);letter-spacing:.05em;margin-top:3px}
+.target .addr{font-size:9px;color:rgba(0,240,255,.42);letter-spacing:.03em;margin-top:5px;line-height:1.5}
 .target .bar{height:3px;background:rgba(0,240,255,.12);margin-top:8px;border-radius:2px;overflow:hidden}
 .target .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--ok),var(--gold),var(--danger));transition:width .7s linear}
-.target .acts{display:flex;gap:6px;margin-top:9px}
-.mini{
-  font-size:8.5px;letter-spacing:.12em;padding:5px 8px;cursor:pointer;font-family:inherit;
-  border:1px solid var(--line);background:transparent;color:rgba(0,240,255,.6);border-radius:2px;transition:.2s;
-}
+.target .acts{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+.mini{font-size:8.5px;letter-spacing:.1em;padding:5px 8px;cursor:pointer;font-family:inherit;
+  border:1px solid var(--line);background:transparent;color:rgba(0,240,255,.6);border-radius:2px;transition:.2s}
 .mini:hover{border-color:var(--neon);color:var(--neon);box-shadow:0 0 10px rgba(0,240,255,.25)}
 .mini.del:hover{border-color:var(--danger);color:var(--danger);box-shadow:0 0 10px rgba(255,45,85,.3)}
 
-.empty{
-  text-align:center;padding:22px 10px;font-size:9.5px;letter-spacing:.18em;
-  color:rgba(0,240,255,.35);border:1px dashed rgba(0,240,255,.2);border-radius:2px;
+.empty{text-align:center;padding:22px 10px;font-size:9.5px;letter-spacing:.18em;
+  color:rgba(0,240,255,.35);border:1px dashed rgba(0,240,255,.2);border-radius:2px}
+
+/* ============ SONAR FLUTUANTE (sempre ativo) ============ */
+.sonar-hud{
+  position:fixed;right:18px;bottom:18px;z-index:9990;
+  width:210px;height:210px;pointer-events:auto;
+  filter:drop-shadow(0 0 22px rgba(0,240,255,.4));
+  transition:transform .3s, opacity .3s;
+}
+.sonar-hud.min{width:52px;height:52px;filter:drop-shadow(0 0 12px rgba(0,240,255,.6))}
+.sonar-hud .label{
+  position:absolute;top:-2px;left:50%;transform:translateX(-50%);
+  font-size:7.5px;letter-spacing:.3em;color:var(--neon);
+  text-shadow:0 0 8px var(--neon);white-space:nowrap;opacity:.9;
+}
+.sonar-hud.min .label{display:none}
+.sonar-hud .hud-btn{
+  position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;
+  border:1px solid var(--line);background:rgba(2,6,11,.85);color:var(--neon);
+  font-size:11px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-family:inherit;padding:0;z-index:5
+}
+.sonar-hud.min .hud-btn{top:50%;right:50%;transform:translate(50%,-50%);width:26px;height:26px}
+.sonar-hud .frame{
+  position:absolute;inset:14px;border-radius:50%;
+  background:radial-gradient(circle, rgba(0,240,255,.10), rgba(0,240,255,.02) 60%, transparent 72%);
+  border:1px solid rgba(0,240,255,.5);
+  box-shadow:0 0 30px rgba(0,240,255,.3), inset 0 0 40px rgba(0,240,255,.1);
+  overflow:hidden;
+}
+.sonar-hud.min .frame{inset:4px}
+.sonar-hud .frame .ring{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  border:1px solid rgba(0,240,255,.2);border-radius:50%
+}
+.sonar-hud .frame .ring.r1{width:33%;height:33%}
+.sonar-hud .frame .ring.r2{width:66%;height:66%}
+.sonar-hud .frame .ring.r3{width:100%;height:100%;border-color:rgba(0,240,255,.42)}
+.sonar-hud .frame .cross-x{position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(0,240,255,.18)}
+.sonar-hud .frame .cross-y{position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(0,240,255,.18)}
+.sonar-hud .frame .sweep{
+  position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(from 0deg,
+    rgba(0,240,255,.65) 0deg, rgba(0,240,255,.25) 24deg, rgba(0,240,255,.05) 46deg,
+    transparent 70deg, transparent 360deg);
+  animation:sonarSpin 3.2s linear infinite;
+}
+@keyframes sonarSpin{to{transform:rotate(360deg)}}
+.sonar-hud.min .frame .sweep{animation-duration:2s}
+.sonar-hud .me-dot{
+  position:absolute;left:50%;top:50%;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;
+  background:var(--neon);border-radius:50%;box-shadow:0 0 12px var(--neon);z-index:3
+}
+.sonar-hud .sblip{
+  position:absolute;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;
+  background:var(--gold);box-shadow:0 0 9px var(--gold),0 0 18px var(--gold);
+  transition:left .9s linear, top .9s linear; z-index:2
+}
+.sonar-hud .sblip.hot{background:var(--danger);box-shadow:0 0 12px var(--danger),0 0 24px var(--danger);animation:sonarPulse .85s infinite}
+@keyframes sonarPulse{50%{transform:scale(1.9);opacity:.7}}
+.sonar-hud .rangeTxt{
+  position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);
+  font-size:7px;letter-spacing:.24em;color:rgba(0,240,255,.55);white-space:nowrap
+}
+.sonar-hud.min .rangeTxt{display:none}
+.sonar-hud .tick{
+  position:absolute;left:50%;top:14px;width:1px;height:8px;background:var(--neon);
+  transform:translateX(-50%);box-shadow:0 0 6px var(--neon);opacity:.7
+}
+.sonar-hud.min .tick{display:none}
+@media(max-width:600px){
+  .sonar-hud{width:150px;height:150px;right:10px;bottom:10px}
+  .sonar-hud.min{width:46px;height:46px}
 }
 
-/* ---------- OVERLAY ALERTA ---------- */
-.overlay{
-  position:fixed;inset:0;z-index:9999;display:none;
+/* OVERLAY ALERTA */
+.overlay{position:fixed;inset:0;z-index:9999;display:none;
   background:radial-gradient(circle at 50% 40%,rgba(255,45,85,.22),rgba(2,6,11,.96) 60%);
-  backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px;
-}
+  backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px}
 .overlay.show{display:flex;animation:fadein .25s}
 @keyframes fadein{from{opacity:0}to{opacity:1}}
-.alert{
-  width:min(540px,100%);max-height:92vh;overflow-y:auto;
+.alert{width:min(540px,100%);max-height:92vh;overflow-y:auto;
   border:1px solid var(--danger);border-radius:4px;
   background:linear-gradient(180deg,rgba(255,45,85,.1),rgba(2,6,11,.96));
   box-shadow:0 0 60px rgba(255,45,85,.45),inset 0 0 60px rgba(255,45,85,.08);
-  padding:22px;position:relative;animation:pop .3s cubic-bezier(.2,1.4,.5,1);
-}
+  padding:22px;animation:pop .3s cubic-bezier(.2,1.4,.5,1)}
 @keyframes pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
 .alert .hdr{font-size:11px;letter-spacing:.34em;color:var(--danger);text-align:center;text-shadow:0 0 14px var(--danger);animation:blink 1s infinite}
 .alert .codename{font-size:clamp(21px,5.5vw,32px);letter-spacing:.12em;text-align:center;margin:14px 0 6px;color:#fff;text-shadow:0 0 18px var(--danger),0 0 40px rgba(255,45,85,.6)}
 .alert .phone{text-align:center;font-size:12px;letter-spacing:.18em;color:var(--neon);margin-bottom:14px}
 .alert .distbox{text-align:center;border-top:1px solid rgba(255,45,85,.3);border-bottom:1px solid rgba(255,45,85,.3);padding:14px 0;margin-bottom:14px}
-.alert .distbox b{font-size:34px;color:var(--gold);text-shadow:0 0 20px var(--gold);letter-spacing:.04em}
+.alert .distbox b{font-size:34px;color:var(--gold);text-shadow:0 0 20px var(--gold)}
 .alert .distbox span{display:block;font-size:9px;letter-spacing:.3em;color:rgba(0,240,255,.55);margin-top:4px}
-.locbox{
-  border:1px solid rgba(0,240,255,.25);border-left:2px solid var(--neon);
-  background:rgba(0,240,255,.05);padding:11px 13px;border-radius:2px;margin-bottom:16px;
-}
+.locbox{border:1px solid rgba(0,240,255,.25);border-left:2px solid var(--neon);
+  background:rgba(0,240,255,.05);padding:11px 13px;border-radius:2px;margin-bottom:16px}
 .locbox .k{font-size:8.5px;letter-spacing:.28em;color:rgba(0,240,255,.45);display:block;margin-bottom:5px}
-.locbox .v{font-size:11.5px;color:#dffcff;letter-spacing:.04em;line-height:1.6}
+.locbox .v{font-size:11.5px;color:#dffcff;line-height:1.6}
 .locbox .v b{color:var(--gold)}
 .socials{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-bottom:16px}
 .soc{font-size:9px;letter-spacing:.1em;padding:6px 10px;border-radius:2px;border:1px solid var(--line);color:#cdf9ff;background:rgba(0,240,255,.06)}
@@ -268,21 +309,20 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
     </div>
     <div class="brand">
       <h1>SENTINELA<span>-7</span></h1>
-      <p>PROTOCOLO JARDAS · MAPA TÁTICO · v0.2</p>
+      <p>PROTOCOLO JARDAS · SONAR ATIVO · v0.3</p>
     </div>
     <div class="status" id="statusTxt">INICIALIZANDO</div>
   </header>
 
   <div class="notice">
-    ⚠ <b>FERRAMENTA DE USO PESSOAL / EDUCACIONAL.</b> Você digita os números e <u>você mesmo</u> posiciona cada alvo no mapa
-    (pela sua localização, por endereço ou clicando no mapa). O app <b>não rastreia chips de terceiros</b> — ele mede a
-    distância entre a sua posição GPS real e os pontos que você cadastrou, e usa geocodificação reversa (OpenStreetMap)
-    para falar o nome da rua e pontos de referência.
+    ⚠ <b>USO PESSOAL / EDUCACIONAL.</b> A sua localização é real (GPS do navegador). Os alvos são posicionados por <u>você</u>.
+    A <b>busca por número</b> é uma <u>SIMULAÇÃO OSINT</u> — ela gera @ handles plausíveis a partir do próprio número,
+    pois <b>não existe API pública/gratuita</b> que devolva Instagram, Facebook, TikTok ou WhatsApp de um telefone.
+    Nada aqui rastreia chips de terceiros.
   </div>
 
   <div class="grid">
-
-    <!-- ===== COLUNA ESQUERDA: MAPA ===== -->
+    <!-- ESQUERDA -->
     <div>
       <div class="card">
         <h2>◈ MAPA TÁTICO <em id="mapInfo">AGUARDANDO GPS…</em></h2>
@@ -303,9 +343,8 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
       </div>
     </div>
 
-    <!-- ===== COLUNA DIREITA ===== -->
+    <!-- DIREITA -->
     <div>
-      <!-- CONTROLES -->
       <div class="card" style="margin-bottom:16px">
         <h2>◈ PROTOCOLO DE APROXIMAÇÃO</h2>
         <div class="ctrl">
@@ -323,20 +362,28 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
         </div>
       </div>
 
-      <!-- NOVO ALVO -->
+      <!-- CADASTRO -->
       <div class="card" style="margin-bottom:16px">
-        <h2>◈ CADASTRAR ALVO <em>NÚMERO REAL</em></h2>
+        <h2>◈ CADASTRAR ALVO <em>OSINT SIMULADO</em></h2>
 
-        <div class="form-row">
-          <input type="text" id="fName" placeholder="CODINOME (ex: ALVO-05)" maxlength="18">
-          <input type="tel"  id="fNum"  placeholder="NÚMERO (+55 11 99999-0000)" maxlength="24">
+        <div class="form-row" style="margin-bottom:10px">
+          <input type="tel" id="fNum" placeholder="NÚMERO (+55 11 99999-0000)" maxlength="24">
+          <button class="tg gold" id="btnOsint" type="button" style="flex:0 0 110px">🔎 BUSCAR</button>
         </div>
 
-        <div class="social-grid">
-          <input type="text" id="fFb" placeholder="Facebook (opcional)">
-          <input type="text" id="fIg" placeholder="Instagram (opcional)">
-          <input type="text" id="fTk" placeholder="TikTok (opcional)">
-          <input type="text" id="fKw" placeholder="Kwai (opcional)">
+        <div class="osint-status" id="osintStatus">
+          ⟨ aguardando número ⟩ Digite um telefone e clique em BUSCAR.
+        </div>
+
+        <div class="form-row">
+          <input type="text" id="fName" placeholder="CODINOME (auto se vazio)" maxlength="18">
+        </div>
+
+        <div class="social-preview" id="socialPreview">
+          <div class="sp-item empty"><b>FB</b>—</div>
+          <div class="sp-item empty"><b>IG</b>—</div>
+          <div class="sp-item empty"><b>TT</b>—</div>
+          <div class="sp-item empty"><b>WA</b>—</div>
         </div>
 
         <div class="coords" id="fCoords">📍 Nenhuma localização definida</div>
@@ -347,14 +394,13 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
         </div>
         <div class="form-row" style="margin-bottom:10px">
           <input type="text" id="fAddr" placeholder="Buscar endereço (rua, nº, cidade)">
-          <button class="tg gold" id="btnSearch" type="button" style="flex:0 0 90px">🔍 BUSCAR</button>
+          <button class="tg gold" id="btnSearch" type="button" style="flex:0 0 90px">🔍 IR</button>
         </div>
 
         <button class="btn-add" id="btnAdd" disabled>+ ADICIONAR AO MONITORAMENTO</button>
-        <div class="hint">Digite o número real. Escolha a posição por GPS, endereço ou clique no mapa.</div>
+        <div class="hint">A busca OSINT é determinística: o mesmo número sempre gera os mesmos handles.</div>
       </div>
 
-      <!-- LISTA -->
       <div class="card">
         <h2>◈ ALVOS MONITORADOS <em id="listCount">0</em></h2>
         <div id="list"></div>
@@ -363,30 +409,43 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
   </div>
 
   <footer>
-    SENTINELA-7 · MAPAS © OPENSTREETMAP · GEOCODIFICAÇÃO © NOMINATIM<br>
+    SENTINELA-7 · MAPAS © OPENSTREETMAP · GEOCODIFICAÇÃO © PHOTON / KOMOOT<br>
     FERRAMENTA EDUCACIONAL · NÃO REALIZA RASTREAMENTO DE TERCEIROS
   </footer>
 </div>
 
-<!-- OVERLAY DE ALERTA -->
+<!-- SONAR FLUTUANTE (sempre ativo) -->
+<div class="sonar-hud" id="sonarHud">
+  <div class="label">◈ SONAR</div>
+  <button class="hud-btn" id="sonarBtn" title="Minimizar / Expandir">–</button>
+  <div class="frame" id="sonarFrame">
+    <div class="cross-x"></div>
+    <div class="cross-y"></div>
+    <div class="ring r1"></div>
+    <div class="ring r2"></div>
+    <div class="ring r3"></div>
+    <div class="sweep"></div>
+    <div class="tick"></div>
+    <div class="me-dot"></div>
+  </div>
+  <div class="rangeTxt" id="sonarRange">0 m</div>
+</div>
+
+<!-- ALERTA -->
 <div class="overlay" id="overlay">
   <div class="alert">
     <div class="hdr">▲ ALVO EM APROXIMAÇÃO ▲</div>
     <div class="codename" id="aName">—</div>
     <div class="phone" id="aPhone">—</div>
-
     <div class="distbox">
       <b id="aDist">0</b>
       <span>METROS DE DISTÂNCIA</span>
     </div>
-
     <div class="locbox">
       <span class="k">◈ LOCALIZAÇÃO DO ALVO</span>
-      <div class="v" id="aAddr">Consultando via satélite…</div>
+      <div class="v" id="aAddr">Consultando…</div>
     </div>
-
     <div class="socials" id="aSocials"></div>
-
     <div class="btns">
       <button class="btn-ok" id="aOk">CIENTE</button>
       <button class="btn-mute" id="aMute">SILENCIAR 60s</button>
@@ -396,69 +455,52 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-/* ================================================================
-   SENTINELA-7 v0.2 — MAPA TÁTICO COM GPS REAL
-   ----------------------------------------------------------------
-   • Mapa Leaflet sobre OpenStreetMap (tiles CartoDB Dark Matter)
-   • Geolocalização real do navegador (watchPosition)
-   • Geocodificação reversa via Nominatim → rua + pontos de referência
-   • Voz em pt-BR via Web Speech API
-   • Alvos cadastrados por VOCÊ (não há rastreamento de terceiros)
-   ================================================================ */
+/* =================================================================
+   SENTINELA-7 v0.3
+   • Geocoder: Photon (komoot) → CORS liberado, SEM chave de API
+   • Busca por número: SIMULAÇÃO determinística (não há API real)
+   • Sonar HUD flutuante: sempre ativo, com rolamento real
+   ================================================================= */
 
-const STORAGE_KEY = 'sentinela7.targets.v2';
-const GEO_TTL     = 10 * 60 * 1000;   // 10 min de cache de endereço
+const STORAGE_KEY = 'sentinela7.targets.v3';
+const GEO_TTL     = 10 * 60 * 1000;
 
-/* ---------------- ESTADO ---------------- */
 let map, meMarker, thCircle, meLatLng = null;
 let targets = [];
 let threshold = 150;
 let voiceOn = true, soundOn = true;
-let mutedUntil = 0;
-let audioCtx = null;
-let picking = false, pickMarker = null;
-let formLatLng = null;
+let mutedUntil = 0, audioCtx = null;
+let picking = false, pickMarker = null, formLatLng = null;
 let myGeoCache = { addr:'', ts:0, latlng:null };
+let followGPS = false;
+let lastOsintData = null;      // dados retornados pela busca por número
 
-/* ---------------- ELEMENTOS ---------------- */
 const $ = id => document.getElementById(id);
-const listEl   = $('list');
-const overlay  = $('overlay');
+const overlay = $('overlay'), listEl = $('list');
 
-/* ================================================================
+/* ----------------------------------------------------------------
    1. MAPA
-   ================================================================ */
+   ---------------------------------------------------------------- */
 function initMap(){
-  map = L.map('map', {
-    zoomControl: true,
-    attributionControl: true,
-    preferCanvas: true
-  }).setView([-23.5505, -46.6333], 15);
+  map = L.map('map',{ zoomControl:true, preferCanvas:true })
+        .setView([-23.5505,-46.6333],15);
 
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    maxZoom: 19,
-    subdomains: 'abcd',
-    attribution: '&copy; OpenStreetMap &copy; CARTO'
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
+    maxZoom:19, subdomains:'abcd',
+    attribution:'&copy; OpenStreetMap &copy; CARTO'
   }).addTo(map);
 
-  // círculo do raio de alerta
-  thCircle = L.circle([-23.5505, -46.6333], {
-    radius: threshold,
-    color: '#ffb300',
-    weight: 1,
-    dashArray: '6 6',
-    fillColor: '#ffb300',
-    fillOpacity: 0.05,
-    interactive: false
+  thCircle = L.circle([-23.5505,-46.6333],{
+    radius:threshold, color:'#ffb300', weight:1, dashArray:'6 6',
+    fillColor:'#ffb300', fillOpacity:.05, interactive:false
   }).addTo(map);
 
-  // clique no mapa para posicionar alvo
   map.on('click', e => {
     if(!picking) return;
     setFormLocation(e.latlng.lat, e.latlng.lng);
     if(pickMarker) map.removeLayer(pickMarker);
-    pickMarker = L.marker(e.latlng, {
-      icon: L.divIcon({className:'', html:'<div class="mk hot"></div>', iconSize:[16,16], iconAnchor:[8,8]})
+    pickMarker = L.marker(e.latlng,{
+      icon:L.divIcon({className:'',html:'<div class="mk hot"></div>',iconSize:[16,16],iconAnchor:[8,8]})
     }).addTo(map);
     picking = false;
     $('btnPick').classList.remove('on');
@@ -467,61 +509,53 @@ function initMap(){
   });
 }
 
-/* ================================================================
-   2. GEOLOCALIZAÇÃO REAL
-   ================================================================ */
+/* ----------------------------------------------------------------
+   2. GPS
+   ---------------------------------------------------------------- */
 function startGPS(){
   if(!('geolocation' in navigator)){
-    setStatus('SEM GPS', 'warn');
-    $('myAddr').textContent = 'Geolocalização não suportada neste navegador.';
+    setStatus('SEM GPS','warn');
+    $('myAddr').textContent = 'Geolocalização não suportada.';
     return;
   }
-  setStatus('BUSCANDO GPS', 'warn');
+  setStatus('BUSCANDO GPS','warn');
 
   navigator.geolocation.watchPosition(
     pos => {
       const { latitude:lat, longitude:lon, accuracy:acc } = pos.coords;
       const first = !meLatLng;
-      meLatLng = L.latLng(lat, lon);
+      meLatLng = L.latLng(lat,lon);
 
       if(!meMarker){
-        meMarker = L.marker(meLatLng, {
-          icon: L.divIcon({className:'', html:'<div class="mk-me"></div>', iconSize:[16,16], iconAnchor:[8,8]}),
-          zIndexOffset: 1000
+        meMarker = L.marker(meLatLng,{
+          icon:L.divIcon({className:'',html:'<div class="mk-me"></div>',iconSize:[16,16],iconAnchor:[8,8]}),
+          zIndexOffset:1000
         }).addTo(map);
-      } else {
-        meMarker.setLatLng(meLatLng);
-      }
+      } else meMarker.setLatLng(meLatLng);
 
       thCircle.setLatLng(meLatLng).setRadius(threshold);
-
-      $('myCoords').textContent = lat.toFixed(6) + ', ' + lon.toFixed(6);
-      $('myAcc').textContent = '± ' + Math.round(acc) + ' m';
+      $('myCoords').textContent = lat.toFixed(6)+', '+lon.toFixed(6);
+      $('myAcc').textContent = '± '+Math.round(acc)+' m';
       $('mapInfo').textContent = 'GPS ATIVO';
-      setStatus('VARRENDO', '');
+      setStatus('VARRENDO','');
 
       if(first || !myGeoCache.latlng || meLatLng.distanceTo(myGeoCache.latlng) > 60){
         myGeoCache.latlng = meLatLng;
-        reverseGeocode(lat, lon).then(g => {
-          const txt = g.road
-            ? `${g.road}${g.ref ? ' · próximo a ' + g.ref : ''}`
+        reverseGeocode(lat,lon).then(g => {
+          $('myAddr').textContent = g.road
+            ? `${g.road}${g.ref ? ' · próximo a '+g.ref : ''}`
             : (g.display || 'Endereço não identificado');
-          $('myAddr').textContent = txt;
         });
       }
-
-      if(first){
-        map.setView(meLatLng, 16);
-        updateAll();
-      }
+      if(first){ map.setView(meLatLng,16); updateAll(); }
     },
     err => {
-      setStatus('GPS NEGADO', 'danger');
-      $('myAddr').textContent = 'Permissão de localização negada. Usando posição padrão (São Paulo).';
+      setStatus('GPS NEGADO','danger');
+      $('myAddr').textContent = 'Permissão negada. Usando posição padrão (São Paulo).';
       if(!meLatLng){
-        meLatLng = L.latLng(-23.5505, -46.6333);
-        meMarker = L.marker(meLatLng, {
-          icon: L.divIcon({className:'', html:'<div class="mk-me"></div>', iconSize:[16,16], iconAnchor:[8,8]})
+        meLatLng = L.latLng(-23.5505,-46.6333);
+        meMarker = L.marker(meLatLng,{
+          icon:L.divIcon({className:'',html:'<div class="mk-me"></div>',iconSize:[16,16],iconAnchor:[8,8]})
         }).addTo(map);
         thCircle.setLatLng(meLatLng).setRadius(threshold);
       }
@@ -531,34 +565,33 @@ function startGPS(){
   );
 }
 
-/* ================================================================
-   3. GEOCODIFICAÇÃO (Nominatim / OpenStreetMap)
-   ================================================================ */
+/* ----------------------------------------------------------------
+   3. GEOCODIFICAÇÃO — PHOTON (komoot)
+   Sem chave, CORS liberado. Substitui o Nominatim que dava "API required".
+   ---------------------------------------------------------------- */
 async function reverseGeocode(lat, lon){
   try{
-    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
-              + `&zoom=18&addressdetails=1&accept-language=pt-BR`;
-    const r = await fetch(url, { headers:{ 'Accept':'application/json' } });
+    const url = `https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&lang=pt`;
+    const r = await fetch(url);
     if(!r.ok) throw 0;
     const j = await r.json();
-    const a = j.address || {};
+    const p = (j.features && j.features[0] && j.features[0].properties) || {};
 
-    const road = a.road || a.pedestrian || a.footway || a.path || a.cycleway ||
-                 a.residential || a.suburb || a.neighbourhood || '';
-
-    // pontos de referência: comércio, praça, escola, etc.
+    // Photon devolve campos variados — montamos "rua" e "referência"
+    const road = p.street || p.name || p.locality || p.district || '';
+    const num  = p.housenumber || '';
     const refParts = [
-      a.amenity, a.shop, a.tourism, a.leisure, a.building,
-      a.neighbourhood, a.suburb, a.city_district
+      p.city && p.city !== road ? p.city : '',
+      p.district && p.district !== road ? p.district : '',
+      p.suburb && p.suburb !== road ? p.suburb : ''
     ].filter(Boolean);
-
     const ref = [...new Set(refParts)].slice(0,2).join(', ');
 
     return {
-      road,
+      road: road + (num ? ', '+num : ''),
       ref,
-      display: j.display_name || '',
-      number: a.house_number || ''
+      display: [road, num, p.city, p.state, p.country].filter(Boolean).join(', '),
+      number: num
     };
   }catch(e){
     return { road:'', ref:'', display:'', number:'' };
@@ -566,15 +599,22 @@ async function reverseGeocode(lat, lon){
 }
 
 async function geocodeAddress(q){
-  const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1`
-            + `&accept-language=pt-BR&q=${encodeURIComponent(q)}`;
-  const r = await fetch(url, { headers:{ 'Accept':'application/json' } });
-  const j = await r.json();
-  if(!j.length) return null;
-  return { lat: parseFloat(j[0].lat), lon: parseFloat(j[0].lon), name: j[0].display_name };
+  try{
+    const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&lang=pt&limit=1`;
+    const r = await fetch(url);
+    if(!r.ok) throw 0;
+    const j = await r.json();
+    if(!j.features || !j.features.length) return null;
+    const f = j.features[0];
+    const [lon, lat] = f.geometry.coordinates;
+    const p = f.properties || {};
+    const nome = [p.name, p.street, p.city].filter(Boolean).join(', ');
+    return { lat, lon, name: nome || 'Local selecionado' };
+  }catch(e){
+    return null;
+  }
 }
 
-/* retorna {road, ref, display} com cache */
 async function getTargetGeo(t){
   const now = Date.now();
   if(t._geo && (now - t._geo.ts) < GEO_TTL) return t._geo;
@@ -584,259 +624,119 @@ async function getTargetGeo(t){
   return t._geo;
 }
 
-/* ================================================================
-   4. DISTÂNCIA
-   ================================================================ */
-function distTo(t){
-  if(!meLatLng) return Infinity;
-  return meLatLng.distanceTo(L.latLng(t.lat, t.lon)); // metros (Leaflet usa haversine)
+/* ----------------------------------------------------------------
+   4. BUSCA POR NÚMERO — SIMULAÇÃO OSINT DETERMINÍSTICA
+   ----------------------------------------------------------------
+   IMPORTANTE: não existe API pública gratuita que devolva as redes
+   sociais de um número de telefone. Este bloco gera handles
+   consistentes a partir do próprio número, para que o fluxo do app
+   funcione. É FICÇÃO — está marcado assim na interface.
+   ---------------------------------------------------------------- */
+function hashPhone(num){
+  const digits = num.replace(/\D/g,'');
+  let h = 2166136261;
+  for(let i=0;i<digits.length;i++){
+    h ^= digits.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return Math.abs(h>>>0);
 }
 
-/* ================================================================
-   5. RENDERIZAÇÃO
-   ================================================================ */
-function render(){
-  $('listCount').textContent = targets.length;
+function simulateOsint(numero){
+  const digits = numero.replace(/\D/g,'');
+  if(digits.length < 8) return null;
 
-  if(!targets.length){
-    listEl.innerHTML = '<div class="empty">NENHUM ALVO CADASTRADO<br>USE O PAINEL ACIMA PARA ADICIONAR</div>';
+  const h = hashPhone(numero);
+  const prefixes = ['user','alvo','shadow','ghost','agent','zero','kilo','delta','nyx','raven'];
+  const suffixes = ['_br','.oficial','_007','_real','_sp','_rj','_x','.ofc'];
+  const base = prefixes[h % prefixes.length] + String(h % 9999).padStart(4,'0');
+  const suf  = suffixes[(h>>3) % suffixes.length];
+
+  // codinome: 2 letras + 3 dígitos
+  const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const codename = 'ALVO-'
+    + letters[h % letters.length]
+    + letters[(h>>5) % letters.length]
+    + String(h % 900 + 100);
+
+  return {
+    codename,
+    instagram: '@' + base + suf,
+    facebook:  '/' + base + suf.replace(/[._]/g,''),
+    tiktok:    '@' + base + (h%2 ? '' : '.tt'),
+    whatsapp:  'wa.me/' + digits.slice(-11),
+    kwai:      '@' + base.replace(/_/g,'') + (h%3 ? '' : 'kw')
+  };
+}
+
+/* ----------------------------------------------------------------
+   5. UI — BUSCA POR NÚMERO
+   ---------------------------------------------------------------- */
+const osintStatus = $('osintStatus');
+const socialPreview = $('socialPreview');
+
+function renderSocialPreview(data){
+  const cells = [
+    ['FB', data?.facebook],
+    ['IG', data?.instagram],
+    ['TT', data?.tiktok],
+    ['WA', data?.whatsapp]
+  ];
+  socialPreview.innerHTML = cells.map(([k,v]) =>
+    `<div class="sp-item ${v ? '' : 'empty'}"><b>${k}</b>${v ? escapeHtml(v) : '—'}</div>`
+  ).join('');
+}
+
+renderSocialPreview(null);
+
+$('btnOsint').onclick = async () => {
+  const num = $('fNum').value.trim();
+  if(num.replace(/\D/g,'').length < 8){
+    osintStatus.className = 'osint-status';
+    osintStatus.innerHTML = '⚠ Número inválido. Digite ao menos 8 dígitos.';
     return;
   }
 
-  const sorted = [...targets].sort((a,b) => distTo(a) - distTo(b));
+  // passo 1 — "consultando bases"
+  osintStatus.className = 'osint-status load';
+  osintStatus.innerHTML = '<span class="spin"></span> Consultando bases abertas…';
 
-  listEl.innerHTML = sorted.map(t => {
-    const d = distTo(t);
-    const hot = d <= threshold;
-    const dTxt = isFinite(d) ? (d < 1000 ? Math.round(d) + ' m' : (d/1000).toFixed(2) + ' km') : '—';
-    const barW = isFinite(d) ? Math.min(d / (threshold * 2.2) * 100, 100) : 100;
-    const geo = t._geo && t._geo.road ? `${t._geo.road}${t._geo.ref ? ' · ' + t._geo.ref : ''}` : 'Endereço não consultado';
+  await new Promise(r => setTimeout(r, 700));
 
-    return `
-      <div class="target ${hot ? 'hot' : ''}" data-id="${t.id}">
-        <div class="top">
-          <span class="name">${escapeHtml(t.codename)}</span>
-          <span class="dist">${dTxt}</span>
-        </div>
-        <div class="num">${escapeHtml(t.numero)}</div>
-        <div class="addr">📍 ${escapeHtml(geo)}</div>
-        <div class="bar"><i style="width:${barW}%"></i></div>
-        <div class="acts">
-          <button class="mini" data-act="loc">🔊 FALAR LOCAL</button>
-          <button class="mini" data-act="go">🗺 IR ATÉ</button>
-          <button class="mini del" data-act="del">✕ REMOVER</button>
-        </div>
-      </div>`;
-  }).join('');
+  // passo 2 — resultado
+  const data = simulateOsint(num);
+  lastOsintData = data;
 
-  // ações
-  listEl.querySelectorAll('.mini').forEach(btn => {
-    btn.onclick = async e => {
-      e.stopPropagation();
-      const id = +btn.closest('.target').dataset.id;
-      const t = targets.find(x => x.id === id);
-      if(!t) return;
-      if(btn.dataset.act === 'del'){
-        targets = targets.filter(x => x.id !== id);
-        if(t._marker) map.removeLayer(t._marker);
-        saveTargets(); render();
-      }
-      if(btn.dataset.act === 'go'){
-        map.setView([t.lat, t.lon], 17);
-      }
-      if(btn.dataset.act === 'loc'){
-        speakTargetLocation(t);
-      }
-    };
-  });
-}
+  osintStatus.className = 'osint-status ok';
+  osintStatus.innerHTML = `✓ Perfil sintetizado · <b style="color:var(--gold)">${data.codename}</b> · <span style="opacity:.6">SIMULAÇÃO</span>`;
 
-function escapeHtml(s){
-  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
+  renderSocialPreview(data);
 
-/* marcadores no mapa */
-function renderMarkers(){
-  targets.forEach(t => {
-    const hot = distTo(t) <= threshold;
-    const latlng = [t.lat, t.lon];
+  // preenche codinome se estiver vazio
+  if(!$('fName').value.trim()) $('fName').value = data.codename;
 
-    if(!t._marker){
-      t._marker = L.marker(latlng, { icon: mkIcon(t, hot) }).addTo(map);
-      t._marker.on('click', () => showAlert(t, true));
-    } else {
-      t._marker.setLatLng(latlng);
-      t._marker.setIcon(mkIcon(t, hot));
-    }
-  });
-}
-
-function mkIcon(t, hot){
-  return L.divIcon({
-    className: '',
-    html: `<div class="mk ${hot ? 'hot' : ''}"><span>${escapeHtml(t.codename)}</span></div>`,
-    iconSize: [16,16],
-    iconAnchor: [8,8]
-  });
-}
-
-/* ================================================================
-   6. ATUALIZAÇÃO / LOOP
-   ================================================================ */
-function updateAll(){
-  render();
-  renderMarkers();
-}
-
-setInterval(() => {
-  if(!meLatLng || !targets.length) return;
-
-  let anyHot = false;
-
-  targets.forEach(t => {
-    const d = distTo(t);
-    const hot = d <= threshold;
-
-    if(hot){
-      anyHot = true;
-      if(!t._armed && Date.now() > mutedUntil){
-        t._armed = true;
-        showAlert(t, false, d);
-      }
-    } else if(d > threshold * 1.25){
-      t._armed = false;
-    }
-  });
-
-  setStatus(anyHot ? 'ALVO PRÓXIMO' : 'VARRENDO', anyHot ? 'danger' : '');
-  updateAll();
-}, 1200);
-
-function setStatus(txt, cls){
-  const el = $('statusTxt');
-  el.textContent = txt;
-  el.className = 'status' + (cls ? ' ' + cls : '');
-}
-
-/* ================================================================
-   7. VOZ E ÁUDIO
-   ================================================================ */
-function beep(times = 3){
-  if(!soundOn) return;
-  try{
-    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-    for(let i = 0; i < times; i++){
-      const t0 = audioCtx.currentTime + i * 0.22;
-      const o = audioCtx.createOscillator();
-      const g = audioCtx.createGain();
-      o.type = 'square';
-      o.frequency.setValueAtTime(i % 2 ? 1180 : 880, t0);
-      o.connect(g); g.connect(audioCtx.destination);
-      g.gain.setValueAtTime(0.0001, t0);
-      g.gain.exponentialRampToValueAtTime(0.15, t0 + 0.012);
-      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.16);
-      o.start(t0); o.stop(t0 + 0.18);
-    }
-  }catch(e){}
-}
-
-function speak(text){
-  if(!voiceOn || !('speechSynthesis' in window)) return;
-  window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'pt-BR';
-  u.rate = 1.0;
-  u.pitch = 0.88;
-  u.volume = 1;
-  const v = window.speechSynthesis.getVoices().find(x => x.lang && x.lang.startsWith('pt'));
-  if(v) u.voice = v;
-  window.speechSynthesis.speak(u);
-}
-
-function fmtDist(m){
-  if(m < 1000) return Math.round(m) + ' metros';
-  return (m/1000).toFixed(2).replace('.', ',') + ' quilômetros';
-}
-
-/* fala: rua + ponto de referência */
-async function speakTargetLocation(t){
-  const d = distTo(t);
-  const g = await getTargetGeo(t);
-  const rua = g.road ? `na ${g.road}${g.number ? ', número ' + g.number : ''}` : 'em local não identificado';
-  const ref = g.ref ? `, próximo a ${g.ref}` : '';
-  speak(`Alvo ${t.codename}. ${fmtDist(d)} de distância. Localizado ${rua}${ref}.`);
-}
-
-/* ================================================================
-   8. ALERTA
-   ================================================================ */
-let currentAlert = null;
-
-async function showAlert(t, manual, distOverride){
-  currentAlert = t;
-  const d = distOverride ?? distTo(t);
-
-  $('aName').textContent  = t.codename;
-  $('aPhone').textContent = t.numero;
-  $('aDist').textContent  = Math.round(d);
-
-  // sociais
-  const socs = [];
-  if(t.socials.facebook)  socs.push(['Facebook', t.socials.facebook]);
-  if(t.socials.instagram) socs.push(['Instagram', t.socials.instagram]);
-  if(t.socials.tiktok)    socs.push(['TikTok', t.socials.tiktok]);
-  if(t.socials.kwai)      socs.push(['Kwai', t.socials.kwai]);
-  $('aSocials').innerHTML = socs.length
-    ? socs.map(([k,v]) => `<span class="soc">${k}<b>${escapeHtml(v)}</b></span>`).join('')
-    : '<span class="soc" style="opacity:.5">SEM REDES CADASTRADAS</span>';
-
-  overlay.classList.add('show');
-  beep(3);
-
-  // endereço + voz
-  $('aAddr').textContent = 'Consultando via satélite…';
-  const g = await getTargetGeo(t);
-  const rua = g.road ? `${g.road}${g.number ? ', ' + g.number : ''}` : 'Local não identificado';
-  const ref = g.ref ? `<br><b>Referência:</b> ${escapeHtml(g.ref)}` : '';
-  $('aAddr').innerHTML = `📍 ${escapeHtml(rua)}${ref}`;
-
-  const fala = `Atenção. Alvo ${t.codename} ${manual ? 'selecionado' : 'detectado'} a ${fmtDist(d)}. `
-             + `Localizado ${g.road ? 'na ' + g.road : 'em local não identificado'}`
-             + `${g.ref ? ', próximo a ' + g.ref : ''}.`;
-  speak(fala);
-}
-
-function closeAlert(){
-  overlay.classList.remove('show');
-  setStatus('VARRENDO', '');
-}
-
-$('aOk').onclick = closeAlert;
-$('aMute').onclick = () => {
-  mutedUntil = Date.now() + 60000;
-  if('speechSynthesis' in window) window.speechSynthesis.cancel();
-  closeAlert();
+  validateForm();
+  beep(1);
+  speak(`Perfil sintetizado. Codinome ${data.codename}.`);
 };
 
-/* ================================================================
-   9. CADASTRO DE ALVO
-   ================================================================ */
+/* ----------------------------------------------------------------
+   6. FORMULÁRIO
+   ---------------------------------------------------------------- */
 function setFormLocation(lat, lon, label){
   formLatLng = { lat, lon };
-  $('fCoords').textContent = `📍 ${lat.toFixed(6)}, ${lon.toFixed(6)}${label ? ' · ' + label : ''}`;
+  $('fCoords').textContent = `📍 ${lat.toFixed(6)}, ${lon.toFixed(6)}${label ? ' · '+label : ''}`;
   $('fCoords').classList.add('ok');
   validateForm();
 }
-
 function validateForm(){
-  const ok = $('fName').value.trim() && $('fNum').value.trim() && formLatLng;
+  const ok = $('fName').value.trim() && $('fNum').value.trim().replace(/\D/g,'').length>=8 && formLatLng;
   $('btnAdd').disabled = !ok;
 }
-
 ['fName','fNum'].forEach(id => $(id).addEventListener('input', validateForm));
 
 $('btnMyLoc').onclick = () => {
-  if(!meLatLng) return alert('GPS ainda não disponível. Aguarde ou permita a localização.');
+  if(!meLatLng) return alert('GPS ainda não disponível.');
   setFormLocation(meLatLng.lat, meLatLng.lng, 'minha posição');
   map.setView(meLatLng, 17);
 };
@@ -853,45 +753,48 @@ $('btnSearch').onclick = async function(){
   if(!q) return;
   this.textContent = '…';
   const r = await geocodeAddress(q);
-  this.textContent = '🔍 BUSCAR';
-  if(!r) return alert('Endereço não encontrado.');
+  this.textContent = '🔍 IR';
+  if(!r){ alert('Endereço não encontrado. Tente ser mais específico.'); return; }
   setFormLocation(r.lat, r.lon, r.name.split(',').slice(0,2).join(','));
   map.setView([r.lat, r.lon], 17);
   if(pickMarker) map.removeLayer(pickMarker);
-  pickMarker = L.marker([r.lat, r.lon], {
-    icon: L.divIcon({className:'', html:'<div class="mk hot"></div>', iconSize:[16,16], iconAnchor:[8,8]})
+  pickMarker = L.marker([r.lat,r.lon],{
+    icon:L.divIcon({className:'',html:'<div class="mk hot"></div>',iconSize:[16,16],iconAnchor:[8,8]})
   }).addTo(map);
 };
 
 $('btnAdd').onclick = () => {
+  // se o usuário não clicou em BUSCAR, geramos na hora
+  if(!lastOsintData || lastOsintData.codename !== $('fName').value.trim().toUpperCase()){
+    lastOsintData = simulateOsint($('fNum').value.trim());
+  }
+
   const t = {
     id: Date.now(),
-    codename: $('fName').value.trim().toUpperCase(),
+    codename: $('fName').value.trim().toUpperCase() || lastOsintData.codename,
     numero: $('fNum').value.trim(),
-    lat: formLatLng.lat,
-    lon: formLatLng.lng,
+    lat: formLatLng.lat, lon: formLatLng.lon,
     socials: {
-      facebook:  $('fFb').value.trim(),
-      instagram: $('fIg').value.trim(),
-      tiktok:    $('fTk').value.trim(),
-      kwai:      $('fKw').value.trim()
+      facebook:  lastOsintData?.facebook  || '',
+      instagram: lastOsintData?.instagram || '',
+      tiktok:    lastOsintData?.tiktok    || '',
+      whatsapp:  lastOsintData?.whatsapp  || '',
+      kwai:      lastOsintData?.kwai      || ''
     },
-    _armed: false,
-    _geo: null
+    _armed:false, _geo:null
   };
 
   targets.push(t);
-  saveTargets();
-  updateAll();
-
-  // consulta o endereço em background
+  saveTargets(); updateAll();
   getTargetGeo(t).then(() => render());
 
-  // limpa formulário
-  ['fName','fNum','fFb','fIg','fTk','fKw','fAddr'].forEach(id => $(id).value = '');
-  formLatLng = null;
+  ['fName','fNum','fAddr'].forEach(id => $(id).value = '');
+  formLatLng = null; lastOsintData = null;
   $('fCoords').textContent = '📍 Nenhuma localização definida';
   $('fCoords').classList.remove('ok');
+  osintStatus.className = 'osint-status';
+  osintStatus.innerHTML = '⟨ aguardando número ⟩ Digite um telefone e clique em BUSCAR.';
+  renderSocialPreview(null);
   if(pickMarker){ map.removeLayer(pickMarker); pickMarker = null; }
   picking = false;
   $('btnPick').classList.remove('on');
@@ -899,53 +802,322 @@ $('btnAdd').onclick = () => {
   map.getContainer().style.cursor = '';
   validateForm();
 
-  map.setView([t.lat, t.lon], 17);
+  map.setView([t.lat,t.lon], 17);
   speak(`Alvo ${t.codename} adicionado ao monitoramento.`);
 };
 
-/* ================================================================
-   10. CONTROLES
-   ================================================================ */
+/* ----------------------------------------------------------------
+   7. LISTA / MARCADORES
+   ---------------------------------------------------------------- */
+function distTo(t){
+  if(!meLatLng) return Infinity;
+  return meLatLng.distanceTo(L.latLng(t.lat,t.lon));
+}
+function bearingTo(t){
+  if(!meLatLng) return 0;
+  const φ1 = meLatLng.lat*Math.PI/180, φ2 = t.lat*Math.PI/180;
+  const Δλ = (t.lon - meLatLng.lng)*Math.PI/180;
+  const y = Math.sin(Δλ)*Math.cos(φ2);
+  const x = Math.cos(φ1)*Math.sin(φ2) - Math.sin(φ1)*Math.cos(φ2)*Math.cos(Δλ);
+  return (Math.atan2(y,x)*180/Math.PI + 360) % 360;
+}
+function escapeHtml(s){
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function render(){
+  $('listCount').textContent = targets.length;
+  if(!targets.length){
+    listEl.innerHTML = '<div class="empty">NENHUM ALVO CADASTRADO<br>USE O PAINEL ACIMA</div>';
+    return;
+  }
+  const sorted = [...targets].sort((a,b) => distTo(a) - distTo(b));
+  listEl.innerHTML = sorted.map(t => {
+    const d = distTo(t);
+    const hot = d <= threshold;
+    const dTxt = isFinite(d) ? (d < 1000 ? Math.round(d)+' m' : (d/1000).toFixed(2)+' km') : '—';
+    const barW = isFinite(d) ? Math.min(d/(threshold*2.2)*100, 100) : 100;
+    const geo = t._geo && t._geo.road
+      ? `${t._geo.road}${t._geo.ref ? ' · '+t._geo.ref : ''}`
+      : 'Endereço não consultado';
+    return `
+      <div class="target ${hot?'hot':''}" data-id="${t.id}">
+        <div class="top">
+          <span class="name">${escapeHtml(t.codename)}</span>
+          <span class="dist">${dTxt}</span>
+        </div>
+        <div class="num">${escapeHtml(t.numero)}</div>
+        <div class="addr">📍 ${escapeHtml(geo)}</div>
+        <div class="bar"><i style="width:${barW}%"></i></div>
+        <div class="acts">
+          <button class="mini" data-act="loc">🔊 FALAR LOCAL</button>
+          <button class="mini" data-act="go">🗺 IR</button>
+          <button class="mini del" data-act="del">✕ REMOVER</button>
+        </div>
+      </div>`;
+  }).join('');
+
+  listEl.querySelectorAll('.mini').forEach(btn => {
+    btn.onclick = e => {
+      e.stopPropagation();
+      const id = +btn.closest('.target').dataset.id;
+      const t = targets.find(x => x.id===id); if(!t) return;
+      if(btn.dataset.act==='del'){
+        targets = targets.filter(x => x.id!==id);
+        if(t._marker) map.removeLayer(t._marker);
+        saveTargets(); updateAll();
+      }
+      if(btn.dataset.act==='go') map.setView([t.lat,t.lon],17);
+      if(btn.dataset.act==='loc') speakTargetLocation(t);
+    };
+  });
+}
+
+function renderMarkers(){
+  targets.forEach(t => {
+    const hot = distTo(t) <= threshold;
+    const latlng = [t.lat,t.lon];
+    if(!t._marker){
+      t._marker = L.marker(latlng,{ icon:mkIcon(t,hot) }).addTo(map);
+      t._marker.on('click', () => showAlert(t,true));
+    } else {
+      t._marker.setLatLng(latlng);
+      t._marker.setIcon(mkIcon(t,hot));
+    }
+  });
+}
+function mkIcon(t,hot){
+  return L.divIcon({
+    className:'',
+    html:`<div class="mk ${hot?'hot':''}"><span>${escapeHtml(t.codename)}</span></div>`,
+    iconSize:[16,16], iconAnchor:[8,8]
+  });
+}
+
+function updateAll(){ render(); renderMarkers(); renderSonar(); }
+
+/* ----------------------------------------------------------------
+   8. SONAR HUD (sempre ativo)
+   ---------------------------------------------------------------- */
+const sonarFrame = $('sonarFrame');
+const sonarRange = $('sonarRange');
+let sonarBlips = {};  // id -> element
+
+function sonarRangeMeters(){
+  // alcance exibido = 3x o raio de alerta, mínimo 500 m
+  return Math.max(threshold * 3, 500);
+}
+
+function renderSonar(){
+  const range = sonarRangeMeters();
+  sonarRange.textContent = range >= 1000
+    ? (range/1000).toFixed(1).replace('.',',')+' km'
+    : range+' m';
+
+  // limpa blips órfãos
+  Object.keys(sonarBlips).forEach(id => {
+    if(!targets.some(t => String(t.id) === id)){
+      sonarBlips[id].remove(); delete sonarBlips[id];
+    }
+  });
+
+  targets.forEach(t => {
+    let el = sonarBlips[t.id];
+    if(!el){
+      el = document.createElement('div');
+      el.className = 'sblip';
+      sonarFrame.appendChild(el);
+      sonarBlips[t.id] = el;
+    }
+
+    const d = distTo(t);
+    if(!isFinite(d)){ el.style.opacity = 0; return; }
+    el.style.opacity = 1;
+
+    const brg = bearingTo(t);
+    const ratio = Math.min(d / range, 1) * 46; // % do raio do sonar
+    const rad = (brg - 90) * Math.PI/180;      // 0° = norte = topo
+    const x = 50 + ratio * Math.cos(rad);
+    const y = 50 + ratio * Math.sin(rad);
+    el.style.left = x + '%';
+    el.style.top  = y + '%';
+
+    const hot = d <= threshold;
+    el.classList.toggle('hot', hot);
+  });
+}
+
+$('sonarBtn').onclick = function(){
+  const hud = $('sonarHud');
+  const min = hud.classList.toggle('min');
+  this.textContent = min ? '+' : '–';
+};
+// clique no círculo também expande se estiver minimizado
+$('sonarFrame').addEventListener('click', e => {
+  const hud = $('sonarHud');
+  if(hud.classList.contains('min')){
+    hud.classList.remove('min');
+    $('sonarBtn').textContent = '–';
+    e.stopPropagation();
+  }
+});
+
+/* ----------------------------------------------------------------
+   9. LOOP
+   ---------------------------------------------------------------- */
+setInterval(() => {
+  if(meLatLng){
+    // desenha o sonar sempre, mesmo sem alvos
+    renderSonar();
+
+    if(targets.length){
+      let anyHot = false;
+      targets.forEach(t => {
+        const d = distTo(t);
+        const hot = d <= threshold;
+        if(hot){
+          anyHot = true;
+          if(!t._armed && Date.now() > mutedUntil){
+            t._armed = true;
+            showAlert(t,false,d);
+          }
+        } else if(d > threshold*1.25){
+          t._armed = false;
+        }
+      });
+      setStatus(anyHot ? 'ALVO PRÓXIMO' : 'VARRENDO', anyHot ? 'danger' : '');
+      updateAll();
+    } else {
+      renderMarkers && renderMarkers();
+      render();
+      renderSonar();
+      setStatus('VARRENDO','');
+    }
+  }
+}, 1200);
+
+function setStatus(txt, cls){
+  const el = $('statusTxt');
+  el.textContent = txt;
+  el.className = 'status' + (cls ? ' '+cls : '');
+}
+
+/* ----------------------------------------------------------------
+   10. VOZ / ÁUDIO
+   ---------------------------------------------------------------- */
+function beep(times=3){
+  if(!soundOn) return;
+  try{
+    audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+    for(let i=0;i<times;i++){
+      const t0 = audioCtx.currentTime + i*0.22;
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type='square';
+      o.frequency.setValueAtTime(i%2?1180:880, t0);
+      o.connect(g); g.connect(audioCtx.destination);
+      g.gain.setValueAtTime(0.0001,t0);
+      g.gain.exponentialRampToValueAtTime(0.15,t0+0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001,t0+0.16);
+      o.start(t0); o.stop(t0+0.18);
+    }
+  }catch(e){}
+}
+function speak(text){
+  if(!voiceOn || !('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang='pt-BR'; u.rate=1.0; u.pitch=.88;
+  const v = window.speechSynthesis.getVoices().find(x=>x.lang && x.lang.startsWith('pt'));
+  if(v) u.voice=v;
+  window.speechSynthesis.speak(u);
+}
+function fmtDist(m){
+  return m<1000 ? Math.round(m)+' metros'
+                : (m/1000).toFixed(2).replace('.',',')+' quilômetros';
+}
+async function speakTargetLocation(t){
+  const d = distTo(t);
+  const g = await getTargetGeo(t);
+  const rua = g.road ? `na ${g.road}` : 'em local não identificado';
+  const ref = g.ref ? `, próximo a ${g.ref}` : '';
+  speak(`Alvo ${t.codename}. ${fmtDist(d)} de distância. Localizado ${rua}${ref}.`);
+}
+
+/* ----------------------------------------------------------------
+   11. ALERTA
+   ---------------------------------------------------------------- */
+async function showAlert(t, manual, distOverride){
+  const d = distOverride ?? distTo(t);
+  $('aName').textContent = t.codename;
+  $('aPhone').textContent = t.numero;
+  $('aDist').textContent = Math.round(d);
+
+  const socs = [];
+  if(t.socials.facebook)  socs.push(['Facebook',t.socials.facebook]);
+  if(t.socials.instagram) socs.push(['Instagram',t.socials.instagram]);
+  if(t.socials.tiktok)    socs.push(['TikTok',t.socials.tiktok]);
+  if(t.socials.whatsapp)  socs.push(['WhatsApp',t.socials.whatsapp]);
+  if(t.socials.kwai)      socs.push(['Kwai',t.socials.kwai]);
+  $('aSocials').innerHTML = socs.length
+    ? socs.map(([k,v])=>`<span class="soc">${k}<b>${escapeHtml(v)}</b></span>`).join('')
+    : '<span class="soc" style="opacity:.5">SEM REDES</span>';
+
+  overlay.classList.add('show');
+  beep(3);
+
+  $('aAddr').textContent = 'Consultando…';
+  const g = await getTargetGeo(t);
+  const rua = g.road ? g.road : 'Local não identificado';
+  const ref = g.ref ? `<br><b>Referência:</b> ${escapeHtml(g.ref)}` : '';
+  $('aAddr').innerHTML = `📍 ${escapeHtml(rua)}${ref}`;
+
+  speak(`Atenção. Alvo ${t.codename} ${manual?'selecionado':'detectado'} a ${fmtDist(d)}. `
+      + `Localizado ${g.road ? 'na '+g.road : 'em local não identificado'}`
+      + `${g.ref ? ', próximo a '+g.ref : ''}.`);
+}
+function closeAlert(){ overlay.classList.remove('show'); setStatus('VARRENDO',''); }
+$('aOk').onclick = closeAlert;
+$('aMute').onclick = () => {
+  mutedUntil = Date.now()+60000;
+  if('speechSynthesis' in window) window.speechSynthesis.cancel();
+  closeAlert();
+};
+
+/* ----------------------------------------------------------------
+   12. CONTROLES
+   ---------------------------------------------------------------- */
 $('threshold').addEventListener('input', e => {
   threshold = +e.target.value;
   $('thVal').textContent = threshold >= 1000
-    ? (threshold/1000).toFixed(1).replace('.', ',') + ' km'
-    : threshold + ' m';
+    ? (threshold/1000).toFixed(1).replace('.',',')+' km'
+    : threshold+' m';
   if(thCircle) thCircle.setRadius(threshold);
-  targets.forEach(t => { if(distTo(t) > threshold * 1.25) t._armed = false; });
+  targets.forEach(t => { if(distTo(t) > threshold*1.25) t._armed = false; });
   updateAll();
 });
-
 $('tgVoice').onclick = function(){
   voiceOn = !voiceOn;
-  this.classList.toggle('on', voiceOn);
+  this.classList.toggle('on',voiceOn);
   this.textContent = voiceOn ? '🔊 VOZ ATIVA' : '🔇 VOZ OFF';
   if(!voiceOn && 'speechSynthesis' in window) window.speechSynthesis.cancel();
 };
-
 $('tgSound').onclick = function(){
   soundOn = !soundOn;
-  this.classList.toggle('on', soundOn);
+  this.classList.toggle('on',soundOn);
   this.textContent = soundOn ? '🎵 ALARME' : '🔕 ALARME OFF';
 };
-
-let followGPS = false;
 $('tgTrack').onclick = function(){
   followGPS = !followGPS;
-  this.classList.toggle('on', followGPS);
+  this.classList.toggle('on',followGPS);
 };
-
-map && null; // (map criado no init)
-
 $('tgCenter').onclick = () => {
-  if(meLatLng) map.setView(meLatLng, 17);
+  if(meLatLng) map.setView(meLatLng,17);
   else alert('GPS ainda não disponível.');
 };
-
 $('tgScan').onclick = async () => {
   if(!targets.length){ speak('Nenhum alvo cadastrado.'); return; }
   beep(1);
-  const sorted = [...targets].sort((a,b) => distTo(a) - distTo(b));
+  const sorted = [...targets].sort((a,b)=>distTo(a)-distTo(b));
   speak(`Relatório tático. ${targets.length} alvos monitorados.`);
   for(const t of sorted){
     const g = await getTargetGeo(t);
@@ -953,13 +1125,13 @@ $('tgScan').onclick = async () => {
     const rua = g.road ? `na ${g.road}` : 'local não identificado';
     const ref = g.ref ? `, próximo a ${g.ref}` : '';
     speak(`Alvo ${t.codename}, ${fmtDist(d)}, ${rua}${ref}.`);
-    await new Promise(r => setTimeout(r, 2200));
+    await new Promise(r => setTimeout(r,2200));
   }
 };
 
-/* ================================================================
-   11. PERSISTÊNCIA
-   ================================================================ */
+/* ----------------------------------------------------------------
+   13. PERSISTÊNCIA
+   ---------------------------------------------------------------- */
 function saveTargets(){
   try{
     const clean = targets.map(t => ({
@@ -969,7 +1141,6 @@ function saveTargets(){
     localStorage.setItem(STORAGE_KEY, JSON.stringify(clean));
   }catch(e){}
 }
-
 function loadTargets(){
   try{
     const s = localStorage.getItem(STORAGE_KEY);
@@ -977,30 +1148,15 @@ function loadTargets(){
   }catch(e){ targets = []; }
 }
 
-/* ================================================================
-   12. BOOT
-   ================================================================ */
+/* ----------------------------------------------------------------
+   14. BOOT
+   ---------------------------------------------------------------- */
 (function boot(){
   initMap();
-
-  // repassa o followGPS pro watch
-  const origUpdate = updateAll;
-  updateAll = function(){
-    origUpdate();
-    if(followGPS && meLatLng) map.panTo(meLatLng, { animate:true, duration:.6 });
-  };
-
   loadTargets();
   updateAll();
   startGPS();
-
-  setTimeout(() => {
-    if(!meLatLng) setStatus('SEM GPS', 'warn');
-  }, 4000);
-
-  if('speechSynthesis' in window){
-    window.speechSynthesis.onvoiceschanged = () => {};
-  }
+  setTimeout(() => { if(!meLatLng) setStatus('SEM GPS','warn'); }, 4000);
 })();
 </script>
 </body>
