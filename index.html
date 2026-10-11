@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SENTINELA-7 · BRIDGE + MAPA</title>
+<title>SENTINELA-7 · RASTREAMENTO AO VIVO</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
 :root{
@@ -62,7 +62,6 @@ header{
   padding:9px 14px;color:rgba(255,179,0,.9);border-radius:2px}
 .notice b{color:#ffd166}
 .notice.blue{border-left-color:var(--neon);background:rgba(0,240,255,.05);color:rgba(0,240,255,.85)}
-.notice.danger{border-left-color:var(--danger);background:rgba(255,45,85,.06);color:rgba(255,180,200,.9)}
 
 .grid{display:grid;grid-template-columns:1.25fr .95fr;gap:16px;margin-top:16px}
 @media(max-width:960px){.grid{grid-template-columns:1fr}}
@@ -124,6 +123,8 @@ header{
   background:var(--gold);box-shadow:0 0 10px var(--gold), 0 0 22px var(--gold);
   border:1.5px solid rgba(255,255,255,.85);transition:left .9s linear, top .9s linear, background .3s;z-index:3}
 .sonar-disc .sblip.hot{background:var(--danger);box-shadow:0 0 14px var(--danger), 0 0 30px var(--danger);animation:sonarPulse .85s infinite}
+.sonar-disc .sblip.live{background:var(--ok);box-shadow:0 0 14px var(--ok), 0 0 30px var(--ok);border-color:#fff}
+.sonar-disc .sblip.live.hot{background:var(--danger);box-shadow:0 0 16px var(--danger), 0 0 34px var(--danger)}
 @keyframes sonarPulse{50%{transform:scale(1.9);opacity:.75}}
 .sonar-disc .sblip::after{content:attr(data-label);position:absolute;left:14px;top:-2px;
   font-size:8.5px;letter-spacing:.12em;color:#dffcff;white-space:nowrap;
@@ -139,6 +140,8 @@ header{
   box-shadow:0 0 12px var(--gold),0 0 26px var(--gold);
   border:2px solid rgba(255,255,255,.7);position:relative}
 .mk.hot{background:var(--danger);box-shadow:0 0 14px var(--danger),0 0 32px var(--danger);animation:pulseMk .8s infinite}
+.mk.live{background:var(--ok);box-shadow:0 0 14px var(--ok),0 0 30px var(--ok)}
+.mk.live.hot{background:var(--danger);box-shadow:0 0 16px var(--danger),0 0 36px var(--danger);animation:pulseMk .8s infinite}
 .mk span{position:absolute;left:20px;top:-3px;font-size:9px;letter-spacing:.14em;color:#dffcff;
   white-space:nowrap;text-shadow:0 0 8px #000,0 0 12px var(--neon)}
 @keyframes pulseMk{50%{transform:scale(1.6);opacity:.7}}
@@ -167,6 +170,8 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border:0;border-radiu
 .tg.on{color:var(--ok);border-color:var(--ok);box-shadow:0 0 14px rgba(0,255,157,.3);background:rgba(0,255,157,.06)}
 .tg.gold{border-color:var(--gold);color:var(--gold)}
 .tg.gold:hover{background:rgba(255,179,0,.12);box-shadow:0 0 14px rgba(255,179,0,.3)}
+.tg.green{border-color:var(--ok);color:var(--ok);background:rgba(0,255,157,.08)}
+.tg.green:hover{background:rgba(0,255,157,.2);box-shadow:0 0 14px rgba(0,255,157,.4)}
 .tg:active{transform:scale(.97)}
 
 .form-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
@@ -177,6 +182,30 @@ input[type=text],input[type=tel],textarea{
 input[type=text]::placeholder,input[type=tel]::placeholder,textarea::placeholder{color:rgba(0,240,255,.3);letter-spacing:.1em}
 input[type=text]:focus,input[type=tel]:focus,textarea:focus{border-color:var(--neon);box-shadow:0 0 14px rgba(0,240,255,.25);background:rgba(0,240,255,.08)}
 textarea{resize:vertical;min-height:80px;line-height:1.6}
+
+.share-link{
+  border:1px dashed rgba(0,255,157,.4);background:rgba(0,255,157,.05);
+  padding:11px 12px;border-radius:2px;margin-bottom:10px;
+  font-size:10px;letter-spacing:.06em;color:#c9ffe7;line-height:1.6;
+  word-break:break-all;cursor:pointer;transition:.2s;
+}
+.share-link:hover{background:rgba(0,255,157,.12);border-color:var(--ok)}
+.share-code{
+  font-size:22px;letter-spacing:.35em;color:var(--ok);text-align:center;
+  text-shadow:0 0 12px var(--ok);margin:8px 0 4px;font-weight:800;
+}
+.share-hint{font-size:8.5px;letter-spacing:.14em;color:rgba(0,240,255,.5);text-align:center;line-height:1.7}
+
+.share-peer{
+  border:1px solid rgba(0,255,157,.35);border-left:3px solid var(--ok);
+  background:rgba(0,255,157,.05);padding:10px 12px;border-radius:2px;
+  margin-bottom:8px;font-size:9.5px;letter-spacing:.06em;color:#c9ffe7;
+}
+.share-peer .nm{font-size:11px;letter-spacing:.16em;color:#fff;margin-bottom:3px;display:flex;justify-content:space-between}
+.share-peer .st{font-size:9px;color:var(--gold);letter-spacing:.14em;margin-bottom:3px}
+.share-peer .meta{font-size:8.5px;color:rgba(0,240,255,.6);letter-spacing:.06em}
+.share-peer.aprox .st{color:var(--ok)}
+.share-peer.afast .st{color:var(--danger)}
 
 .osint-status{
   border:1px dashed rgba(0,240,255,.3);background:rgba(0,240,255,.03);
@@ -223,7 +252,6 @@ textarea{resize:vertical;min-height:80px;line-height:1.6}
 .imp-block p{font-size:9px;letter-spacing:.06em;color:rgba(0,240,255,.5);
   line-height:1.6;margin-bottom:9px}
 .imp-block.unavailable{border-left-color:rgba(0,240,255,.2);opacity:.55}
-.imp-block.unavailable .tg{cursor:not-allowed;opacity:.5}
 .btn-import{width:100%;padding:10px;border:1px solid var(--gold);background:rgba(255,179,0,.08);
   color:var(--gold);font-family:inherit;font-size:10px;letter-spacing:.2em;cursor:pointer;
   border-radius:2px;transition:.2s;text-align:center;display:block}
@@ -295,17 +323,56 @@ textarea{resize:vertical;min-height:80px;line-height:1.6}
 
 footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,255,.28);margin:26px 0 12px;line-height:1.8}
 
-/* Badge da extensão */
 #extBadge{
   position:fixed;top:14px;right:14px;z-index:9997;
   font-size:9px;letter-spacing:.2em;padding:5px 10px;border-radius:2px;
   font-family:ui-monospace,monospace;pointer-events:none;
 }
+
+/* ============ MODO COMPANHEIRO ============ */
+#companionView{
+  position:fixed;inset:0;z-index:9990;display:none;
+  background:radial-gradient(circle at 50% 30%, rgba(0,240,255,.15), rgba(2,6,11,.98) 60%);
+  align-items:center;justify-content:center;padding:20px;
+}
+#companionView.show{display:flex}
+.companion-card{
+  width:min(420px,100%);border:1px solid var(--ok);border-radius:4px;
+  background:linear-gradient(180deg,rgba(0,255,157,.1),rgba(2,6,11,.96));
+  box-shadow:0 0 60px rgba(0,255,157,.35);
+  padding:26px 22px;text-align:center;
+}
+.companion-card h2{font-size:11px;letter-spacing:.34em;color:var(--ok);margin-bottom:16px;text-shadow:0 0 14px var(--ok)}
+.companion-card .ico{font-size:44px;margin-bottom:12px;filter:drop-shadow(0 0 12px var(--ok))}
+.companion-card .code{font-size:26px;letter-spacing:.32em;color:var(--ok);text-shadow:0 0 16px var(--ok);font-weight:800;margin:10px 0}
+.companion-card .st{font-size:11px;letter-spacing:.16em;color:#c9ffe7;margin:12px 0;line-height:1.7}
+.companion-card .sub{font-size:9px;letter-spacing:.1em;color:rgba(0,240,255,.55);line-height:1.8;margin-top:14px}
+.companion-card .dot{
+  display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);
+  box-shadow:0 0 10px var(--ok);margin-right:6px;animation:blink 1.4s infinite;
+}
 </style>
 </head>
 <body>
-<div class="wrap">
 
+<!-- ============ MODO COMPANHEIRO ============ -->
+<div id="companionView">
+  <div class="companion-card">
+    <div class="ico">📡</div>
+    <h2>MODO COMPANHEIRO</h2>
+    <div class="code" id="cCode">— — — — — —</div>
+    <div class="st" id="cStatus"><span class="dot"></span>Aguardando conexão…</div>
+    <div class="sub">
+      Você está compartilhando sua localização.<br>
+      Para parar, feche esta aba ou revogue o GPS.<br>
+      <br>
+      🔒 Seus dados vão somente para quem enviou o link.
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODO PRINCIPAL ============ -->
+<div class="wrap" id="mainView">
   <header>
     <div class="logo">
       <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linejoin="round">
@@ -317,23 +384,13 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
     </div>
     <div class="brand">
       <h1>SENTINELA<span>-7</span></h1>
-      <p>PROTOCOLO JARDAS · BRIDGE CHROME · v0.6</p>
+      <p>PROTOCOLO JARDAS · AO VIVO · v0.7</p>
     </div>
     <div class="status" id="statusTxt">INICIALIZANDO</div>
   </header>
 
-  <div class="notice">
-    ⚠ <b>USO PESSOAL / EDUCACIONAL.</b> Importe apenas contatos autorizados. A busca por rede social usa a <b>sua sessão logada</b> na extensão Chrome (bridge).
-  </div>
-
-  <div class="notice danger">
-    ⚠ <b>AVISO:</b> consultas automatizadas na busca do Facebook/Instagram/TikTok violam os Termos dessas plataformas.
-    Sua conta pode ser <b>banida</b>. Use <b>conta secundária</b> para testes. Não escale para clientes pagantes sem migrar para API paga (Apify/Datagma).
-  </div>
-
   <div class="notice blue">
-    ℹ <b>BRIDGE:</b> o selo no canto superior direito mostra se a extensão Chrome está instalada.
-    Sem ela, a busca por redes cai no modo <b>SIMULAÇÃO</b>.
+    ℹ <b>RASTREAMENTO AO VIVO:</b> gere um link, envie para seu tio. Ele abre, autoriza o GPS e aparece no seu radar em tempo real. Voz anuncia metros, ETA e se está aproximando/afastando.
   </div>
 
   <div class="grid">
@@ -374,6 +431,34 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 
     <div>
       <div class="card">
+        <h2>◈ RASTREAMENTO AO VIVO <em id="shareStatus">OFF</em></h2>
+
+        <div id="shareStart">
+          <p style="font-size:9.5px;letter-spacing:.06em;color:rgba(0,240,255,.6);line-height:1.7;margin-bottom:10px">
+            Gere um código, envie o link para a pessoa. Ela abre no celular, autoriza o GPS e aparece no seu radar em tempo real.
+          </p>
+          <button class="btn-import" id="btnCreateShare" style="border-color:var(--ok);color:var(--ok);background:rgba(0,255,157,.1)">
+            🔗 CRIAR LINK DE COMPARTILHAMENTO
+          </button>
+        </div>
+
+        <div id="shareActive" style="display:none">
+          <div class="share-code" id="shareCode">— — — — — —</div>
+          <div class="share-hint">Envie este link para quem vai compartilhar:</div>
+          <div class="share-link" id="shareLink" title="Clique para copiar"></div>
+          <div class="toggles" style="margin-top:10px">
+            <button class="tg" id="btnCopyLink">📋 COPIAR LINK</button>
+            <button class="tg gold" id="btnShareWA">💬 ENVIAR WHATSAPP</button>
+          </div>
+          <div class="toggles" style="margin-top:8px">
+            <button class="tg" id="btnStopShare" style="border-color:var(--danger);color:var(--danger)">⏹ ENCERRAR</button>
+          </div>
+        </div>
+
+        <div id="shareList" style="margin-top:12px"></div>
+      </div>
+
+      <div class="card">
         <h2>◈ PROTOCOLO DE APROXIMAÇÃO</h2>
         <div class="ctrl">
           <label>RAIO DE ALERTA <b id="thVal">150 m</b></label>
@@ -387,50 +472,15 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
         <div class="toggles" style="margin-top:8px">
           <button class="tg on" id="tgTrack">📍 SEGUIR GPS</button>
           <button class="tg gold" id="tgCenter">🎯 CENTRALIZAR</button>
-          <button class="tg gold" id="tgScan">▶ VOZ</button>
+          <button class="tg on" id="tgBeep">🔔 BIPE PROXIMIDADE</button>
+        </div>
+        <div class="toggles" style="margin-top:8px">
+          <button class="tg on" id="tgAutoVoice">🎙 VOZ AUTOMÁTICA (20s)</button>
         </div>
       </div>
 
       <div class="card">
-        <h2>◈ IMPORTAR CONTATOS <em>EM MASSA</em></h2>
-
-        <div class="import-methods">
-          <div class="imp-block" id="blkPicker">
-            <h3>📱 CONTATOS DO CELULAR (nativo)</h3>
-            <p id="pickerMsg">Abre o seletor nativo do sistema. Você escolhe quais contatos importar.
-               Funciona apenas em <b>Chrome no Android</b> com HTTPS.</p>
-            <button class="btn-import" id="btnPicker" type="button">
-              📇 ESCOLHER CONTATOS DO CELULAR
-            </button>
-          </div>
-
-          <div class="imp-block">
-            <h3>📁 IMPORTAR ARQUIVO (.vcf / .csv / .txt)</h3>
-            <p>Exporte do <b>Google Contacts</b>, <b>iCloud</b> ou qualquer app e jogue aqui.</p>
-            <label class="btn-import" for="fileInput">📂 ESCOLHER ARQUIVO</label>
-            <input type="file" id="fileInput" accept=".vcf,.csv,.txt,text/vcard,text/csv,text/plain" multiple>
-          </div>
-
-          <div class="imp-block">
-            <h3>📋 COLAR LISTA DE NÚMEROS</h3>
-            <p>Cole um número por linha. Aceita <code>Nome, +55 11 9…</code> ou só o número.</p>
-            <textarea id="pasteArea" placeholder="+55 11 99999-0001&#10;+55 21 98888-0002&#10;Maria Silva, +55 31 97777-0003"></textarea>
-            <button class="btn-import" id="btnPaste" type="button" style="margin-top:8px">
-              ⚡ IMPORTAR TEXTO COLADO
-            </button>
-          </div>
-        </div>
-
-        <div class="import-log" id="importLog">
-          ⟨ log de importação ⟩ Nada importado ainda.
-        </div>
-        <div class="hint">
-          Todos os contatos entram na <b>sua localização atual</b>. Depois use <b>📌 MOVER AQUI</b> na lista para reposicionar.
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>◈ CADASTRAR ALVO <em>BUSCA REAL + OSINT</em></h2>
+        <h2>◈ CADASTRAR ALVO <em>BUSCA + OSINT</em></h2>
         <div class="form-row" style="margin-bottom:10px">
           <input type="tel" id="fNum" placeholder="NÚMERO (+55 11 99999-0000)" maxlength="24">
           <button class="tg gold" id="btnOsint" type="button" style="flex:0 0 110px">🔎 BUSCAR</button>
@@ -441,14 +491,12 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
         <div class="form-row">
           <input type="text" id="fName" placeholder="CODINOME (auto se vazio)" maxlength="18">
         </div>
-
         <div class="social-preview" id="socialPreview">
           <div class="sp-item empty" id="spFB"><b>FB</b><span>—</span></div>
           <div class="sp-item empty" id="spIG"><b>IG</b><span>—</span></div>
           <div class="sp-item empty" id="spTT"><b>TT</b><span>—</span></div>
           <div class="sp-item empty" id="spWA"><b>WA</b><span>—</span></div>
         </div>
-
         <div class="coords" id="fCoords">📍 Nenhuma localização definida</div>
         <div class="toggles" style="margin-bottom:10px">
           <button class="tg gold" id="btnMyLoc" type="button">📡 MINHA POSIÇÃO</button>
@@ -458,11 +506,8 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
           <input type="text" id="fAddr" placeholder="Buscar endereço (rua, nº, cidade)">
           <button class="tg gold" id="btnSearch" type="button" style="flex:0 0 90px">🔍 IR</button>
         </div>
+        <div id="addrSuggest" style="display:none;margin-bottom:10px;border:1px solid var(--line);border-radius:2px;overflow:hidden"></div>
         <button class="btn-add" id="btnAdd" disabled>+ ADICIONAR AO MONITORAMENTO</button>
-        <div class="hint">
-          FB / IG / TT com spinner giram consultando a <b>sua sessão logada</b> via extensão.
-          WhatsApp é preenchido pela simulação (não há API real para isso).
-        </div>
       </div>
 
       <div class="card">
@@ -477,7 +522,7 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
   </div>
 
   <footer>
-    SENTINELA-7 · MAPAS © ESRI / MAXAR · GEOCODIFICAÇÃO © PHOTON / KOMOOT<br>
+    SENTINELA-7 · MAPAS © ESRI · GEOCODIFICAÇÃO © PHOTON · BRIDGE © PEERJS<br>
     FERRAMENTA EDUCACIONAL · USO RESPONSÁVEL
   </footer>
 </div>
@@ -501,22 +546,19 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
 /* =================================================================
-   SENTINELA-7 v0.6
-   • Bridge com extensão Chrome (busca real na sessão logada)
-   • Tiles Esri (satélite, sem chave)
-   • Sonar sobreposto ao mapa, centrado no GPS
-   • Importação em massa (picker / arquivo / colar)
+   SENTINELA-7 v0.7 — RASTREAMENTO AO VIVO VIA PEERJS
    ================================================================= */
 
-const STORAGE_KEY = 'sentinela7.targets.v6';
+const STORAGE_KEY = 'sentinela7.targets.v7';
 const GEO_TTL     = 10 * 60 * 1000;
 
 let map, meMarker, thCircle, meLatLng = null;
 let targets = [];
 let threshold = 150;
-let voiceOn = true, soundOn = true, sonarOn = true;
+let voiceOn = true, soundOn = true, sonarOn = true, beepOn = true, autoVoiceOn = true;
 let mutedUntil = 0, audioCtx = null;
 let picking = false, pickMarker = null, formLatLng = null;
 let myGeoCache = { ts:0, latlng:null };
@@ -528,24 +570,78 @@ const overlay = $('overlay'), listEl = $('list');
 const sonarOverlay = $('sonarOverlay');
 const sonarDisc = $('sonarDisc');
 const sonarRangeEl = $('sonarRange');
-const importLog = $('importLog');
 
-/* ----------------------------------------------------------------
-   1. BRIDGE COM EXTENSÃO CHROME
-   ---------------------------------------------------------------- */
+/* ================================================================
+   MODO COMPANHEIRO — detecta #share=CODE na URL
+   ================================================================ */
+(function checkCompanion(){
+  const hash = window.location.hash || '';
+  const m = hash.match(/share=([A-Z0-9]{6})/i);
+  if(!m) return;
+
+  const code = m[1].toUpperCase();
+  $('mainView').style.display = 'none';
+  $('companionView').classList.add('show');
+  $('cCode').textContent = code.split('').join(' ');
+  $('cStatus').innerHTML = '<span class="dot" style="background:#ffb300;box-shadow:0 0 10px #ffb300"></span>Conectando…';
+
+  const peer = new Peer({ debug:0 });
+  let conn = null;
+
+  peer.on('open', () => {
+    conn = peer.connect('sentinela-' + code, { reliable:true });
+    conn.on('open', () => {
+      $('cStatus').innerHTML = '<span class="dot"></span>Enviando sua localização';
+      if(!('geolocation' in navigator)){
+        $('cStatus').innerHTML = '<span class="dot" style="background:#ff2d55"></span>GPS não suportado';
+        return;
+      }
+      navigator.geolocation.watchPosition(
+        pos => {
+          conn.send({
+            type:'pos',
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            acc: pos.coords.accuracy,
+            spd: pos.coords.speed,
+            hdg: pos.coords.heading,
+            ts: Date.now()
+          });
+          $('cStatus').innerHTML = `<span class="dot"></span>Transmitindo · ±${Math.round(pos.coords.accuracy)} m`;
+        },
+        err => {
+          $('cStatus').innerHTML = '<span class="dot" style="background:#ff2d55"></span>Erro GPS: ' + err.message;
+        },
+        { enableHighAccuracy:true, maximumAge:3000, timeout:15000 }
+      );
+    });
+    conn.on('close', () => {
+      $('cStatus').innerHTML = '<span class="dot" style="background:#ffb300"></span>Conexão encerrada';
+    });
+  });
+  peer.on('error', err => {
+    $('cStatus').innerHTML = '<span class="dot" style="background:#ff2d55"></span>Erro: ' + (err.type || 'conexão');
+  });
+})();
+
+// Se é modo companheiro, NÃO carrega o resto
+if(window.location.hash.match(/share=/i)) {
+  // bloqueia o boot principal abaixo
+  window.__companion__ = true;
+}
+
+/* ================================================================
+   MODO PRINCIPAL
+   ================================================================ */
+if(!window.__companion__){
+
 const SENTINELA_BRIDGE = {
-  ready: false,
-  pending: new Map(),
-
+  ready: false, pending: new Map(),
   init(){
     window.addEventListener('message', e => {
       const d = e.data;
       if(!d || !d.__sentinela) return;
-      if(d.type === 'READY'){
-        this.ready = true;
-        console.log('[SENTINELA] Bridge detectado ✓');
-        this.updateBadge(true);
-      }
+      if(d.type === 'READY'){ this.ready = true; this.updateBadge(true); }
       if(d.type === 'RESULT'){
         const cb = this.pending.get(d.requestId);
         if(cb){ this.pending.delete(d.requestId); cb(d.data); }
@@ -554,21 +650,15 @@ const SENTINELA_BRIDGE = {
     setInterval(() => this.updateBadge(this.ready), 2500);
     this.updateBadge(false);
   },
-
-  updateBadge(present){
+  updateBadge(p){
     let el = document.getElementById('extBadge');
-    if(!el){
-      el = document.createElement('div');
-      el.id = 'extBadge';
-      document.body.appendChild(el);
-    }
-    el.textContent = present ? '◈ BRIDGE ATIVO' : '◈ BRIDGE AUSENTE';
-    el.style.color       = present ? '#00ff9d' : '#ffb300';
-    el.style.border      = `1px solid ${present ? '#00ff9d' : '#ffb300'}`;
-    el.style.background  = 'rgba(2,6,11,.85)';
-    el.style.boxShadow   = `0 0 12px ${present ? 'rgba(0,255,157,.4)' : 'rgba(255,179,0,.3)'}`;
+    if(!el){ el = document.createElement('div'); el.id = 'extBadge'; document.body.appendChild(el); }
+    el.textContent = p ? '◈ BRIDGE ATIVO' : '◈ BRIDGE AUSENTE';
+    el.style.color = p ? '#00ff9d' : '#ffb300';
+    el.style.border = `1px solid ${p ? '#00ff9d' : '#ffb300'}`;
+    el.style.background = 'rgba(2,6,11,.85)';
+    el.style.boxShadow = `0 0 12px ${p ? 'rgba(0,255,157,.4)' : 'rgba(255,179,0,.3)'}`;
   },
-
   lookup(network, number){
     return new Promise(resolve => {
       if(!this.ready){ resolve({ error:'Extensão não instalada' }); return; }
@@ -576,62 +666,41 @@ const SENTINELA_BRIDGE = {
       this.pending.set(requestId, resolve);
       window.postMessage({ __sentinela:true, type:'LOOKUP', network, number, requestId }, '*');
       setTimeout(() => {
-        if(this.pending.has(requestId)){
-          this.pending.delete(requestId);
-          resolve({ error:'Timeout na extensão' });
-        }
+        if(this.pending.has(requestId)){ this.pending.delete(requestId); resolve({ error:'Timeout' }); }
       }, 30000);
     });
   }
 };
 SENTINELA_BRIDGE.init();
 
-/* ----------------------------------------------------------------
-   2. ENRIQUECIMENTO COM SPINNER REAL
-   ---------------------------------------------------------------- */
 async function enrichNumber(numero){
   const campos = {
     facebook:  document.querySelector('#spFB span'),
     instagram: document.querySelector('#spIG span'),
     tiktok:    document.querySelector('#spTT span')
   };
-  const blocos = {
-    facebook:  $('spFB'),
-    instagram: $('spIG'),
-    tiktok:    $('spTT')
-  };
-
+  const blocos = { facebook:$('spFB'), instagram:$('spIG'), tiktok:$('spTT') };
   const redes = ['facebook','instagram','tiktok'];
 
-  // estado "consultando…" em todas
   redes.forEach(r => {
-    const b = blocos[r];
-    b.className = 'sp-item loading';
+    blocos[r].className = 'sp-item loading';
     campos[r].innerHTML = '<span style="display:inline-block;width:11px;height:11px;border:2px solid rgba(255,179,0,.2);border-top-color:#ffb300;border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:6px;"></span>consultando…';
   });
 
   const resultados = {};
-
   for(const rede of redes){
     let r;
     if(SENTINELA_BRIDGE.ready){
       r = await SENTINELA_BRIDGE.lookup(rede, numero);
     } else {
-      // fallback: simulação marcada
       const sim = simulateOsint(numero);
-      const fake = {
-        facebook:  sim?.facebook,
-        instagram: sim?.instagram,
-        tiktok:    sim?.tiktok
-      }[rede];
-      r = { handle: fake, name: fake, url:'', simulated:true };
-      await new Promise(res => setTimeout(res, 500 + Math.random()*700));
+      const fake = { facebook:sim?.facebook, instagram:sim?.instagram, tiktok:sim?.tiktok }[rede];
+      r = { handle:fake, name:fake, url:'', simulated:true };
+      await new Promise(res => setTimeout(res, 400 + Math.random()*600));
     }
     resultados[rede] = r;
-
     const valor = r.handle || r.name;
     const b = blocos[rede];
-
     if(r.error || !valor){
       b.className = 'sp-item notfound';
       campos[rede].textContent = r.error || '— não encontrado';
@@ -640,11 +709,9 @@ async function enrichNumber(numero){
       campos[rede].textContent = '✓ ' + valor + (r.simulated ? ' (sim)' : '');
       b.title = r.url || '';
       campos[rede].dataset.value = valor;
-      campos[rede].dataset.url   = r.url || '';
     }
   }
 
-  // WhatsApp: só via simulação
   const simWA = simulateOsint(numero)?.whatsapp || '';
   const bWA = $('spWA');
   if(simWA){
@@ -655,13 +722,282 @@ async function enrichNumber(numero){
     bWA.className = 'sp-item notfound';
     document.querySelector('#spWA span').textContent = '—';
   }
-
   return resultados;
 }
 
 /* ----------------------------------------------------------------
-   3. MAPA
+   RASTREAMENTO AO VIVO
    ---------------------------------------------------------------- */
+let hostPeer = null;
+let myShareCode = null;
+const activeShares = new Map(); // peerId -> {code, latlng, positions:[], marker, blip, lastSpeakTs, lastStatus, lastBeepTs, numero, name}
+
+function genCode(){
+  const L = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let c = '';
+  for(let i=0;i<6;i++) c += L[Math.floor(Math.random()*L.length)];
+  return c;
+}
+
+function startHosting(){
+  if(hostPeer){ alert('Já está ativo. Encerre antes de criar outro.'); return; }
+
+  myShareCode = genCode();
+  hostPeer = new Peer('sentinela-' + myShareCode, { debug:0 });
+
+  hostPeer.on('open', () => {
+    const url = window.location.origin + window.location.pathname + '#share=' + myShareCode;
+    $('shareCode').textContent = myShareCode.split('').join(' ');
+    $('shareLink').textContent = url;
+    $('shareLink').dataset.url = url;
+    $('shareStart').style.display = 'none';
+    $('shareActive').style.display = 'block';
+    $('shareStatus').textContent = 'ATIVO · ' + myShareCode;
+    $('shareStatus').style.color = 'var(--ok)';
+    logShare(`Link pronto. Envie para quem vai compartilhar.`);
+  });
+
+  hostPeer.on('connection', conn => {
+    logShare('Conexão recebida: ' + conn.peer);
+    conn.on('data', data => handleShareData(conn.peer, data));
+    conn.on('close', () => {
+      logShare('Desconectado: ' + conn.peer);
+      removeShare(conn.peer);
+    });
+    conn.on('error', err => logShare('Erro conn: ' + err));
+  });
+
+  hostPeer.on('error', err => {
+    logShare('Erro peer: ' + (err.type || err.message));
+    if(err.type === 'unavailable-id'){ alert('Código em uso, tente de novo.'); stopHosting(); }
+  });
+}
+
+function stopHosting(){
+  if(hostPeer){ try{ hostPeer.destroy(); }catch(e){} hostPeer = null; }
+  activeShares.forEach(s => {
+    if(s.marker) map.removeLayer(s.marker);
+    if(s.blip) s.blip.remove();
+  });
+  activeShares.clear();
+  myShareCode = null;
+  $('shareStart').style.display = 'block';
+  $('shareActive').style.display = 'none';
+  $('shareStatus').textContent = 'OFF';
+  $('shareStatus').style.color = 'rgba(0,240,255,.4)';
+  $('shareList').innerHTML = '';
+  updateAll();
+}
+
+function handleShareData(peerId, data){
+  if(!data || data.type !== 'pos') return;
+  const now = Date.now();
+  let s = activeShares.get(peerId);
+
+  if(!s){
+    s = {
+      code: peerId,
+      name: 'AO VIVO-' + peerId.slice(-4).toUpperCase(),
+      latlng: null,
+      positions: [],
+      marker: null,
+      blip: null,
+      lastSpeakTs: 0,
+      lastStatus: null,
+      lastBeepTs: 0,
+      lastNum: '—'
+    };
+    activeShares.set(peerId, s);
+    logShare('▶ ' + s.name + ' começou a transmitir');
+  }
+
+  s.latlng = L.latLng(data.lat, data.lng);
+  s.acc = data.acc;
+  s.lastUpdate = now;
+  s.positions.push({ lat:data.lat, lng:data.lng, ts:now });
+  if(s.positions.length > 120) s.positions.shift();
+
+  if(!s.marker){
+    s.marker = L.marker(s.latlng, { icon: shareIcon(s, false), zIndexOffset: 500 }).addTo(map);
+    s.marker.on('click', () => { if(confirm('Ver detalhes de ' + s.name + '?')) showLiveDetails(s); });
+  } else {
+    s.marker.setLatLng(s.latlng);
+  }
+
+  renderShareList();
+}
+
+function shareIcon(s, hot){
+  return L.divIcon({
+    className:'',
+    html:`<div class="mk live ${hot?'hot':''}"><span>${escapeHtml(s.name)}</span></div>`,
+    iconSize:[16,16], iconAnchor:[8,8]
+  });
+}
+
+function removeShare(peerId){
+  const s = activeShares.get(peerId);
+  if(!s) return;
+  if(s.marker) map.removeLayer(s.marker);
+  if(s.blip) s.blip.remove();
+  activeShares.delete(peerId);
+  renderShareList();
+}
+
+function computeApproach(s){
+  const now = Date.now();
+  const recent = s.positions.filter(p => now - p.ts < 15000);
+  if(recent.length < 3) return { rate:0, eta:null, status:'aguardando', dist: s.latlng && meLatLng ? meLatLng.distanceTo(s.latlng) : null };
+  const first = recent[0], last = recent[recent.length-1];
+  const dt = (last.ts - first.ts)/1000;
+  if(dt < 2) return { rate:0, eta:null, status:'aguardando', dist: meLatLng ? meLatLng.distanceTo(s.latlng) : null };
+  const dFirst = meLatLng.distanceTo(L.latLng(first.lat, first.lng));
+  const dLast  = meLatLng.distanceTo(L.latLng(last.lat, last.lng));
+  const rate = (dLast - dFirst) / dt;
+  let status = 'parado';
+  if(rate < -0.3) status = 'aproximando';
+  else if(rate > 0.3) status = 'afastando';
+  const eta = (status === 'aproximando' && Math.abs(rate) > 0.2) ? dLast / Math.abs(rate) : null;
+  return { rate, eta, status, dist: dLast };
+}
+
+function renderShareList(){
+  const cont = $('shareList');
+  if(!activeShares.size){
+    cont.innerHTML = '';
+    return;
+  }
+  const html = [];
+  activeShares.forEach(s => {
+    const info = computeApproach(s);
+    const d = info.dist;
+    const dTxt = d == null ? '—' : (d < 1000 ? Math.round(d)+' m' : (d/1000).toFixed(2)+' km');
+    const etaTxt = info.eta != null ? Math.round(info.eta)+'s' : '—';
+    const statusTxt = { aproximando:'▲ APROXIMANDO', afastando:'▼ AFASTANDO', parado:'■ PARADO', aguardando:'…' }[info.status];
+    const cls = info.status === 'aproximando' ? 'aprox' : info.status === 'afastando' ? 'afast' : '';
+
+    html.push(`
+      <div class="share-peer ${cls}">
+        <div class="nm">${escapeHtml(s.name)}<span style="color:rgba(0,240,255,.5);font-size:9px">${s.acc?('±'+Math.round(s.acc)+'m'):''}</span></div>
+        <div class="st">${statusTxt} · ${dTxt}${info.eta != null ? ' · ETA '+etaTxt : ''}</div>
+        <div class="meta">Atualizado ${Math.round((Date.now()-s.lastUpdate)/1000)}s atrás</div>
+      </div>
+    `);
+  });
+  cont.innerHTML = html.join('');
+}
+
+function logShare(txt){
+  console.log('[SHARE]', txt);
+}
+
+/* ---- Link / botões ---- */
+$('btnCreateShare').onclick = startHosting;
+$('btnStopShare').onclick   = stopHosting;
+$('btnCopyLink').onclick = () => {
+  const url = $('shareLink').dataset.url;
+  if(!url) return;
+  navigator.clipboard.writeText(url).then(() => {
+    $('btnCopyLink').textContent = '✓ COPIADO';
+    setTimeout(() => $('btnCopyLink').textContent = '📋 COPIAR LINK', 2000);
+  });
+};
+$('btnShareWA').onclick = () => {
+  const url = $('shareLink').dataset.url;
+  if(!url) return;
+  const txt = encodeURIComponent('Abre este link e autoriza o GPS pra eu te ver no mapa: ' + url);
+  window.open('https://wa.me/?text=' + txt, '_blank');
+};
+
+/* ---- Loop de proximidade ---- */
+setInterval(() => {
+  if(!meLatLng || !activeShares.size) return;
+  const now = Date.now();
+
+  activeShares.forEach(s => {
+    const info = computeApproach(s);
+    if(info.dist == null) return;
+
+    // Atualiza o ícone do marcador conforme proximidade
+    const hot = info.dist <= threshold;
+    if(s.marker) s.marker.setIcon(shareIcon(s, hot));
+
+    // Bipe de proximidade
+    if(beepOn && soundOn && info.dist < threshold * 3){
+      let interval = 2500;
+      if(info.status === 'aproximando') interval = 1500;
+      if(info.dist < threshold) interval = Math.max(500, 300 + (info.dist/threshold)*400);
+      if(now - s.lastBeepTs > interval){
+        s.lastBeepTs = now;
+        const freq = 800 + Math.max(0, (1 - info.dist/(threshold*3))) * 600;
+        beepSingle(freq, 0.06);
+      }
+    }
+
+    // Voz automática
+    const statusChanged = info.status !== s.lastStatus;
+    const timeForSpeak = now - s.lastSpeakTs > 20000;
+    if(autoVoiceOn && voiceOn && (statusChanged || timeForSpeak)){
+      s.lastStatus = info.status;
+      s.lastSpeakTs = now;
+      const dTxt = info.dist < 1000 ? Math.round(info.dist)+' metros' : (info.dist/1000).toFixed(2).replace('.',',')+' quilômetros';
+      let frase = `Alvo ${s.name}. ${dTxt}`;
+      if(info.status === 'aproximando'){
+        if(info.eta != null){
+          const etaTxt = info.eta < 60 ? Math.round(info.eta)+' segundos' : Math.round(info.eta/60)+' minutos';
+          frase += `, aproximando. Chega em ${etaTxt}.`;
+        } else {
+          frase += `, aproximando.`;
+        }
+      } else if(info.status === 'afastando'){
+        frase += `, se afastando.`;
+      } else if(info.status === 'parado'){
+        frase += `, parado.`;
+      }
+      speak(frase);
+    }
+
+    // Alerta em overlay quando cruza o raio
+    if(info.dist <= threshold && !s._alerted && now > mutedUntil){
+      s._alerted = true;
+      showAlert({ codename:s.name, numero:'AO VIVO · '+s.code, socials:{} }, false, info.dist);
+    } else if(info.dist > threshold * 1.25){
+      s._alerted = false;
+    }
+  });
+
+  renderShareList();
+}, 1200);
+
+function beepSingle(freq, dur){
+  try{
+    audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+    const t0 = audioCtx.currentTime;
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(freq, t0);
+    o.connect(g); g.connect(audioCtx.destination);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(0.12, t0 + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.start(t0); o.stop(t0 + dur + 0.02);
+  }catch(e){}
+}
+
+function showLiveDetails(s){
+  const info = computeApproach(s);
+  $('aName').textContent = s.name;
+  $('aPhone').textContent = 'AO VIVO · ' + s.code;
+  $('aDist').textContent = info.dist != null ? Math.round(info.dist) : '—';
+  $('aSocials').innerHTML = `<span class="soc">STATUS<b>${{aproximando:'APROXIMANDO',afastando:'AFASTANDO',parado:'PARADO',aguardando:'…'}[info.status]}</b></span>` +
+    (info.eta != null ? `<span class="soc">ETA<b>${Math.round(info.eta)}s</b></span>` : '');
+  $('aAddr').textContent = 'Posição em tempo real (GPS do dispositivo).';
+  overlay.classList.add('show');
+}
+
+/* ================================================================
+   MAPA
+   ================================================================ */
 function initMap(){
   map = L.map('map',{ zoomControl:true, preferCanvas:true, worldCopyJump:true })
         .setView([-23.5505,-46.6333],16);
@@ -696,9 +1032,9 @@ function initMap(){
   map.on('resize', positionSonar);
 }
 
-/* ----------------------------------------------------------------
-   4. GPS
-   ---------------------------------------------------------------- */
+/* ================================================================
+   GPS PRÓPRIO
+   ================================================================ */
 function startGPS(){
   if(!('geolocation' in navigator)){
     setStatus('SEM GPS','warn');
@@ -754,9 +1090,9 @@ function startGPS(){
   );
 }
 
-/* ----------------------------------------------------------------
-   5. GEOCODIFICAÇÃO (Photon)
-   ---------------------------------------------------------------- */
+/* ================================================================
+   GEO
+   ================================================================ */
 async function reverseGeocode(lat, lon){
   try{
     const r = await fetch(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&lang=pt`);
@@ -772,34 +1108,35 @@ async function reverseGeocode(lat, lon){
     ].filter(Boolean);
     const ref = [...new Set(refParts)].slice(0,2).join(', ');
     return { road: road + (num ? ', '+num : ''), ref,
-      display: [road, num, p.city, p.state, p.country].filter(Boolean).join(', '), number: num };
+      display: [road, num, p.city, p.state, p.country].filter(Boolean).join(', '), number:num };
   }catch(e){ return { road:'', ref:'', display:'', number:'' }; }
 }
-async function geocodeAddress(q){
+async function geocodeAddressList(q){
   try{
-    const r = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&lang=pt&limit=1`);
+    const r = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&lang=pt&limit=6`);
     if(!r.ok) throw 0;
     const j = await r.json();
-    if(!j.features || !j.features.length) return null;
-    const f = j.features[0];
-    const [lon, lat] = f.geometry.coordinates;
-    const p = f.properties || {};
-    const nome = [p.name, p.street, p.city].filter(Boolean).join(', ');
-    return { lat, lon, name: nome || 'Local selecionado' };
-  }catch(e){ return null; }
+    return (j.features || []).map(f => {
+      const [lon, lat] = f.geometry.coordinates;
+      const p = f.properties || {};
+      const linha1 = [p.name, p.street, p.housenumber].filter(Boolean).join(', ') || 'Sem nome';
+      const linha2 = [p.district, p.city, p.state].filter(Boolean).join(', ');
+      return { lat, lon, linha1, linha2 };
+    });
+  }catch(e){ return []; }
 }
 async function getTargetGeo(t){
   const now = Date.now();
   if(t._geo && (now - t._geo.ts) < GEO_TTL) return t._geo;
   const g = await reverseGeocode(t.lat, t.lon);
-  t._geo = { ...g, ts: now };
+  t._geo = { ...g, ts:now };
   saveTargets();
   return t._geo;
 }
 
-/* ----------------------------------------------------------------
-   6. OSINT SIMULADO
-   ---------------------------------------------------------------- */
+/* ================================================================
+   OSINT SIMULADO
+   ================================================================ */
 function hashPhone(num){
   const digits = num.replace(/\D/g,'');
   let h = 2166136261;
@@ -827,183 +1164,9 @@ function simulateOsint(numero){
   };
 }
 
-/* ----------------------------------------------------------------
-   7. IMPORTAÇÃO EM MASSA
-   ---------------------------------------------------------------- */
-function normalizePhone(raw){
-  if(!raw) return '';
-  let s = String(raw).trim().replace(/[^\d+]/g,'');
-  if(!s) return '';
-  if(!s.startsWith('+') && s.length >= 10) s = '+55' + s.replace(/^0+/,'');
-  return s;
-}
-function validPhone(p){
-  const d = p.replace(/\D/g,'');
-  return d.length >= 8 && d.length <= 15;
-}
-
-function addBatch(items, sourceLabel){
-  if(!meLatLng){
-    importLog.innerHTML = '<span class="ln err">✗ GPS ainda não disponível.</span>';
-    importLog.className = 'import-log';
-    return { ok:0, fail:0, dup:0 };
-  }
-
-  const result = { ok:0, fail:0, dup:0 };
-  const existing = new Set(targets.map(t => t.numero.replace(/\D/g,'')));
-
-  items.forEach(it => {
-    const phone = normalizePhone(it.phone);
-    if(!validPhone(phone)){ result.fail++; return; }
-    if(existing.has(phone.replace(/\D/g,''))){ result.dup++; return; }
-
-    const osint = simulateOsint(phone);
-    const codename = (it.name && it.name.trim())
-      ? it.name.trim().slice(0,18).toUpperCase()
-      : (osint ? osint.codename : 'ALVO-'+Date.now().toString().slice(-4));
-
-    const t = {
-      id: Date.now() + Math.floor(Math.random()*100000),
-      codename,
-      numero: phone,
-      lat: meLatLng.lat, lon: meLatLng.lng,
-      socials: {
-        facebook:  osint?.facebook  || '',
-        instagram: osint?.instagram || '',
-        tiktok:    osint?.tiktok    || '',
-        whatsapp:  osint?.whatsapp  || '',
-        kwai:      osint?.kwai      || ''
-      },
-      _armed:false, _geo:null
-    };
-    targets.push(t);
-    existing.add(phone.replace(/\D/g,''));
-    result.ok++;
-  });
-
-  saveTargets(); updateAll();
-
-  let i = 0;
-  (function step(){
-    if(i >= targets.length) return;
-    const batch = targets.slice(i, i+5);
-    i += 5;
-    Promise.all(batch.map(t => t._geo ? null : getTargetGeo(t))).then(step);
-  })();
-
-  logImport(result, sourceLabel);
-  if(result.ok) speak(`Importação concluída. ${result.ok} alvos adicionados.`);
-  return result;
-}
-
-function logImport(r, source){
-  const parts = [`<span class="ln"><b>◈ ${source}</b></span>`];
-  if(r.ok)   parts.push(`<span class="ln">✓ ${r.ok} contato(s) importado(s)</span>`);
-  if(r.dup)  parts.push(`<span class="ln">≡ ${r.dup} duplicado(s) ignorado(s)</span>`);
-  if(r.fail) parts.push(`<span class="ln err">✗ ${r.fail} inválido(s)</span>`);
-  if(!r.ok && !r.dup && !r.fail) parts.push('<span class="ln">— nada a importar</span>');
-  importLog.innerHTML = parts.join('');
-  importLog.className = 'import-log' + (r.ok ? ' ok' : '');
-}
-
-/* Contact Picker API */
-(function setupPicker(){
-  const blk = $('blkPicker');
-  const btn = $('btnPicker');
-  const msg = $('pickerMsg');
-  const supported = ('contacts' in navigator) && ('ContactsManager' in window);
-  if(!supported){
-    blk.classList.add('unavailable');
-    btn.disabled = true;
-    btn.textContent = '✕ NÃO DISPONÍVEL NESTE NAVEGADOR';
-    msg.innerHTML = 'Este navegador não suporta a <b>Contact Picker API</b>. Use arquivo ou colar lista. (Chrome Android + HTTPS.)';
-    return;
-  }
-  btn.onclick = async () => {
-    try{
-      const list = await navigator.contacts.select(['name','tel'], { multiple:true });
-      if(!list || !list.length){
-        importLog.innerHTML = '<span class="ln">— seleção cancelada</span>';
-        return;
-      }
-      const items = list.map(c => ({
-        name: (c.name && c.name[0]) || '',
-        phone: (c.tel && c.tel[0]) || ''
-      })).filter(x => x.phone);
-      addBatch(items, 'CONTACT PICKER');
-    }catch(err){
-      importLog.innerHTML = `<span class="ln err">✗ ${err.message || 'Erro'}</span>`;
-    }
-  };
-})();
-
-/* Arquivo */
-$('fileInput').addEventListener('change', async e => {
-  const files = [...e.target.files];
-  if(!files.length) return;
-  let all = [];
-  for(const f of files){
-    const txt = await f.text();
-    all = all.concat(parseContactsFile(txt, f.name));
-  }
-  if(!all.length){
-    importLog.innerHTML = '<span class="ln err">✗ Nenhum número encontrado.</span>';
-    e.target.value = '';
-    return;
-  }
-  addBatch(all, `ARQUIVO (${files.map(f=>f.name).join(', ')})`);
-  e.target.value = '';
-});
-
-function parseContactsFile(txt, filename){
-  const lower = filename.toLowerCase();
-  if(lower.endsWith('.vcf') || txt.includes('BEGIN:VCARD')) return parseVCard(txt);
-  return parseLooseList(txt);
-}
-function parseVCard(txt){
-  const out = [];
-  const cards = txt.split(/BEGIN:VCARD/i).slice(1);
-  cards.forEach(card => {
-    const nameMatch = card.match(/\nFN[^:]*:(.+)/i) || card.match(/\nN[^:]*:(.+)/i);
-    let name = nameMatch ? nameMatch[1].trim().replace(/;+/g,' ').trim() : '';
-    const tels = [];
-    const re = /\nTEL[^:]*:(.+)/gi;
-    let m;
-    while((m = re.exec(card)) !== null){
-      m[1].split(';').forEach(t => { const v = t.trim(); if(v) tels.push(v); });
-    }
-    tels.forEach(t => out.push({ name, phone:t }));
-  });
-  return out;
-}
-function parseLooseList(txt){
-  const out = [];
-  txt.split(/\r?\n/).forEach(line => {
-    line = line.trim();
-    if(!line || line.startsWith('#') || line.startsWith('//')) return;
-    let name = '', phone = '';
-    const sepMatch = line.match(/^([^,;]+)[,;](.+)$/);
-    if(sepMatch && /\d{6,}/.test(sepMatch[2])){ name = sepMatch[1].trim(); phone = sepMatch[2].trim(); }
-    else phone = line;
-    const phoneMatch = phone.match(/\+?\d[\d\s\-().]{6,}\d/);
-    if(!phoneMatch) return;
-    out.push({ name, phone: phoneMatch[0] });
-  });
-  return out;
-}
-
-$('btnPaste').onclick = () => {
-  const txt = $('pasteArea').value;
-  if(!txt.trim()){ importLog.innerHTML = '<span class="ln err">✗ Cole algum número.</span>'; return; }
-  const items = parseLooseList(txt);
-  if(!items.length){ importLog.innerHTML = '<span class="ln err">✗ Nenhum número válido.</span>'; return; }
-  const r = addBatch(items, 'TEXTO COLADO');
-  if(r.ok) $('pasteArea').value = '';
-};
-
-/* ----------------------------------------------------------------
-   8. FORMULÁRIO MANUAL
-   ---------------------------------------------------------------- */
+/* ================================================================
+   FORMULÁRIO
+   ================================================================ */
 const osintStatus = $('osintStatus');
 
 $('btnOsint').onclick = async () => {
@@ -1013,48 +1176,40 @@ $('btnOsint').onclick = async () => {
     osintStatus.innerHTML = '⚠ Número inválido.';
     return;
   }
-
-  // reset visual dos slots
   ['spFB','spIG','spTT','spWA'].forEach(id => {
     const el = $(id);
     el.className = 'sp-item empty';
     el.querySelector('span').textContent = '—';
     el.querySelector('span').dataset.value = '';
-    el.querySelector('span').dataset.url = '';
   });
 
   osintStatus.className = 'osint-status load';
   osintStatus.innerHTML = '<span class="spin"></span> Iniciando busca…';
 
-  // 1) simulação local para codinome
   const data = simulateOsint(num);
   lastOsintData = data;
   if(!$('fName').value.trim()) $('fName').value = data.codename;
   validateForm();
 
   osintStatus.innerHTML = SENTINELA_BRIDGE.ready
-    ? '<span class="spin"></span> Consultando Facebook, Instagram e TikTok (sessão logada)…'
+    ? '<span class="spin"></span> Consultando Facebook, Instagram e TikTok…'
     : '<span class="spin"></span> Bridge ausente — usando simulação…';
 
-  // 2) busca real via bridge
   const res = await enrichNumber(num);
-
-  // 3) integra ao lastOsintData
-  if(res.facebook?.handle || res.facebook?.name) lastOsintData.facebook = res.facebook.handle || res.facebook.name;
-  if(res.instagram?.handle || res.instagram?.name) lastOsintData.instagram = res.instagram.handle || res.instagram.name;
-  if(res.tiktok?.handle   || res.tiktok?.name)   lastOsintData.tiktok   = res.tiktok.handle   || res.tiktok.name;
+  if(res.facebook?.handle) lastOsintData.facebook  = res.facebook.handle;
+  if(res.instagram?.handle) lastOsintData.instagram = res.instagram.handle;
+  if(res.tiktok?.handle)   lastOsintData.tiktok    = res.tiktok.handle;
 
   beep(1);
   const achou = Object.values(res).filter(r => r && !r.error && (r.handle || r.name)).length;
-  const modo = SENTINELA_BRIDGE.ready ? 'via sessão logada' : 'SIMULAÇÃO (bridge ausente)';
-
+  const modo = SENTINELA_BRIDGE.ready ? 'via sessão logada' : 'SIMULAÇÃO';
   if(achou > 0){
     osintStatus.className = 'osint-status ok';
-    osintStatus.innerHTML = `✓ ${achou} de 3 redes localizadas · <span style="opacity:.6">${modo}</span>`;
+    osintStatus.innerHTML = `✓ ${achou} de 3 redes · <span style="opacity:.6">${modo}</span>`;
     speak(`Perfil localizado em ${achou} redes.`);
   } else {
     osintStatus.className = 'osint-status err';
-    osintStatus.innerHTML = `⚠ Nenhuma rede localizada · <span style="opacity:.6">${modo}</span>`;
+    osintStatus.innerHTML = `⚠ Nenhuma rede · <span style="opacity:.6">${modo}</span>`;
   }
 };
 
@@ -1083,27 +1238,62 @@ $('btnPick').onclick = function(){
   this.textContent = picking ? '🖱 CLIQUE NO MAPA…' : '🖱 CLICAR NO MAPA';
   map.getContainer().style.cursor = picking ? 'crosshair' : '';
 };
+
+let suggestTimer = null;
+$('fAddr').addEventListener('input', e => {
+  const q = e.target.value.trim();
+  clearTimeout(suggestTimer);
+  const box = $('addrSuggest');
+  if(q.length < 3){ box.style.display = 'none'; return; }
+  suggestTimer = setTimeout(async () => {
+    const list = await geocodeAddressList(q);
+    if(!list.length){ box.style.display = 'none'; return; }
+    box.style.display = 'block';
+    box.innerHTML = list.map((r,i) => `
+      <div class="addr-opt" data-i="${i}" style="padding:8px 10px;font-size:9.5px;letter-spacing:.04em;color:#dffcff;border-bottom:1px solid rgba(0,240,255,.15);cursor:pointer">
+        <b style="color:var(--gold)">${escapeHtml(r.linha1)}</b><br>
+        <span style="color:rgba(0,240,255,.55)">${escapeHtml(r.linha2)}</span>
+      </div>
+    `).join('');
+    box.querySelectorAll('.addr-opt').forEach(el => {
+      el.onmouseenter = () => el.style.background = 'rgba(0,240,255,.1)';
+      el.onmouseleave = () => el.style.background = 'transparent';
+      el.onclick = () => {
+        const r = list[+el.dataset.i];
+        setFormLocation(r.lat, r.lon, r.linha1);
+        map.setView([r.lat, r.lon], 17);
+        if(pickMarker) map.removeLayer(pickMarker);
+        pickMarker = L.marker([r.lat,r.lon],{
+          icon:L.divIcon({className:'',html:'<div class="mk hot"></div>',iconSize:[16,16],iconAnchor:[8,8]})
+        }).addTo(map);
+        box.style.display = 'none';
+        $('fAddr').value = r.linha1;
+      };
+    });
+  }, 350);
+});
+
 $('btnSearch').onclick = async function(){
   const q = $('fAddr').value.trim();
   if(!q) return;
   this.textContent = '…';
-  const r = await geocodeAddress(q);
+  const list = await geocodeAddressList(q);
   this.textContent = '🔍 IR';
-  if(!r){ alert('Endereço não encontrado.'); return; }
-  setFormLocation(r.lat, r.lon, r.name.split(',').slice(0,2).join(','));
+  if(!list.length){ alert('Endereço não encontrado.'); return; }
+  const r = list[0];
+  setFormLocation(r.lat, r.lon, r.linha1);
   map.setView([r.lat, r.lon], 17);
   if(pickMarker) map.removeLayer(pickMarker);
   pickMarker = L.marker([r.lat,r.lon],{
     icon:L.divIcon({className:'',html:'<div class="mk hot"></div>',iconSize:[16,16],iconAnchor:[8,8]})
   }).addTo(map);
 };
+
 $('btnAdd').onclick = () => {
-  // pega handles que estiverem nos slots (vindos da extensão ou simulação)
   const vFB = document.querySelector('#spFB span')?.dataset.value || lastOsintData?.facebook  || '';
   const vIG = document.querySelector('#spIG span')?.dataset.value || lastOsintData?.instagram || '';
   const vTT = document.querySelector('#spTT span')?.dataset.value || lastOsintData?.tiktok    || '';
   const vWA = document.querySelector('#spWA span')?.dataset.value || lastOsintData?.whatsapp  || '';
-
   if(!lastOsintData) lastOsintData = simulateOsint($('fNum').value.trim());
 
   const t = {
@@ -1111,13 +1301,7 @@ $('btnAdd').onclick = () => {
     codename: $('fName').value.trim().toUpperCase() || lastOsintData.codename,
     numero: normalizePhone($('fNum').value.trim()),
     lat: formLatLng.lat, lon: formLatLng.lon,
-    socials: {
-      facebook:  vFB,
-      instagram: vIG,
-      tiktok:    vTT,
-      whatsapp:  vWA,
-      kwai:      lastOsintData?.kwai || ''
-    },
+    socials: { facebook:vFB, instagram:vIG, tiktok:vTT, whatsapp:vWA, kwai:lastOsintData?.kwai||'' },
     _armed:false, _geo:null
   };
   targets.push(t);
@@ -1135,21 +1319,21 @@ $('btnAdd').onclick = () => {
     el.className = 'sp-item empty';
     el.querySelector('span').textContent = '—';
     el.querySelector('span').dataset.value = '';
-    el.querySelector('span').dataset.url = '';
   });
   if(pickMarker){ map.removeLayer(pickMarker); pickMarker = null; }
   picking = false;
   $('btnPick').classList.remove('on');
   $('btnPick').textContent = '🖱 CLICAR NO MAPA';
   map.getContainer().style.cursor = '';
+  $('addrSuggest').style.display = 'none';
   validateForm();
   map.setView([t.lat,t.lon], 17);
   speak(`Alvo ${t.codename} adicionado.`);
 };
 
-/* ----------------------------------------------------------------
-   9. DISTÂNCIA / RUMO
-   ---------------------------------------------------------------- */
+/* ================================================================
+   DISTÂNCIA / RUMO
+   ================================================================ */
 function distTo(t){ return meLatLng ? meLatLng.distanceTo(L.latLng(t.lat,t.lon)) : Infinity; }
 function bearingTo(t){
   if(!meLatLng) return 0;
@@ -1163,9 +1347,9 @@ function escapeHtml(s){
   return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-/* ----------------------------------------------------------------
-   10. SONAR
-   ---------------------------------------------------------------- */
+/* ================================================================
+   SONAR
+   ================================================================ */
 let sonarBlips = {};
 function sonarRangeMeters(){ return Math.max(threshold * 3, 500); }
 function positionSonar(){
@@ -1180,23 +1364,22 @@ function renderSonarBlips(){
   sonarRangeEl.textContent = range >= 1000
     ? (range/1000).toFixed(1).replace('.',',')+' km' : range+' m';
 
-  Object.keys(sonarBlips).forEach(id => {
-    if(!targets.some(t => String(t.id) === id)){ sonarBlips[id].remove(); delete sonarBlips[id]; }
-  });
+  const activeIds = new Set();
 
+  // alvos estáticos
   targets.forEach(t => {
-    let el = sonarBlips[t.id];
+    activeIds.add('t-' + t.id);
+    let el = sonarBlips['t-' + t.id];
     if(!el){
       el = document.createElement('div');
       el.className = 'sblip';
       sonarDisc.appendChild(el);
-      sonarBlips[t.id] = el;
+      sonarBlips['t-' + t.id] = el;
     }
     const d = distTo(t);
     if(!isFinite(d)){ el.style.opacity = 0; return; }
     el.style.opacity = 1;
     el.dataset.label = t.codename;
-
     const brg = bearingTo(t);
     const ratio = Math.min(d / range, 1) * 46;
     const rad = (brg - 90) * Math.PI/180;
@@ -1204,11 +1387,38 @@ function renderSonarBlips(){
     el.style.top  = (50 + ratio * Math.sin(rad)) + '%';
     el.classList.toggle('hot', d <= threshold);
   });
+
+  // alvos ao vivo
+  activeShares.forEach(s => {
+    if(!s.latlng) return;
+    activeIds.add('s-' + s.code);
+    let el = sonarBlips['s-' + s.code];
+    if(!el){
+      el = document.createElement('div');
+      el.className = 'sblip live';
+      sonarDisc.appendChild(el);
+      sonarBlips['s-' + s.code] = el;
+    }
+    const d = meLatLng.distanceTo(s.latlng);
+    el.style.opacity = 1;
+    el.dataset.label = s.name;
+    const brg = bearingTo({ lat:s.latlng.lat, lon:s.latlng.lng });
+    const ratio = Math.min(d / range, 1) * 46;
+    const rad = (brg - 90) * Math.PI/180;
+    el.style.left = (50 + ratio * Math.cos(rad)) + '%';
+    el.style.top  = (50 + ratio * Math.sin(rad)) + '%';
+    el.classList.toggle('hot', d <= threshold);
+  });
+
+  // limpa órfãos
+  Object.keys(sonarBlips).forEach(k => {
+    if(!activeIds.has(k)){ sonarBlips[k].remove(); delete sonarBlips[k]; }
+  });
 }
 
-/* ----------------------------------------------------------------
-   11. LISTA / MARCADORES
-   ---------------------------------------------------------------- */
+/* ================================================================
+   LISTA
+   ================================================================ */
 function render(){
   $('listCount').textContent = targets.length;
   if(!targets.length){
@@ -1221,11 +1431,8 @@ function render(){
     const hot = d <= threshold;
     const dTxt = isFinite(d) ? (d < 1000 ? Math.round(d)+' m' : (d/1000).toFixed(2)+' km') : '—';
     const barW = isFinite(d) ? Math.min(d/(threshold*2.2)*100, 100) : 100;
-    const geo = t._geo && t._geo.road
-      ? `${t._geo.road}${t._geo.ref ? ' · '+t._geo.ref : ''}`
-      : 'Endereço não consultado';
-    const socTxt = [t.socials.instagram, t.socials.facebook, t.socials.tiktok]
-      .filter(Boolean).slice(0,2).join(' · ') || '—';
+    const geo = t._geo && t._geo.road ? `${t._geo.road}${t._geo.ref ? ' · '+t._geo.ref : ''}` : 'Endereço não consultado';
+    const socTxt = [t.socials.instagram, t.socials.facebook, t.socials.tiktok].filter(Boolean).slice(0,2).join(' · ') || '—';
     return `
       <div class="target ${hot?'hot':''}" data-id="${t.id}">
         <div class="top">
@@ -1253,7 +1460,7 @@ function render(){
       if(btn.dataset.act==='del'){
         targets = targets.filter(x => x.id!==id);
         if(t._marker) map.removeLayer(t._marker);
-        if(sonarBlips[id]){ sonarBlips[id].remove(); delete sonarBlips[id]; }
+        if(sonarBlips['t-'+id]){ sonarBlips['t-'+id].remove(); delete sonarBlips['t-'+id]; }
         saveTargets(); updateAll();
       }
       if(btn.dataset.act==='go') map.setView([t.lat,t.lon],17);
@@ -1290,9 +1497,9 @@ function mkIcon(t,hot){
 }
 function updateAll(){ render(); renderMarkers(); positionSonar(); renderSonarBlips(); }
 
-/* ----------------------------------------------------------------
-   12. LOOP
-   ---------------------------------------------------------------- */
+/* ================================================================
+   LOOP
+   ================================================================ */
 setInterval(() => {
   if(!meLatLng) return;
   if(followGPS) map.panTo(meLatLng, { animate:true, duration:.7 });
@@ -1306,6 +1513,9 @@ setInterval(() => {
       if(!t._armed && Date.now() > mutedUntil){ t._armed = true; showAlert(t,false,d); }
     } else if(d > threshold*1.25){ t._armed = false; }
   });
+  activeShares.forEach(s => {
+    if(s.latlng && meLatLng.distanceTo(s.latlng) <= threshold) anyHot = true;
+  });
   setStatus(anyHot ? 'ALVO PRÓXIMO' : 'VARRENDO', anyHot ? 'danger' : '');
   updateAll();
 }, 1200);
@@ -1316,9 +1526,9 @@ function setStatus(txt, cls){
   el.className = 'status' + (cls ? ' '+cls : '');
 }
 
-/* ----------------------------------------------------------------
-   13. VOZ / ÁUDIO
-   ---------------------------------------------------------------- */
+/* ================================================================
+   VOZ / ÁUDIO
+   ================================================================ */
 function beep(times=3){
   if(!soundOn) return;
   try{
@@ -1355,9 +1565,9 @@ async function speakTargetLocation(t){
   speak(`Alvo ${t.codename}. ${fmtDist(d)} de distância. Localizado ${rua}${ref}.`);
 }
 
-/* ----------------------------------------------------------------
-   14. ALERTA
-   ---------------------------------------------------------------- */
+/* ================================================================
+   ALERTA
+   ================================================================ */
 async function showAlert(t, manual, distOverride){
   const d = distOverride ?? distTo(t);
   $('aName').textContent = t.codename;
@@ -1365,11 +1575,11 @@ async function showAlert(t, manual, distOverride){
   $('aDist').textContent = Math.round(d);
 
   const socs = [];
-  if(t.socials.facebook)  socs.push(['Facebook',t.socials.facebook]);
-  if(t.socials.instagram) socs.push(['Instagram',t.socials.instagram]);
-  if(t.socials.tiktok)    socs.push(['TikTok',t.socials.tiktok]);
-  if(t.socials.whatsapp)  socs.push(['WhatsApp',t.socials.whatsapp]);
-  if(t.socials.kwai)      socs.push(['Kwai',t.socials.kwai]);
+  if(t.socials?.facebook)  socs.push(['Facebook',t.socials.facebook]);
+  if(t.socials?.instagram) socs.push(['Instagram',t.socials.instagram]);
+  if(t.socials?.tiktok)    socs.push(['TikTok',t.socials.tiktok]);
+  if(t.socials?.whatsapp)  socs.push(['WhatsApp',t.socials.whatsapp]);
+  if(t.socials?.kwai)      socs.push(['Kwai',t.socials.kwai]);
   $('aSocials').innerHTML = socs.length
     ? socs.map(([k,v])=>`<span class="soc">${k}<b>${escapeHtml(v)}</b></span>`).join('')
     : '<span class="soc" style="opacity:.5">SEM REDES</span>';
@@ -1377,15 +1587,19 @@ async function showAlert(t, manual, distOverride){
   overlay.classList.add('show');
   beep(3);
 
-  $('aAddr').textContent = 'Consultando…';
-  const g = await getTargetGeo(t);
-  const rua = g.road ? g.road : 'Local não identificado';
-  const ref = g.ref ? `<br><b>Referência:</b> ${escapeHtml(g.ref)}` : '';
-  $('aAddr').innerHTML = `📍 ${escapeHtml(rua)}${ref}`;
-
-  speak(`Atenção. Alvo ${t.codename} ${manual?'selecionado':'detectado'} a ${fmtDist(d)}. `
-      + `Localizado ${g.road ? 'na '+g.road : 'em local não identificado'}`
-      + `${g.ref ? ', próximo a '+g.ref : ''}.`);
+  if(t.lat != null){
+    $('aAddr').textContent = 'Consultando…';
+    const g = await getTargetGeo(t);
+    const rua = g.road ? g.road : 'Local não identificado';
+    const ref = g.ref ? `<br><b>Referência:</b> ${escapeHtml(g.ref)}` : '';
+    $('aAddr').innerHTML = `📍 ${escapeHtml(rua)}${ref}`;
+    speak(`Atenção. Alvo ${t.codename} ${manual?'selecionado':'detectado'} a ${fmtDist(d)}. `
+        + `Localizado ${g.road ? 'na '+g.road : 'em local não identificado'}`
+        + `${g.ref ? ', próximo a '+g.ref : ''}.`);
+  } else {
+    $('aAddr').textContent = 'Posição em tempo real.';
+    speak(`Atenção. ${t.codename} a ${fmtDist(d)}.`);
+  }
 }
 function closeAlert(){ overlay.classList.remove('show'); setStatus('VARRENDO',''); }
 $('aOk').onclick = closeAlert;
@@ -1395,9 +1609,9 @@ $('aMute').onclick = () => {
   closeAlert();
 };
 
-/* ----------------------------------------------------------------
-   15. CONTROLES
-   ---------------------------------------------------------------- */
+/* ================================================================
+   CONTROLES
+   ================================================================ */
 $('threshold').addEventListener('input', e => {
   threshold = +e.target.value;
   $('thVal').textContent = threshold >= 1000
@@ -1429,29 +1643,22 @@ $('tgTrack').onclick = function(){
 $('tgCenter').onclick = () => {
   if(meLatLng) map.setView(meLatLng,17); else alert('GPS indisponível.');
 };
-$('tgScan').onclick = async () => {
-  if(!targets.length){ speak('Nenhum alvo cadastrado.'); return; }
-  beep(1);
-  const sorted = [...targets].sort((a,b)=>distTo(a)-distTo(b));
-  speak(`Relatório tático. ${targets.length} alvos monitorados.`);
-  for(const t of sorted.slice(0,10)){
-    const g = await getTargetGeo(t);
-    const d = distTo(t);
-    const rua = g.road ? `na ${g.road}` : 'local não identificado';
-    const ref = g.ref ? `, próximo a ${g.ref}` : '';
-    speak(`Alvo ${t.codename}, ${fmtDist(d)}, ${rua}${ref}.`);
-    await new Promise(r => setTimeout(r,2200));
-  }
+$('tgBeep').onclick = function(){
+  beepOn = !beepOn;
+  this.classList.toggle('on',beepOn);
+  this.textContent = beepOn ? '🔔 BIPE PROXIMIDADE' : '🔕 BIPE OFF';
+};
+$('tgAutoVoice').onclick = function(){
+  autoVoiceOn = !autoVoiceOn;
+  this.classList.toggle('on',autoVoiceOn);
+  this.textContent = autoVoiceOn ? '🎙 VOZ AUTOMÁTICA (20s)' : '🎙 VOZ AUTO OFF';
 };
 $('btnClear').onclick = () => {
   if(!targets.length) return;
-  if(!confirm('Remover TODOS os alvos?')) return;
+  if(!confirm('Remover TODOS os alvos estáticos?')) return;
   targets.forEach(t => { if(t._marker) map.removeLayer(t._marker); });
-  Object.values(sonarBlips).forEach(el => el.remove());
-  sonarBlips = {};
   targets = [];
   saveTargets(); updateAll();
-  logImport({ok:0,dup:0,fail:0},'LIMPEZA');
 };
 $('btnExport').onclick = () => {
   if(!targets.length) return alert('Nada para exportar.');
@@ -1467,9 +1674,9 @@ $('btnExport').onclick = () => {
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 };
 
-/* ----------------------------------------------------------------
-   16. PERSISTÊNCIA
-   ---------------------------------------------------------------- */
+/* ================================================================
+   PERSISTÊNCIA
+   ================================================================ */
 function saveTargets(){
   try{
     const clean = targets.map(t => ({
@@ -1486,9 +1693,9 @@ function loadTargets(){
   }catch(e){ targets = []; }
 }
 
-/* ----------------------------------------------------------------
-   17. BOOT
-   ---------------------------------------------------------------- */
+/* ================================================================
+   BOOT
+   ================================================================ */
 (function boot(){
   initMap();
   loadTargets();
@@ -1497,6 +1704,8 @@ function loadTargets(){
   setTimeout(() => { if(!meLatLng) setStatus('SEM GPS','warn'); }, 4000);
   window.addEventListener('resize', () => { positionSonar(); renderSonarBlips(); });
 })();
+
+} // fim do modo principal
 </script>
 </body>
 </html>
