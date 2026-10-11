@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SENTINELA-7 · radar</title>
+<title>SENTINELA-7 · AGENTES</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
 :root{
@@ -198,7 +198,7 @@ textarea{resize:vertical;min-height:80px;line-height:1.6}
 }
 .share-hint{font-size:8.5px;letter-spacing:.14em;color:rgba(0,240,255,.5);text-align:center;line-height:1.7}
 
-/* ============ COMPANHEIROS ============ */
+/* ============ AGENTES ============ */
 .companion-item{
   border:1px solid rgba(0,240,255,.2);border-left:3px solid var(--ok);
   background:rgba(0,255,157,.04);padding:10px 12px;border-radius:2px;margin-bottom:8px;
@@ -367,7 +367,7 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 <div id="companionView">
   <div class="companion-card">
     <div class="ico">📡</div>
-    <h2>MODO COMPANHEIRO</h2>
+    <h2>MODO AGENTE</h2>
     <div class="code" id="cCode">— — — — — —</div>
     <input type="text" id="cName" placeholder="Digite seu nome (ex: Tio João)" maxlength="24">
     <div class="st" id="cStatus" style="margin-top:16px"><span class="dot"></span>Aguardando conexão…</div>
@@ -392,13 +392,13 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
     </div>
     <div class="brand">
       <h1>SENTINELA<span>-7</span></h1>
-      <p>PROTOCOLO JARDAS · COMPANHEIROS · v0.8</p>
+      <p>PROTOCOLO JARDAS · AGENTES · v0.9</p>
     </div>
     <div class="status" id="statusTxt">INICIALIZANDO</div>
   </header>
 
   <div class="notice blue">
-    ℹ <b>COMPANHEIROS:</b> toda pessoa que abrir o link de autorização fica <b>salva permanentemente</b>. Você pode renomear, ver última posição, e ela reaparece no radar automaticamente quando reconectar.
+    ℹ <b>AGENTES:</b> toda pessoa que abrir o link de autorização fica <b>salva permanentemente</b>. Você pode renomear, ver última posição, e ela reaparece no radar automaticamente quando reconectar.
   </div>
 
   <div class="grid">
@@ -465,7 +465,7 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
       </div>
 
       <div class="card">
-        <h2>◈ COMPANHEIROS <em id="compCount">0</em></h2>
+        <h2>◈ AGENTES <em id="compCount">0</em></h2>
         <div id="compList"></div>
         <div class="hint" style="margin-top:10px">
           🟢 online = transmitindo agora · ⚪ offline = última posição conhecida
@@ -555,16 +555,16 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
 /* =================================================================
-   SENTINELA-7 v0.8 — COMPANHEIROS PERSISTENTES
+   SENTINELA-7 v0.9 — AGENTES
    ================================================================= */
 
-const STORAGE_KEY   = 'sentinela7.targets.v8';
-const COMP_KEY      = 'sentinela7.companions.v8';
+const STORAGE_KEY   = 'sentinela7.targets.v9';
+const COMP_KEY      = 'sentinela7.companions.v9';
 const GEO_TTL       = 10 * 60 * 1000;
 
 let map, meMarker, thCircle, meLatLng = null;
 let targets = [];
-let companions = {};   // { peerId: {code, name, lastLat, lastLng, lastTs, lastAcc, positions[], offline} }
+let companions = {};
 let threshold = 150;
 let voiceOn = true, soundOn = true, sonarOn = true, beepOn = true, autoVoiceOn = true, liveVoiceOn = true;
 let mutedUntil = 0, audioCtx = null;
@@ -580,7 +580,7 @@ const sonarDisc = $('sonarDisc');
 const sonarRangeEl = $('sonarRange');
 
 /* ================================================================
-   MODO COMPANHEIRO
+   MODO AGENTE
    ================================================================ */
 (function checkCompanion(){
   const hash = window.location.hash || '';
@@ -594,7 +594,6 @@ const sonarRangeEl = $('sonarRange');
   $('cCode').textContent = code.split('').join(' ');
   $('cStatus').innerHTML = '<span class="dot" style="background:#ffb300;box-shadow:0 0 10px #ffb300"></span>Conectando…';
 
-  // Tenta recuperar nome salvo anteriormente
   const savedName = localStorage.getItem('sentinela7.myname') || '';
   if(savedName) $('cName').value = savedName;
 
@@ -605,18 +604,14 @@ const sonarRangeEl = $('sonarRange');
   $('cName').addEventListener('input', e => {
     nomeAtual = e.target.value.trim().slice(0,24);
     localStorage.setItem('sentinela7.myname', nomeAtual);
-    if(conn && conn.open){
-      conn.send({ type:'hello', name: nomeAtual });
-    }
+    if(conn && conn.open) conn.send({ type:'hello', name: nomeAtual });
   });
 
   peer.on('open', () => {
     conn = peer.connect('sentinela-' + code, { reliable:true });
     conn.on('open', () => {
       $('cStatus').innerHTML = '<span class="dot"></span>Conectado · aguardando GPS…';
-      // envia o nome imediatamente se já tiver
       if(nomeAtual) conn.send({ type:'hello', name: nomeAtual });
-
       if(!('geolocation' in navigator)){
         $('cStatus').innerHTML = '<span class="dot" style="background:#ff2d55"></span>GPS não suportado';
         return;
@@ -658,7 +653,6 @@ const sonarRangeEl = $('sonarRange');
    ================================================================ */
 if(!window.__companion__){
 
-/* ---- Bridge com extensão Chrome ---- */
 const SENTINELA_BRIDGE = {
   ready: false, pending: new Map(),
   init(){
@@ -747,14 +741,13 @@ async function enrichNumber(numero){
 }
 
 /* ================================================================
-   COMPANHEIROS — persistência
+   AGENTES — persistência
    ================================================================ */
 function loadCompanions(){
   try{
     const s = localStorage.getItem(COMP_KEY);
     if(s){
       companions = JSON.parse(s);
-      // todos começam offline até conectar
       Object.keys(companions).forEach(k => { companions[k].online = false; });
     }
   }catch(e){ companions = {}; }
@@ -783,7 +776,7 @@ function getOrCreateCompanion(peerId, nameFromCompanion){
   if(!c){
     c = {
       code: peerId,
-      name: nameFromCompanion || ('AO VIVO-' + peerId.slice(-4).toUpperCase()),
+      name: nameFromCompanion || ('AGENTE-' + peerId.slice(-4).toUpperCase()),
       lastLat: null, lastLng: null, lastTs: 0, lastAcc: null,
       positions: [],
       online: false,
@@ -831,25 +824,22 @@ function startHosting(){
   });
 
   hostPeer.on('connection', conn => {
-    console.log('[SHARE] Conexão recebida:', conn.peer);
-
-    // Se já existia, marca online e talvez renomear
+    console.log('[AGENTE] Conexão recebida:', conn.peer);
     const existing = companions[conn.peer];
     if(existing){
       existing.online = true;
       existing._new = false;
     }
-
     conn.on('data', data => handleShareData(conn.peer, data));
     conn.on('close', () => {
-      console.log('[SHARE] Desconectado:', conn.peer);
+      console.log('[AGENTE] Desconectado:', conn.peer);
       const c = companions[conn.peer];
       if(c){ c.online = false; saveCompanions(); renderCompanions(); renderSonarBlips(); renderMarkers(); }
     });
   });
 
   hostPeer.on('error', err => {
-    console.error('[SHARE] Erro:', err);
+    console.error('[AGENTE] Erro:', err);
     if(err.type === 'unavailable-id'){ alert('Código em uso, tente novamente.'); stopHosting(); }
   });
 }
@@ -890,11 +880,10 @@ function handleShareData(peerId, data){
 
   const c = getOrCreateCompanion(peerId, data.name);
 
-  // Primeira vez ou reconexão
   if(isNewOrOffline){
     c.online = true;
     if(c._new){
-      speak(`Novo companheiro conectado: ${c.name}.`);
+      speak(`Novo agente conectado: ${c.name}.`);
       c._new = false;
     } else {
       speak(`${c.name} reconectou.`);
@@ -929,7 +918,7 @@ function removeCompanion(peerId){
 function renameCompanion(peerId){
   const c = companions[peerId];
   if(!c) return;
-  const novo = prompt('Novo nome para este companheiro:', c.name);
+  const novo = prompt('Novo nome para este agente:', c.name);
   if(novo && novo.trim()){
     c.name = novo.trim().slice(0,24);
     saveCompanions();
@@ -938,7 +927,7 @@ function renameCompanion(peerId){
 }
 
 /* ================================================================
-   RENDER COMPANHEIROS
+   RENDER AGENTES
    ================================================================ */
 function renderCompanions(){
   const keys = Object.keys(companions);
@@ -947,11 +936,10 @@ function renderCompanions(){
   const cont = $('compList');
 
   if(!keys.length){
-    cont.innerHTML = '<div class="empty-companions">NENHUM COMPANHEIRO<br><br>Gere o link acima e envie.<br>Quando a pessoa autorizar, ela aparece aqui.</div>';
+    cont.innerHTML = '<div class="empty-companions">NENHUM AGENTE<br><br>Gere o link acima e envie.<br>Quando a pessoa autorizar, ela aparece aqui.</div>';
     return;
   }
 
-  // ordena: online primeiro, mais recente primeiro
   keys.sort((a,b) => {
     const ca = companions[a], cb = companions[b];
     if(ca.online !== cb.online) return ca.online ? -1 : 1;
@@ -1012,7 +1000,7 @@ function renderCompanions(){
       }
       if(act === 'rename') renameCompanion(k);
       if(act === 'del'){
-        if(confirm(`Remover ${c.name} permanentemente?`)) removeCompanion(k);
+        if(confirm(`Remover agente ${c.name} permanentemente?`)) removeCompanion(k);
       }
       if(act === 'speak'){
         const d = (c.lastLat && meLatLng) ? meLatLng.distanceTo(L.latLng(c.lastLat, c.lastLng)) : null;
@@ -1063,7 +1051,6 @@ setInterval(() => {
 
     const info = computeApproach(c);
 
-    // Bipe
     if(beepOn && soundOn && info.dist < threshold * 3){
       let interval = 2500;
       if(info.status === 'aproximando') interval = 1500;
@@ -1075,7 +1062,6 @@ setInterval(() => {
       }
     }
 
-    // Voz automática ao vivo
     if(liveVoiceOn && autoVoiceOn && voiceOn && info.dist < threshold * 2.5){
       const statusChanged = info.status !== c._lastStatus;
       const timeForSpeak = now - (c._lastSpeakTs || 0) > 20000;
@@ -1095,7 +1081,6 @@ setInterval(() => {
       }
     }
 
-    // Overlay quando cruza
     if(info.dist <= threshold && !c._alerted && now > mutedUntil){
       c._alerted = true;
       showAlert({ codename:c.name, numero:'AO VIVO · '+c.code, socials:{} }, false, info.dist);
@@ -1123,7 +1108,7 @@ function beepSingle(freq, dur){
 /* ---- Botões do card de link ---- */
 $('btnCreateShare').onclick = startHosting;
 $('btnStopShare').onclick   = () => {
-  if(confirm('Encerrar sessão? Companheiros continuam salvos, só param de receber novas posições agora.')) stopHosting();
+  if(confirm('Encerrar sessão? Agentes continuam salvos, só param de receber novas posições agora.')) stopHosting();
 };
 $('btnCopyLink').onclick = () => {
   const url = $('shareLink').dataset.url;
@@ -1178,18 +1163,42 @@ function initMap(){
 }
 
 /* ================================================================
-   GPS PRÓPRIO
+   GPS PRÓPRIO (versão com diagnóstico)
    ================================================================ */
 function startGPS(){
-  if(!('geolocation' in navigator)){
-    setStatus('SEM GPS','warn');
-    $('myAddr').textContent = 'Geolocalização não suportada.';
+  const isSecure = window.isSecureContext;
+  const isFile = window.location.protocol === 'file:';
+  const isLocalhost = /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname);
+
+  if(!isSecure && !isLocalhost){
+    setStatus('CONTEXTO INSEGURO','danger');
+    $('myAddr').innerHTML = isFile
+      ? '<b style="color:#ff2d55">⚠ Você abriu o arquivo direto (file://).</b><br>O GPS <u>não funciona</u> assim.<br>Suba no <b>Netlify Drop</b> ou abra com <b>Live Server</b>.'
+      : '<b style="color:#ff2d55">⚠ Precisa ser HTTPS ou localhost.</b><br>Suba no Netlify Drop pra funcionar.';
     return;
   }
+
+  if(!('geolocation' in navigator)){
+    setStatus('SEM GPS','warn');
+    $('myAddr').textContent = 'Geolocalização não suportada neste navegador.';
+    return;
+  }
+
   setStatus('BUSCANDO GPS','warn');
+  $('myAddr').textContent = 'Aguardando permissão… Se o navegador pedir, clique em PERMITIR.';
+
+  let gotFirstFix = false;
+  const timeoutId = setTimeout(() => {
+    if(!gotFirstFix){
+      setStatus('GPS LENTO','warn');
+      $('myAddr').innerHTML = '⚠ Não recebi sinal em 20s.<br>Verifique se a permissão está como <b>Permitir</b> no cadeado 🔒 da barra de endereço.';
+    }
+  }, 20000);
 
   navigator.geolocation.watchPosition(
     pos => {
+      gotFirstFix = true;
+      clearTimeout(timeoutId);
       const { latitude:lat, longitude:lon, accuracy:acc } = pos.coords;
       const first = !meLatLng;
       meLatLng = L.latLng(lat,lon);
@@ -1215,22 +1224,21 @@ function startGPS(){
             : (g.display || 'Endereço não identificado');
         });
       }
-      if(first) map.setView(meLatLng,17);
+      if(first){ map.setView(meLatLng,17); }
       positionSonar(); renderSonarBlips(); renderMarkers(); renderCompanions(); render();
     },
     err => {
-      setStatus('GPS NEGADO','danger');
-      $('myAddr').textContent = 'Permissão negada. Usando posição padrão.';
-      if(!meLatLng){
-        meLatLng = L.latLng(-23.5505,-46.6333);
-        meMarker = L.marker(meLatLng,{
-          icon:L.divIcon({className:'',html:'<div class="mk-me"></div>',iconSize:[16,16],iconAnchor:[8,8]})
-        }).addTo(map);
-        thCircle.setLatLng(meLatLng).setRadius(threshold);
-        positionSonar(); renderSonarBlips();
+      clearTimeout(timeoutId);
+      let msg = 'Erro desconhecido.';
+      switch(err.code){
+        case 1: msg = '⚠ PERMISSÃO NEGADA. Clique no cadeado 🔒 na barra de endereço → Localização → Permitir. Depois recarregue.'; break;
+        case 2: msg = '⚠ SINAL INDISPONÍVEL. Sem GPS/Wi-Fi. Tente em outro lugar ou aguarde.'; break;
+        case 3: msg = '⚠ TEMPO ESGOTADO. GPS lento. Aguarde mais ou verifique se o GPS do aparelho está ligado.'; break;
       }
+      setStatus('GPS FALHOU','danger');
+      $('myAddr').innerHTML = `<b style="color:#ff2d55">${msg}</b>`;
     },
-    { enableHighAccuracy:true, maximumAge:5000, timeout:15000 }
+    { enableHighAccuracy:true, maximumAge:5000, timeout:20000 }
   );
 }
 
@@ -1512,7 +1520,6 @@ function renderSonarBlips(){
 
   const activeIds = new Set();
 
-  // alvos estáticos
   targets.forEach(t => {
     activeIds.add('t-' + t.id);
     let el = sonarBlips['t-' + t.id];
@@ -1534,7 +1541,6 @@ function renderSonarBlips(){
     el.classList.toggle('hot', d <= threshold);
   });
 
-  // companheiros (online e offline)
   Object.keys(companions).forEach(k => {
     const c = companions[k];
     if(c.lastLat == null) return;
