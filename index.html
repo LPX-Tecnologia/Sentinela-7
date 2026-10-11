@@ -198,7 +198,6 @@ textarea{resize:vertical;min-height:80px;line-height:1.6}
 }
 .share-hint{font-size:8.5px;letter-spacing:.14em;color:rgba(0,240,255,.5);text-align:center;line-height:1.7}
 
-/* ============ AGENTES ============ */
 .companion-item{
   border:1px solid rgba(0,240,255,.2);border-left:3px solid var(--ok);
   background:rgba(0,255,157,.04);padding:10px 12px;border-radius:2px;margin-bottom:8px;
@@ -269,6 +268,12 @@ textarea{resize:vertical;min-height:80px;line-height:1.6}
   font-family:inherit;font-size:10px;letter-spacing:.22em;cursor:pointer;border-radius:2px;transition:.2s}
 .btn-add:hover{background:rgba(0,255,157,.25);box-shadow:0 0 20px rgba(0,255,157,.4)}
 .btn-add:disabled{opacity:.35;cursor:not-allowed;box-shadow:none;background:transparent}
+
+.btn-import{width:100%;padding:10px;border:1px solid var(--gold);background:rgba(255,179,0,.08);
+  color:var(--gold);font-family:inherit;font-size:10px;letter-spacing:.2em;cursor:pointer;
+  border-radius:2px;transition:.2s;text-align:center;display:block}
+.btn-import:hover:not(:disabled){background:rgba(255,179,0,.2);box-shadow:0 0 18px rgba(255,179,0,.4)}
+.btn-import:disabled{cursor:not-allowed;opacity:.4}
 
 .hint{font-size:8.5px;letter-spacing:.1em;color:rgba(0,240,255,.4);margin-top:8px;line-height:1.7}
 
@@ -392,13 +397,13 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
     </div>
     <div class="brand">
       <h1>SENTINELA<span>-7</span></h1>
-      <p>PROTOCOLO JARDAS · AGENTES · v0.9</p>
+      <p>PROTOCOLO JARDAS · AGENTES · v1.0</p>
     </div>
     <div class="status" id="statusTxt">INICIALIZANDO</div>
   </header>
 
   <div class="notice blue">
-    ℹ <b>AGENTES:</b> toda pessoa que abrir o link de autorização fica <b>salva permanentemente</b>. Você pode renomear, ver última posição, e ela reaparece no radar automaticamente quando reconectar.
+    ℹ <b>AGENTES:</b> toda pessoa que abrir o link de autorização fica <b>salva permanentemente</b>. Renomeie, veja última posição, e ela reaparece no radar quando reconectar.
   </div>
 
   <div class="grid">
@@ -423,6 +428,13 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
             <div class="sonar-range" id="sonarRange">0 m</div>
           </div>
         </div>
+
+        <div class="toggles" style="margin-top:10px">
+          <button class="tg gold" id="btnSetBase" type="button">📍 DEFINIR MINHA BASE</button>
+          <button class="tg" id="btnClearBase" type="button">🗑 LIMPAR BASE</button>
+          <button class="tg" id="btnRetryGPS" type="button">🔄 TENTAR GPS</button>
+        </div>
+
         <div class="geobar">
           <div>
             <div class="lbl">SUA POSIÇÃO</div>
@@ -555,11 +567,12 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
 /* =================================================================
-   SENTINELA-7 v0.9 — AGENTES
+   SENTINELA-7 v1.0 — AGENTES + GPS 3 CAMADAS
    ================================================================= */
 
-const STORAGE_KEY   = 'sentinela7.targets.v9';
-const COMP_KEY      = 'sentinela7.companions.v9';
+const STORAGE_KEY   = 'sentinela7.targets.v10';
+const COMP_KEY      = 'sentinela7.agents.v10';
+const BASE_KEY      = 'sentinela7.homebase';
 const GEO_TTL       = 10 * 60 * 1000;
 
 let map, meMarker, thCircle, meLatLng = null;
@@ -572,9 +585,10 @@ let picking = false, pickMarker = null, formLatLng = null;
 let myGeoCache = { ts:0, latlng:null };
 let followGPS = true;
 let lastOsintData = null;
+let gpsWatchId = null;
 
 const $ = id => document.getElementById(id);
-const overlay = $('overlay'), listEl = $('list');
+const overlay = $('overlay');
 const sonarOverlay = $('sonarOverlay');
 const sonarDisc = $('sonarDisc');
 const sonarRangeEl = $('sonarRange');
@@ -1163,7 +1177,7 @@ function initMap(){
 }
 
 /* ================================================================
-   GPS PRÓPRIO (versão com diagnóstico)
+   GPS EM 3 CAMADAS
    ================================================================ */
 function startGPS(){
   const isSecure = window.isSecureContext;
@@ -1173,34 +1187,41 @@ function startGPS(){
   if(!isSecure && !isLocalhost){
     setStatus('CONTEXTO INSEGURO','danger');
     $('myAddr').innerHTML = isFile
-      ? '<b style="color:#ff2d55">⚠ Você abriu o arquivo direto (file://).</b><br>O GPS <u>não funciona</u> assim.<br>Suba no <b>Netlify Drop</b> ou abra com <b>Live Server</b>.'
-      : '<b style="color:#ff2d55">⚠ Precisa ser HTTPS ou localhost.</b><br>Suba no Netlify Drop pra funcionar.';
+      ? '<b style="color:#ff2d55">⚠ Arquivo aberto direto (file://). GPS bloqueado.</b><br>Tentando IP…'
+      : '<b style="color:#ff2d55">⚠ Precisa ser HTTPS ou localhost.</b><br>Tentando IP…';
+    ipFallback();
     return;
   }
 
   if(!('geolocation' in navigator)){
     setStatus('SEM GPS','warn');
-    $('myAddr').textContent = 'Geolocalização não suportada neste navegador.';
+    ipFallback();
     return;
   }
 
   setStatus('BUSCANDO GPS','warn');
-  $('myAddr').textContent = 'Aguardando permissão… Se o navegador pedir, clique em PERMITIR.';
+  $('myAddr').textContent = 'Aguardando permissão…';
 
   let gotFirstFix = false;
-  const timeoutId = setTimeout(() => {
-    if(!gotFirstFix){
-      setStatus('GPS LENTO','warn');
-      $('myAddr').innerHTML = '⚠ Não recebi sinal em 20s.<br>Verifique se a permissão está como <b>Permitir</b> no cadeado 🔒 da barra de endereço.';
-    }
-  }, 20000);
 
-  navigator.geolocation.watchPosition(
+  const fallbackTimer = setTimeout(() => {
+    if(!gotFirstFix){
+      console.warn('[GPS] Sem fix em 8s — usando IP');
+      ipFallback();
+    }
+  }, 8000);
+
+  try{
+    if(gpsWatchId != null) navigator.geolocation.clearWatch(gpsWatchId);
+  }catch(e){}
+
+  gpsWatchId = navigator.geolocation.watchPosition(
     pos => {
       gotFirstFix = true;
-      clearTimeout(timeoutId);
+      clearTimeout(fallbackTimer);
       const { latitude:lat, longitude:lon, accuracy:acc } = pos.coords;
-      const first = !meLatLng;
+      const first = !meLatLng || (window.__lastWasFallback === true);
+      window.__lastWasFallback = false;
       meLatLng = L.latLng(lat,lon);
 
       if(!meMarker){
@@ -1228,19 +1249,120 @@ function startGPS(){
       positionSonar(); renderSonarBlips(); renderMarkers(); renderCompanions(); render();
     },
     err => {
-      clearTimeout(timeoutId);
-      let msg = 'Erro desconhecido.';
-      switch(err.code){
-        case 1: msg = '⚠ PERMISSÃO NEGADA. Clique no cadeado 🔒 na barra de endereço → Localização → Permitir. Depois recarregue.'; break;
-        case 2: msg = '⚠ SINAL INDISPONÍVEL. Sem GPS/Wi-Fi. Tente em outro lugar ou aguarde.'; break;
-        case 3: msg = '⚠ TEMPO ESGOTADO. GPS lento. Aguarde mais ou verifique se o GPS do aparelho está ligado.'; break;
-      }
-      setStatus('GPS FALHOU','danger');
-      $('myAddr').innerHTML = `<b style="color:#ff2d55">${msg}</b>`;
+      clearTimeout(fallbackTimer);
+      console.warn('[GPS] Erro:', err.code, err.message);
+      ipFallback();
     },
-    { enableHighAccuracy:true, maximumAge:5000, timeout:20000 }
+    { enableHighAccuracy:true, maximumAge:5000, timeout:8000 }
   );
 }
+
+/* ---- Fallback: base salva → IP → São Paulo ---- */
+async function ipFallback(){
+  // Camada 1: base salva pelo usuário
+  try{
+    const saved = localStorage.getItem(BASE_KEY);
+    if(saved){
+      const b = JSON.parse(saved);
+      applyFallback(b.lat, b.lon, `📍 ${b.label || 'Minha base salva'}`, false);
+      return;
+    }
+  }catch(e){}
+
+  // Camada 2: IP
+  setStatus('LOCALIZANDO POR IP','warn');
+  $('myAddr').textContent = 'GPS indisponível · descobrindo sua região por IP…';
+
+  try{
+    const r = await fetch('https://ipwho.is/');
+    const j = await r.json();
+    if(j.success && j.latitude && j.longitude){
+      const label = [j.city, j.region, j.country].filter(Boolean).join(', ');
+      applyFallback(j.latitude, j.longitude, `🌐 Aproximado por IP · ${label}`, true);
+      return;
+    }
+  }catch(e){ console.warn('[IP] ipwho.is falhou:', e); }
+
+  try{
+    const r = await fetch('https://ipapi.co/json/');
+    const j = await r.json();
+    if(j.latitude && j.longitude){
+      const label = [j.city, j.region, j.country_name].filter(Boolean).join(', ');
+      applyFallback(j.latitude, j.longitude, `🌐 Aproximado por IP · ${label}`, true);
+      return;
+    }
+  }catch(e){ console.warn('[IP] ipapi.co falhou:', e); }
+
+  // Camada 3
+  setStatus('SEM LOCALIZAÇÃO','danger');
+  $('myAddr').innerHTML = '<b style="color:#ff2d55">⚠ Sem GPS e sem IP.</b><br>Clique em 📍 DEFINIR MINHA BASE para fixar seu endereço.';
+  applyFallback(-23.5505, -46.6333, '⚠ Fallback padrão (São Paulo) · defina sua base', true);
+}
+
+function applyFallback(lat, lon, label, isFallback){
+  meLatLng = L.latLng(lat, lon);
+  window.__lastWasFallback = !!isFallback;
+
+  if(!meMarker){
+    meMarker = L.marker(meLatLng,{
+      icon:L.divIcon({className:'',html:'<div class="mk-me"></div>',iconSize:[16,16],iconAnchor:[8,8]}),
+      zIndexOffset:1000
+    }).addTo(map);
+  } else meMarker.setLatLng(meLatLng);
+
+  thCircle.setLatLng(meLatLng).setRadius(threshold);
+  $('myCoords').textContent = lat.toFixed(6)+', '+lon.toFixed(6);
+  $('myAcc').textContent = '—';
+  $('mapInfo').textContent = isFallback ? 'FALLBACK' : 'BASE';
+  map.setView(meLatLng, 14);
+
+  $('myAddr').innerHTML = `<b style="color:#ffb300">${label}</b>`;
+  setStatus(isFallback ? 'FALLBACK ATIVO' : 'BASE ATIVA', 'warn');
+
+  positionSonar(); renderSonarBlips(); renderMarkers(); renderCompanions(); render();
+}
+
+/* ---- Botões de base ---- */
+$('btnSetBase').onclick = async () => {
+  const q = prompt('Digite seu endereço (rua, número, cidade):');
+  if(!q || !q.trim()) return;
+
+  const btn = $('btnSetBase');
+  const original = btn.textContent;
+  btn.textContent = '🔍 BUSCANDO…';
+  btn.disabled = true;
+
+  const list = await geocodeAddressList(q);
+  btn.textContent = original;
+  btn.disabled = false;
+
+  if(!list.length){ alert('Endereço não encontrado. Tente ser mais específico.'); return; }
+
+  const r = list[0];
+  const base = { lat:r.lat, lon:r.lon, label: r.linha1 + (r.linha2 ? ', '+r.linha2 : '') };
+  localStorage.setItem(BASE_KEY, JSON.stringify(base));
+
+  applyFallback(base.lat, base.lon, `📍 ${base.label}`, false);
+  speak(`Base definida em ${r.linha1}.`);
+  alert('✅ Base salva!\n\nSempre que o GPS falhar, o mapa vai abrir exatamente aqui.');
+};
+
+$('btnClearBase').onclick = () => {
+  if(!confirm('Apagar sua base salva?')) return;
+  localStorage.removeItem(BASE_KEY);
+  alert('Base apagada.');
+};
+
+$('btnRetryGPS').onclick = () => {
+  const btn = $('btnRetryGPS');
+  btn.textContent = '🔄 TENTANDO…';
+  btn.disabled = true;
+  startGPS();
+  setTimeout(() => {
+    btn.textContent = '🔄 TENTAR GPS';
+    btn.disabled = false;
+  }, 9000);
+};
 
 /* ================================================================
    GEO
@@ -1572,7 +1694,7 @@ function renderSonarBlips(){
 }
 
 /* ================================================================
-   MARCADORES NO MAPA
+   MARCADORES
    ================================================================ */
 function renderMarkers(){
   targets.forEach(t => {
@@ -1626,11 +1748,11 @@ function updateAll(){
 }
 
 /* ================================================================
-   LISTA DE ALVOS ESTÁTICOS
+   LISTA DE ALVOS
    ================================================================ */
 function render(){
   if(!targets.length){
-    listEl.innerHTML = '<div class="empty">NENHUM ALVO ESTÁTICO<br>USE O PAINEL ACIMA</div>';
+    listEl.innerHTML = '<div class="empty">NENHUM ALVO<br>IMPORTE OU CADASTRE ACIMA</div>';
     return;
   }
   const sorted = [...targets].sort((a,b) => distTo(a) - distTo(b));
