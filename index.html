@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SENTINELA-7 · SONAR + OSINT</title>
+<title>SENTINELA-7 · SONAR NO MAPA</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
 :root{
@@ -73,21 +73,131 @@ header{
   text-shadow:0 0 8px rgba(255,179,0,.6);font-weight:600;display:flex;justify-content:space-between;align-items:center}
 .card h2 em{font-style:normal;color:rgba(0,240,255,.4);letter-spacing:.14em;font-size:9px}
 
-/* MAPA */
-.map-wrap{position:relative;width:100%;height:460px;border:1px solid var(--line);border-radius:3px;overflow:hidden;
-  box-shadow:0 0 30px rgba(0,240,255,.15), inset 0 0 40px rgba(0,240,255,.06)}
-@media(max-width:600px){.map-wrap{height:340px}}
-#map{position:absolute;inset:0;background:#02060b}
-.map-wrap::after{content:"";position:absolute;left:0;right:0;height:150px;top:0;pointer-events:none;z-index:450;
+/* ============ MAPA + SONAR DENTRO ============ */
+.map-wrap{
+  position:relative;width:100%;height:520px;
+  border:1px solid var(--line);border-radius:3px;overflow:hidden;
+  box-shadow:0 0 30px rgba(0,240,255,.15), inset 0 0 40px rgba(0,240,255,.06);
+  background:#02060b;
+}
+@media(max-width:600px){.map-wrap{height:400px}}
+#map{position:absolute;inset:0;background:#02060b;z-index:1}
+
+/* tinta azulada + vinheta sobre o satélite */
+.map-wrap .tint{
+  position:absolute;inset:0;pointer-events:none;z-index:400;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(0,240,255,.05), rgba(2,6,11,.55) 90%),
+    linear-gradient(rgba(0,40,80,.18), rgba(0,40,80,.18));
+  mix-blend-mode:multiply;
+}
+/* linha de varredura */
+.map-wrap .scanline{
+  position:absolute;left:0;right:0;height:140px;top:0;pointer-events:none;z-index:401;
   background:linear-gradient(180deg,transparent,rgba(0,240,255,.14),transparent);
-  animation:scanline 6s linear infinite}
-@keyframes scanline{from{top:-150px}to{top:100%}}
+  animation:scanline 6s linear infinite;
+}
+@keyframes scanline{from{top:-140px}to{top:100%}}
+
 .leaflet-container{background:#02060b !important;font-family:inherit !important}
-.leaflet-tile-pane{filter:hue-rotate(150deg) saturate(1.15) brightness(.95) contrast(1.05)}
+/* satélite levemente escurecido e azulado */
+.leaflet-tile-pane{filter:brightness(.78) saturate(1.05) contrast(1.05) hue-rotate(-8deg)}
 .leaflet-control-attribution{background:rgba(2,6,11,.75) !important;color:rgba(0,240,255,.5) !important;font-size:8px !important}
 .leaflet-control-attribution a{color:rgba(0,240,255,.7) !important}
 .leaflet-bar a{background:#04121a !important;color:var(--neon) !important;border-color:var(--line) !important}
+.leaflet-bar a:hover{background:#062430 !important}
 
+/* ---- SONAR SOBREPOSTO AO MAPA ---- */
+.sonar-overlay{
+  position:absolute;
+  width:clamp(220px, 46vw, 360px);
+  height:clamp(220px, 46vw, 360px);
+  transform:translate(-50%,-50%);
+  pointer-events:none;
+  z-index:800;
+  transition:opacity .3s;
+}
+.sonar-overlay.off{opacity:0;pointer-events:none}
+.sonar-disc{
+  position:absolute;inset:0;border-radius:50%;
+  background:
+    radial-gradient(circle, rgba(0,240,255,.14), rgba(0,240,255,.03) 55%, transparent 74%);
+  border:1.5px solid rgba(0,240,255,.75);
+  box-shadow:
+    0 0 26px rgba(0,240,255,.55),
+    0 0 60px rgba(0,240,255,.25),
+    inset 0 0 50px rgba(0,240,255,.15);
+  overflow:hidden;
+}
+.sonar-disc .cross-x{position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(0,240,255,.3);transform:translateY(-.5px)}
+.sonar-disc .cross-y{position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(0,240,255,.3);transform:translateX(-.5px)}
+.sonar-disc .ring{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  border:1px solid rgba(0,240,255,.28);border-radius:50%
+}
+.sonar-disc .ring.r1{width:33%;height:33%}
+.sonar-disc .ring.r2{width:66%;height:66%}
+.sonar-disc .ring.r3{width:99%;height:99%;border-color:rgba(0,240,255,.6);border-style:dashed}
+.sonar-disc .sweep{
+  position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(from 0deg,
+    rgba(0,240,255,.75) 0deg,
+    rgba(0,240,255,.32) 22deg,
+    rgba(0,240,255,.08) 48deg,
+    transparent 72deg,
+    transparent 360deg);
+  animation:sonarSpin 3.2s linear infinite;
+  transform-origin:50% 50%;
+}
+@keyframes sonarSpin{to{transform:rotate(360deg)}}
+.sonar-disc .me-dot{
+  position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;
+  background:var(--neon);border-radius:50%;
+  box-shadow:0 0 14px var(--neon), 0 0 28px var(--neon);
+  border:1.5px solid #fff;z-index:4
+}
+.sonar-disc .me-dot::after{
+  content:"";position:absolute;inset:-8px;border-radius:50%;
+  border:1px solid var(--neon);animation:ripple 2s infinite
+}
+@keyframes ripple{0%{transform:scale(.6);opacity:.9}100%{transform:scale(1.9);opacity:0}}
+
+.sonar-disc .sblip{
+  position:absolute;width:11px;height:11px;margin:-5.5px 0 0 -5.5px;border-radius:50%;
+  background:var(--gold);
+  box-shadow:0 0 10px var(--gold), 0 0 22px var(--gold);
+  border:1.5px solid rgba(255,255,255,.85);
+  transition:left .9s linear, top .9s linear, background .3s;
+  z-index:3;
+}
+.sonar-disc .sblip.hot{
+  background:var(--danger);
+  box-shadow:0 0 14px var(--danger), 0 0 30px var(--danger);
+  animation:sonarPulse .85s infinite;
+}
+@keyframes sonarPulse{50%{transform:scale(1.9);opacity:.75}}
+.sonar-disc .sblip::after{
+  content:attr(data-label);
+  position:absolute;left:14px;top:-2px;
+  font-size:8.5px;letter-spacing:.12em;color:#dffcff;white-space:nowrap;
+  text-shadow:0 0 6px #000, 0 0 10px var(--neon);
+  opacity:.85;
+}
+
+.sonar-range{
+  position:absolute;left:50%;bottom:-24px;transform:translateX(-50%);
+  font-size:8px;letter-spacing:.26em;color:var(--neon);
+  text-shadow:0 0 8px var(--neon);white-space:nowrap;
+  background:rgba(2,6,11,.7);padding:2px 8px;border-radius:2px;
+  border:1px solid rgba(0,240,255,.3);
+}
+.sonar-north{
+  position:absolute;left:50%;top:-4px;transform:translateX(-50%);
+  font-size:8px;letter-spacing:.3em;color:var(--neon);
+  text-shadow:0 0 8px var(--neon);opacity:.75;
+}
+
+/* marcadores Leaflet */
 .mk{width:16px;height:16px;border-radius:50%;background:var(--gold);
   box-shadow:0 0 12px var(--gold),0 0 26px var(--gold);
   border:2px solid rgba(255,255,255,.7);position:relative}
@@ -99,7 +209,6 @@ header{
   box-shadow:0 0 18px var(--neon);border:2px solid #fff;position:relative}
 .mk-me::after{content:"";position:absolute;inset:-9px;border-radius:50%;
   border:1px solid var(--neon);animation:ripple 2s infinite}
-@keyframes ripple{0%{transform:scale(.6);opacity:.9}100%{transform:scale(1.8);opacity:0}}
 
 .geobar{margin-top:10px;border:1px solid var(--line);border-left:2px solid var(--neon);
   background:rgba(0,240,255,.04);padding:10px 12px;border-radius:2px;
@@ -116,7 +225,7 @@ input[type=range]{-webkit-appearance:none;width:100%;height:3px;background:rgba(
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--gold);box-shadow:0 0 14px var(--gold);cursor:pointer}
 input[type=range]::-moz-range-thumb{width:16px;height:16px;border:0;border-radius:50%;background:var(--gold);box-shadow:0 0 14px var(--gold);cursor:pointer}
 .toggles{display:flex;gap:8px;flex-wrap:wrap}
-.tg{flex:1;min-width:118px;font-size:9.5px;letter-spacing:.14em;padding:9px 8px;cursor:pointer;
+.tg{flex:1;min-width:110px;font-size:9.5px;letter-spacing:.13em;padding:9px 8px;cursor:pointer;
   border:1px solid var(--line);background:transparent;color:rgba(0,240,255,.6);
   border-radius:2px;transition:.2s;font-family:inherit;text-align:center}
 .tg.on{color:var(--ok);border-color:var(--ok);box-shadow:0 0 14px rgba(0,255,157,.3);background:rgba(0,255,157,.06)}
@@ -145,7 +254,7 @@ input[type=text]:focus,input[type=tel]:focus{border-color:var(--neon);box-shadow
 
 .social-preview{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
 .social-preview .sp-item{
-  font-size:9px;letter-spacing:.08em;padding:7px 9px;border-radius:2px;
+  font-size:9px;letter-spacing:.06em;padding:7px 9px;border-radius:2px;
   border:1px solid var(--line);background:rgba(0,240,255,.04);
   color:#cdf9ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap
 }
@@ -185,79 +294,6 @@ input[type=text]:focus,input[type=tel]:focus{border-color:var(--neon);box-shadow
 
 .empty{text-align:center;padding:22px 10px;font-size:9.5px;letter-spacing:.18em;
   color:rgba(0,240,255,.35);border:1px dashed rgba(0,240,255,.2);border-radius:2px}
-
-/* ============ SONAR FLUTUANTE (sempre ativo) ============ */
-.sonar-hud{
-  position:fixed;right:18px;bottom:18px;z-index:9990;
-  width:210px;height:210px;pointer-events:auto;
-  filter:drop-shadow(0 0 22px rgba(0,240,255,.4));
-  transition:transform .3s, opacity .3s;
-}
-.sonar-hud.min{width:52px;height:52px;filter:drop-shadow(0 0 12px rgba(0,240,255,.6))}
-.sonar-hud .label{
-  position:absolute;top:-2px;left:50%;transform:translateX(-50%);
-  font-size:7.5px;letter-spacing:.3em;color:var(--neon);
-  text-shadow:0 0 8px var(--neon);white-space:nowrap;opacity:.9;
-}
-.sonar-hud.min .label{display:none}
-.sonar-hud .hud-btn{
-  position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;
-  border:1px solid var(--line);background:rgba(2,6,11,.85);color:var(--neon);
-  font-size:11px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;
-  font-family:inherit;padding:0;z-index:5
-}
-.sonar-hud.min .hud-btn{top:50%;right:50%;transform:translate(50%,-50%);width:26px;height:26px}
-.sonar-hud .frame{
-  position:absolute;inset:14px;border-radius:50%;
-  background:radial-gradient(circle, rgba(0,240,255,.10), rgba(0,240,255,.02) 60%, transparent 72%);
-  border:1px solid rgba(0,240,255,.5);
-  box-shadow:0 0 30px rgba(0,240,255,.3), inset 0 0 40px rgba(0,240,255,.1);
-  overflow:hidden;
-}
-.sonar-hud.min .frame{inset:4px}
-.sonar-hud .frame .ring{
-  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-  border:1px solid rgba(0,240,255,.2);border-radius:50%
-}
-.sonar-hud .frame .ring.r1{width:33%;height:33%}
-.sonar-hud .frame .ring.r2{width:66%;height:66%}
-.sonar-hud .frame .ring.r3{width:100%;height:100%;border-color:rgba(0,240,255,.42)}
-.sonar-hud .frame .cross-x{position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(0,240,255,.18)}
-.sonar-hud .frame .cross-y{position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(0,240,255,.18)}
-.sonar-hud .frame .sweep{
-  position:absolute;inset:0;border-radius:50%;
-  background:conic-gradient(from 0deg,
-    rgba(0,240,255,.65) 0deg, rgba(0,240,255,.25) 24deg, rgba(0,240,255,.05) 46deg,
-    transparent 70deg, transparent 360deg);
-  animation:sonarSpin 3.2s linear infinite;
-}
-@keyframes sonarSpin{to{transform:rotate(360deg)}}
-.sonar-hud.min .frame .sweep{animation-duration:2s}
-.sonar-hud .me-dot{
-  position:absolute;left:50%;top:50%;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;
-  background:var(--neon);border-radius:50%;box-shadow:0 0 12px var(--neon);z-index:3
-}
-.sonar-hud .sblip{
-  position:absolute;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;
-  background:var(--gold);box-shadow:0 0 9px var(--gold),0 0 18px var(--gold);
-  transition:left .9s linear, top .9s linear; z-index:2
-}
-.sonar-hud .sblip.hot{background:var(--danger);box-shadow:0 0 12px var(--danger),0 0 24px var(--danger);animation:sonarPulse .85s infinite}
-@keyframes sonarPulse{50%{transform:scale(1.9);opacity:.7}}
-.sonar-hud .rangeTxt{
-  position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);
-  font-size:7px;letter-spacing:.24em;color:rgba(0,240,255,.55);white-space:nowrap
-}
-.sonar-hud.min .rangeTxt{display:none}
-.sonar-hud .tick{
-  position:absolute;left:50%;top:14px;width:1px;height:8px;background:var(--neon);
-  transform:translateX(-50%);box-shadow:0 0 6px var(--neon);opacity:.7
-}
-.sonar-hud.min .tick{display:none}
-@media(max-width:600px){
-  .sonar-hud{width:150px;height:150px;right:10px;bottom:10px}
-  .sonar-hud.min{width:46px;height:46px}
-}
 
 /* OVERLAY ALERTA */
 .overlay{position:fixed;inset:0;z-index:9999;display:none;
@@ -309,26 +345,43 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
     </div>
     <div class="brand">
       <h1>SENTINELA<span>-7</span></h1>
-      <p>PROTOCOLO JARDAS · SONAR ATIVO · v0.3</p>
+      <p>PROTOCOLO JARDAS · SONAR TÁTICO · v0.4</p>
     </div>
     <div class="status" id="statusTxt">INICIALIZANDO</div>
   </header>
 
   <div class="notice">
-    ⚠ <b>USO PESSOAL / EDUCACIONAL.</b> A sua localização é real (GPS do navegador). Os alvos são posicionados por <u>você</u>.
-    A <b>busca por número</b> é uma <u>SIMULAÇÃO OSINT</u> — ela gera @ handles plausíveis a partir do próprio número,
-    pois <b>não existe API pública/gratuita</b> que devolva Instagram, Facebook, TikTok ou WhatsApp de um telefone.
-    Nada aqui rastreia chips de terceiros.
+    ⚠ <b>USO PESSOAL / EDUCACIONAL.</b> O mapa é satélite real (Esri, sem chave de API).
+    Sua localização é GPS real. Os alvos são posicionados por <u>você</u>.
+    A busca por número é <b>SIMULAÇÃO OSINT</b> — nenhuma API pública devolve redes sociais de um telefone.
   </div>
 
   <div class="grid">
-    <!-- ESQUERDA -->
     <div>
       <div class="card">
         <h2>◈ MAPA TÁTICO <em id="mapInfo">AGUARDANDO GPS…</em></h2>
-        <div class="map-wrap">
+
+        <div class="map-wrap" id="mapWrap">
           <div id="map"></div>
+          <div class="tint"></div>
+          <div class="scanline"></div>
+
+          <!-- SONAR SOBREPOSTO AO MAPA -->
+          <div class="sonar-overlay" id="sonarOverlay">
+            <div class="sonar-north">N</div>
+            <div class="sonar-disc" id="sonarDisc">
+              <div class="cross-x"></div>
+              <div class="cross-y"></div>
+              <div class="ring r1"></div>
+              <div class="ring r2"></div>
+              <div class="ring r3"></div>
+              <div class="sweep"></div>
+              <div class="me-dot"></div>
+            </div>
+            <div class="sonar-range" id="sonarRange">0 m</div>
+          </div>
         </div>
+
         <div class="geobar">
           <div>
             <div class="lbl">SUA POSIÇÃO</div>
@@ -343,7 +396,6 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
       </div>
     </div>
 
-    <!-- DIREITA -->
     <div>
       <div class="card" style="margin-bottom:16px">
         <h2>◈ PROTOCOLO DE APROXIMAÇÃO</h2>
@@ -354,15 +406,17 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
         <div class="toggles">
           <button class="tg on" id="tgVoice">🔊 VOZ ATIVA</button>
           <button class="tg on" id="tgSound">🎵 ALARME</button>
-          <button class="tg" id="tgTrack">📍 SEGUIR GPS</button>
+          <button class="tg on" id="tgSonar">📡 SONAR</button>
         </div>
         <div class="toggles" style="margin-top:8px">
+          <button class="tg on" id="tgTrack">📍 SEGUIR GPS</button>
           <button class="tg gold" id="tgCenter">🎯 CENTRALIZAR</button>
+        </div>
+        <div class="toggles" style="margin-top:8px">
           <button class="tg gold" id="tgScan">▶ RELATÓRIO DE VOZ</button>
         </div>
       </div>
 
-      <!-- CADASTRO -->
       <div class="card" style="margin-bottom:16px">
         <h2>◈ CADASTRAR ALVO <em>OSINT SIMULADO</em></h2>
 
@@ -409,29 +463,11 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
   </div>
 
   <footer>
-    SENTINELA-7 · MAPAS © OPENSTREETMAP · GEOCODIFICAÇÃO © PHOTON / KOMOOT<br>
+    SENTINELA-7 · MAPAS © ESRI / MAXAR · GEOCODIFICAÇÃO © PHOTON / KOMOOT<br>
     FERRAMENTA EDUCACIONAL · NÃO REALIZA RASTREAMENTO DE TERCEIROS
   </footer>
 </div>
 
-<!-- SONAR FLUTUANTE (sempre ativo) -->
-<div class="sonar-hud" id="sonarHud">
-  <div class="label">◈ SONAR</div>
-  <button class="hud-btn" id="sonarBtn" title="Minimizar / Expandir">–</button>
-  <div class="frame" id="sonarFrame">
-    <div class="cross-x"></div>
-    <div class="cross-y"></div>
-    <div class="ring r1"></div>
-    <div class="ring r2"></div>
-    <div class="ring r3"></div>
-    <div class="sweep"></div>
-    <div class="tick"></div>
-    <div class="me-dot"></div>
-  </div>
-  <div class="rangeTxt" id="sonarRange">0 m</div>
-</div>
-
-<!-- ALERTA -->
 <div class="overlay" id="overlay">
   <div class="alert">
     <div class="hdr">▲ ALVO EM APROXIMAÇÃO ▲</div>
@@ -456,39 +492,55 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 /* =================================================================
-   SENTINELA-7 v0.3
-   • Geocoder: Photon (komoot) → CORS liberado, SEM chave de API
-   • Busca por número: SIMULAÇÃO determinística (não há API real)
-   • Sonar HUD flutuante: sempre ativo, com rolamento real
+   SENTINELA-7 v0.4
+   • Tiles: Esri World Imagery (satélite) — SEM chave de API
+   • Sonar: sobreposto ao mapa, centrado no GPS real
    ================================================================= */
 
-const STORAGE_KEY = 'sentinela7.targets.v3';
+const STORAGE_KEY = 'sentinela7.targets.v4';
 const GEO_TTL     = 10 * 60 * 1000;
 
 let map, meMarker, thCircle, meLatLng = null;
 let targets = [];
 let threshold = 150;
-let voiceOn = true, soundOn = true;
+let voiceOn = true, soundOn = true, sonarOn = true;
 let mutedUntil = 0, audioCtx = null;
 let picking = false, pickMarker = null, formLatLng = null;
-let myGeoCache = { addr:'', ts:0, latlng:null };
-let followGPS = false;
-let lastOsintData = null;      // dados retornados pela busca por número
+let myGeoCache = { ts:0, latlng:null };
+let followGPS = true;
+let lastOsintData = null;
 
 const $ = id => document.getElementById(id);
 const overlay = $('overlay'), listEl = $('list');
+const mapWrap = $('mapWrap');
+const sonarOverlay = $('sonarOverlay');
+const sonarDisc = $('sonarDisc');
+const sonarRangeEl = $('sonarRange');
 
 /* ----------------------------------------------------------------
-   1. MAPA
+   1. MAPA — Esri World Imagery (grátis, sem chave)
    ---------------------------------------------------------------- */
 function initMap(){
-  map = L.map('map',{ zoomControl:true, preferCanvas:true })
-        .setView([-23.5505,-46.6333],15);
+  map = L.map('map',{
+    zoomControl:true,
+    preferCanvas:true,
+    worldCopyJump:true
+  }).setView([-23.5505,-46.6333],16);
 
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
-    maxZoom:19, subdomains:'abcd',
-    attribution:'&copy; OpenStreetMap &copy; CARTO'
-  }).addTo(map);
+  // Satélite (sem chave)
+  L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    {
+      maxZoom:19,
+      attribution:'&copy; Esri, Maxar, Earthstar Geographics'
+    }
+  ).addTo(map);
+
+  // Nomes de ruas / lugares por cima (também sem chave)
+  L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+    { maxZoom:19, opacity:.7 }
+  ).addTo(map);
 
   thCircle = L.circle([-23.5505,-46.6333],{
     radius:threshold, color:'#ffb300', weight:1, dashArray:'6 6',
@@ -507,6 +559,13 @@ function initMap(){
     $('btnPick').textContent = '🖱 CLICAR NO MAPA';
     map.getContainer().style.cursor = '';
   });
+
+  // reposiciona o sonar sempre que o mapa se move
+  map.on('move zoom zoomend moveend viewreset', () => {
+    positionSonar();
+    renderSonarBlips();
+  });
+  map.on('resize', positionSonar);
 }
 
 /* ----------------------------------------------------------------
@@ -547,7 +606,11 @@ function startGPS(){
             : (g.display || 'Endereço não identificado');
         });
       }
-      if(first){ map.setView(meLatLng,16); updateAll(); }
+
+      if(first){ map.setView(meLatLng,17); }
+      positionSonar();
+      renderSonarBlips();
+      updateAll();
     },
     err => {
       setStatus('GPS NEGADO','danger');
@@ -558,6 +621,8 @@ function startGPS(){
           icon:L.divIcon({className:'',html:'<div class="mk-me"></div>',iconSize:[16,16],iconAnchor:[8,8]})
         }).addTo(map);
         thCircle.setLatLng(meLatLng).setRadius(threshold);
+        positionSonar();
+        renderSonarBlips();
       }
       updateAll();
     },
@@ -566,18 +631,14 @@ function startGPS(){
 }
 
 /* ----------------------------------------------------------------
-   3. GEOCODIFICAÇÃO — PHOTON (komoot)
-   Sem chave, CORS liberado. Substitui o Nominatim que dava "API required".
+   3. GEOCODIFICAÇÃO — Photon (sem chave)
    ---------------------------------------------------------------- */
 async function reverseGeocode(lat, lon){
   try{
-    const url = `https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&lang=pt`;
-    const r = await fetch(url);
+    const r = await fetch(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&lang=pt`);
     if(!r.ok) throw 0;
     const j = await r.json();
     const p = (j.features && j.features[0] && j.features[0].properties) || {};
-
-    // Photon devolve campos variados — montamos "rua" e "referência"
     const road = p.street || p.name || p.locality || p.district || '';
     const num  = p.housenumber || '';
     const refParts = [
@@ -586,22 +647,18 @@ async function reverseGeocode(lat, lon){
       p.suburb && p.suburb !== road ? p.suburb : ''
     ].filter(Boolean);
     const ref = [...new Set(refParts)].slice(0,2).join(', ');
-
     return {
       road: road + (num ? ', '+num : ''),
       ref,
       display: [road, num, p.city, p.state, p.country].filter(Boolean).join(', '),
       number: num
     };
-  }catch(e){
-    return { road:'', ref:'', display:'', number:'' };
-  }
+  }catch(e){ return { road:'', ref:'', display:'', number:'' }; }
 }
 
 async function geocodeAddress(q){
   try{
-    const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&lang=pt&limit=1`;
-    const r = await fetch(url);
+    const r = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&lang=pt&limit=1`);
     if(!r.ok) throw 0;
     const j = await r.json();
     if(!j.features || !j.features.length) return null;
@@ -610,9 +667,7 @@ async function geocodeAddress(q){
     const p = f.properties || {};
     const nome = [p.name, p.street, p.city].filter(Boolean).join(', ');
     return { lat, lon, name: nome || 'Local selecionado' };
-  }catch(e){
-    return null;
-  }
+  }catch(e){ return null; }
 }
 
 async function getTargetGeo(t){
@@ -625,12 +680,7 @@ async function getTargetGeo(t){
 }
 
 /* ----------------------------------------------------------------
-   4. BUSCA POR NÚMERO — SIMULAÇÃO OSINT DETERMINÍSTICA
-   ----------------------------------------------------------------
-   IMPORTANTE: não existe API pública gratuita que devolva as redes
-   sociais de um número de telefone. Este bloco gera handles
-   consistentes a partir do próprio número, para que o fluxo do app
-   funcione. É FICÇÃO — está marcado assim na interface.
+   4. OSINT SIMULADO (determinístico)
    ---------------------------------------------------------------- */
 function hashPhone(num){
   const digits = num.replace(/\D/g,'');
@@ -641,24 +691,17 @@ function hashPhone(num){
   }
   return Math.abs(h>>>0);
 }
-
 function simulateOsint(numero){
   const digits = numero.replace(/\D/g,'');
   if(digits.length < 8) return null;
-
   const h = hashPhone(numero);
   const prefixes = ['user','alvo','shadow','ghost','agent','zero','kilo','delta','nyx','raven'];
   const suffixes = ['_br','.oficial','_007','_real','_sp','_rj','_x','.ofc'];
   const base = prefixes[h % prefixes.length] + String(h % 9999).padStart(4,'0');
   const suf  = suffixes[(h>>3) % suffixes.length];
-
-  // codinome: 2 letras + 3 dígitos
   const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-  const codename = 'ALVO-'
-    + letters[h % letters.length]
-    + letters[(h>>5) % letters.length]
-    + String(h % 900 + 100);
-
+  const codename = 'ALVO-' + letters[h % letters.length] + letters[(h>>5) % letters.length]
+                 + String(h % 900 + 100);
   return {
     codename,
     instagram: '@' + base + suf,
@@ -669,12 +712,8 @@ function simulateOsint(numero){
   };
 }
 
-/* ----------------------------------------------------------------
-   5. UI — BUSCA POR NÚMERO
-   ---------------------------------------------------------------- */
 const osintStatus = $('osintStatus');
 const socialPreview = $('socialPreview');
-
 function renderSocialPreview(data){
   const cells = [
     ['FB', data?.facebook],
@@ -686,7 +725,6 @@ function renderSocialPreview(data){
     `<div class="sp-item ${v ? '' : 'empty'}"><b>${k}</b>${v ? escapeHtml(v) : '—'}</div>`
   ).join('');
 }
-
 renderSocialPreview(null);
 
 $('btnOsint').onclick = async () => {
@@ -696,32 +734,22 @@ $('btnOsint').onclick = async () => {
     osintStatus.innerHTML = '⚠ Número inválido. Digite ao menos 8 dígitos.';
     return;
   }
-
-  // passo 1 — "consultando bases"
   osintStatus.className = 'osint-status load';
   osintStatus.innerHTML = '<span class="spin"></span> Consultando bases abertas…';
-
   await new Promise(r => setTimeout(r, 700));
-
-  // passo 2 — resultado
   const data = simulateOsint(num);
   lastOsintData = data;
-
   osintStatus.className = 'osint-status ok';
   osintStatus.innerHTML = `✓ Perfil sintetizado · <b style="color:var(--gold)">${data.codename}</b> · <span style="opacity:.6">SIMULAÇÃO</span>`;
-
   renderSocialPreview(data);
-
-  // preenche codinome se estiver vazio
   if(!$('fName').value.trim()) $('fName').value = data.codename;
-
   validateForm();
   beep(1);
   speak(`Perfil sintetizado. Codinome ${data.codename}.`);
 };
 
 /* ----------------------------------------------------------------
-   6. FORMULÁRIO
+   5. FORMULÁRIO
    ---------------------------------------------------------------- */
 function setFormLocation(lat, lon, label){
   formLatLng = { lat, lon };
@@ -730,7 +758,9 @@ function setFormLocation(lat, lon, label){
   validateForm();
 }
 function validateForm(){
-  const ok = $('fName').value.trim() && $('fNum').value.trim().replace(/\D/g,'').length>=8 && formLatLng;
+  const ok = $('fName').value.trim()
+          && $('fNum').value.trim().replace(/\D/g,'').length>=8
+          && formLatLng;
   $('btnAdd').disabled = !ok;
 }
 ['fName','fNum'].forEach(id => $(id).addEventListener('input', validateForm));
@@ -740,14 +770,12 @@ $('btnMyLoc').onclick = () => {
   setFormLocation(meLatLng.lat, meLatLng.lng, 'minha posição');
   map.setView(meLatLng, 17);
 };
-
 $('btnPick').onclick = function(){
   picking = !picking;
   this.classList.toggle('on', picking);
   this.textContent = picking ? '🖱 CLIQUE NO MAPA…' : '🖱 CLICAR NO MAPA';
   map.getContainer().style.cursor = picking ? 'crosshair' : '';
 };
-
 $('btnSearch').onclick = async function(){
   const q = $('fAddr').value.trim();
   if(!q) return;
@@ -762,13 +790,10 @@ $('btnSearch').onclick = async function(){
     icon:L.divIcon({className:'',html:'<div class="mk hot"></div>',iconSize:[16,16],iconAnchor:[8,8]})
   }).addTo(map);
 };
-
 $('btnAdd').onclick = () => {
-  // se o usuário não clicou em BUSCAR, geramos na hora
   if(!lastOsintData || lastOsintData.codename !== $('fName').value.trim().toUpperCase()){
     lastOsintData = simulateOsint($('fNum').value.trim());
   }
-
   const t = {
     id: Date.now(),
     codename: $('fName').value.trim().toUpperCase() || lastOsintData.codename,
@@ -783,7 +808,6 @@ $('btnAdd').onclick = () => {
     },
     _armed:false, _geo:null
   };
-
   targets.push(t);
   saveTargets(); updateAll();
   getTargetGeo(t).then(() => render());
@@ -801,13 +825,12 @@ $('btnAdd').onclick = () => {
   $('btnPick').textContent = '🖱 CLICAR NO MAPA';
   map.getContainer().style.cursor = '';
   validateForm();
-
   map.setView([t.lat,t.lon], 17);
   speak(`Alvo ${t.codename} adicionado ao monitoramento.`);
 };
 
 /* ----------------------------------------------------------------
-   7. LISTA / MARCADORES
+   6. DISTÂNCIA / RUMO
    ---------------------------------------------------------------- */
 function distTo(t){
   if(!meLatLng) return Infinity;
@@ -825,6 +848,69 @@ function escapeHtml(s){
   return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+/* ----------------------------------------------------------------
+   7. SONAR SOBREPOSTO AO MAPA
+   ---------------------------------------------------------------- */
+let sonarBlips = {};   // id -> elemento DOM
+
+function sonarRangeMeters(){
+  return Math.max(threshold * 3, 500);
+}
+
+/** Move o sonar para o pixel da sua posição GPS dentro do mapa */
+function positionSonar(){
+  if(!meLatLng || !map) return;
+  const pt = map.latLngToContainerPoint(meLatLng);
+  sonarOverlay.style.left = pt.x + 'px';
+  sonarOverlay.style.top  = pt.y + 'px';
+}
+
+/** Atualiza os blips dentro do disco do sonar */
+function renderSonarBlips(){
+  if(!sonarOn) return;
+
+  const range = sonarRangeMeters();
+  sonarRangeEl.textContent = range >= 1000
+    ? (range/1000).toFixed(1).replace('.',',')+' km'
+    : range+' m';
+
+  // remove órfãos
+  Object.keys(sonarBlips).forEach(id => {
+    if(!targets.some(t => String(t.id) === id)){
+      sonarBlips[id].remove(); delete sonarBlips[id];
+    }
+  });
+
+  targets.forEach(t => {
+    let el = sonarBlips[t.id];
+    if(!el){
+      el = document.createElement('div');
+      el.className = 'sblip';
+      el.dataset.label = t.codename;
+      sonarDisc.appendChild(el);
+      sonarBlips[t.id] = el;
+    }
+
+    const d = distTo(t);
+    if(!isFinite(d)){ el.style.opacity = 0; return; }
+    el.style.opacity = 1;
+    el.dataset.label = t.codename;
+
+    const brg = bearingTo(t);
+    const ratio = Math.min(d / range, 1) * 46;   // 46% = borda do disco
+    const rad = (brg - 90) * Math.PI/180;        // 0° = norte = topo
+    const x = 50 + ratio * Math.cos(rad);
+    const y = 50 + ratio * Math.sin(rad);
+    el.style.left = x + '%';
+    el.style.top  = y + '%';
+
+    el.classList.toggle('hot', d <= threshold);
+  });
+}
+
+/* ----------------------------------------------------------------
+   8. LISTA / MARCADORES
+   ---------------------------------------------------------------- */
 function render(){
   $('listCount').textContent = targets.length;
   if(!targets.length){
@@ -865,6 +951,7 @@ function render(){
       if(btn.dataset.act==='del'){
         targets = targets.filter(x => x.id!==id);
         if(t._marker) map.removeLayer(t._marker);
+        if(sonarBlips[id]){ sonarBlips[id].remove(); delete sonarBlips[id]; }
         saveTargets(); updateAll();
       }
       if(btn.dataset.act==='go') map.setView([t.lat,t.lon],17);
@@ -894,106 +981,38 @@ function mkIcon(t,hot){
   });
 }
 
-function updateAll(){ render(); renderMarkers(); renderSonar(); }
-
-/* ----------------------------------------------------------------
-   8. SONAR HUD (sempre ativo)
-   ---------------------------------------------------------------- */
-const sonarFrame = $('sonarFrame');
-const sonarRange = $('sonarRange');
-let sonarBlips = {};  // id -> element
-
-function sonarRangeMeters(){
-  // alcance exibido = 3x o raio de alerta, mínimo 500 m
-  return Math.max(threshold * 3, 500);
+function updateAll(){
+  render();
+  renderMarkers();
+  positionSonar();
+  renderSonarBlips();
 }
-
-function renderSonar(){
-  const range = sonarRangeMeters();
-  sonarRange.textContent = range >= 1000
-    ? (range/1000).toFixed(1).replace('.',',')+' km'
-    : range+' m';
-
-  // limpa blips órfãos
-  Object.keys(sonarBlips).forEach(id => {
-    if(!targets.some(t => String(t.id) === id)){
-      sonarBlips[id].remove(); delete sonarBlips[id];
-    }
-  });
-
-  targets.forEach(t => {
-    let el = sonarBlips[t.id];
-    if(!el){
-      el = document.createElement('div');
-      el.className = 'sblip';
-      sonarFrame.appendChild(el);
-      sonarBlips[t.id] = el;
-    }
-
-    const d = distTo(t);
-    if(!isFinite(d)){ el.style.opacity = 0; return; }
-    el.style.opacity = 1;
-
-    const brg = bearingTo(t);
-    const ratio = Math.min(d / range, 1) * 46; // % do raio do sonar
-    const rad = (brg - 90) * Math.PI/180;      // 0° = norte = topo
-    const x = 50 + ratio * Math.cos(rad);
-    const y = 50 + ratio * Math.sin(rad);
-    el.style.left = x + '%';
-    el.style.top  = y + '%';
-
-    const hot = d <= threshold;
-    el.classList.toggle('hot', hot);
-  });
-}
-
-$('sonarBtn').onclick = function(){
-  const hud = $('sonarHud');
-  const min = hud.classList.toggle('min');
-  this.textContent = min ? '+' : '–';
-};
-// clique no círculo também expande se estiver minimizado
-$('sonarFrame').addEventListener('click', e => {
-  const hud = $('sonarHud');
-  if(hud.classList.contains('min')){
-    hud.classList.remove('min');
-    $('sonarBtn').textContent = '–';
-    e.stopPropagation();
-  }
-});
 
 /* ----------------------------------------------------------------
    9. LOOP
    ---------------------------------------------------------------- */
 setInterval(() => {
-  if(meLatLng){
-    // desenha o sonar sempre, mesmo sem alvos
-    renderSonar();
+  if(!meLatLng) return;
 
-    if(targets.length){
-      let anyHot = false;
-      targets.forEach(t => {
-        const d = distTo(t);
-        const hot = d <= threshold;
-        if(hot){
-          anyHot = true;
-          if(!t._armed && Date.now() > mutedUntil){
-            t._armed = true;
-            showAlert(t,false,d);
-          }
-        } else if(d > threshold*1.25){
-          t._armed = false;
-        }
-      });
-      setStatus(anyHot ? 'ALVO PRÓXIMO' : 'VARRENDO', anyHot ? 'danger' : '');
-      updateAll();
-    } else {
-      renderMarkers && renderMarkers();
-      render();
-      renderSonar();
-      setStatus('VARRENDO','');
+  if(followGPS) map.panTo(meLatLng, { animate:true, duration:.7 });
+
+  let anyHot = false;
+  targets.forEach(t => {
+    const d = distTo(t);
+    const hot = d <= threshold;
+    if(hot){
+      anyHot = true;
+      if(!t._armed && Date.now() > mutedUntil){
+        t._armed = true;
+        showAlert(t,false,d);
+      }
+    } else if(d > threshold*1.25){
+      t._armed = false;
     }
-  }
+  });
+
+  setStatus(anyHot ? 'ALVO PRÓXIMO' : 'VARRENDO', anyHot ? 'danger' : '');
+  updateAll();
 }, 1200);
 
 function setStatus(txt, cls){
@@ -1106,6 +1125,11 @@ $('tgSound').onclick = function(){
   this.classList.toggle('on',soundOn);
   this.textContent = soundOn ? '🎵 ALARME' : '🔕 ALARME OFF';
 };
+$('tgSonar').onclick = function(){
+  sonarOn = !sonarOn;
+  this.classList.toggle('on',sonarOn);
+  sonarOverlay.classList.toggle('off', !sonarOn);
+};
 $('tgTrack').onclick = function(){
   followGPS = !followGPS;
   this.classList.toggle('on',followGPS);
@@ -1157,6 +1181,7 @@ function loadTargets(){
   updateAll();
   startGPS();
   setTimeout(() => { if(!meLatLng) setStatus('SEM GPS','warn'); }, 4000);
+  window.addEventListener('resize', () => { positionSonar(); renderSonarBlips(); });
 })();
 </script>
 </body>
