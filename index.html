@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SENTINELA-7 · RASTREAMENTO AO VIVO</title>
+<title>SENTINELA-7 · COMPANHEIROS</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
 :root{
@@ -125,10 +125,11 @@ header{
 .sonar-disc .sblip.hot{background:var(--danger);box-shadow:0 0 14px var(--danger), 0 0 30px var(--danger);animation:sonarPulse .85s infinite}
 .sonar-disc .sblip.live{background:var(--ok);box-shadow:0 0 14px var(--ok), 0 0 30px var(--ok);border-color:#fff}
 .sonar-disc .sblip.live.hot{background:var(--danger);box-shadow:0 0 16px var(--danger), 0 0 34px var(--danger)}
+.sonar-disc .sblip.offline{background:rgba(150,150,150,.5);box-shadow:none;opacity:.5}
 @keyframes sonarPulse{50%{transform:scale(1.9);opacity:.75}}
 .sonar-disc .sblip::after{content:attr(data-label);position:absolute;left:14px;top:-2px;
   font-size:8.5px;letter-spacing:.12em;color:#dffcff;white-space:nowrap;
-  text-shadow:0 0 6px #000,0 0 10px var(--neon);opacity:.85}
+  text-shadow:0 0 6px #000, 0 0 10px var(--neon);opacity:.85}
 .sonar-range{position:absolute;left:50%;bottom:-24px;transform:translateX(-50%);
   font-size:8px;letter-spacing:.26em;color:var(--neon);text-shadow:0 0 8px var(--neon);
   white-space:nowrap;background:rgba(2,6,11,.7);padding:2px 8px;border-radius:2px;
@@ -142,6 +143,7 @@ header{
 .mk.hot{background:var(--danger);box-shadow:0 0 14px var(--danger),0 0 32px var(--danger);animation:pulseMk .8s infinite}
 .mk.live{background:var(--ok);box-shadow:0 0 14px var(--ok),0 0 30px var(--ok)}
 .mk.live.hot{background:var(--danger);box-shadow:0 0 16px var(--danger),0 0 36px var(--danger);animation:pulseMk .8s infinite}
+.mk.offline{background:rgba(150,150,150,.7);box-shadow:0 0 8px rgba(150,150,150,.5);border-color:rgba(255,255,255,.4)}
 .mk span{position:absolute;left:20px;top:-3px;font-size:9px;letter-spacing:.14em;color:#dffcff;
   white-space:nowrap;text-shadow:0 0 8px #000,0 0 12px var(--neon)}
 @keyframes pulseMk{50%{transform:scale(1.6);opacity:.7}}
@@ -196,16 +198,40 @@ textarea{resize:vertical;min-height:80px;line-height:1.6}
 }
 .share-hint{font-size:8.5px;letter-spacing:.14em;color:rgba(0,240,255,.5);text-align:center;line-height:1.7}
 
-.share-peer{
-  border:1px solid rgba(0,255,157,.35);border-left:3px solid var(--ok);
-  background:rgba(0,255,157,.05);padding:10px 12px;border-radius:2px;
-  margin-bottom:8px;font-size:9.5px;letter-spacing:.06em;color:#c9ffe7;
+/* ============ COMPANHEIROS ============ */
+.companion-item{
+  border:1px solid rgba(0,240,255,.2);border-left:3px solid var(--ok);
+  background:rgba(0,255,157,.04);padding:10px 12px;border-radius:2px;margin-bottom:8px;
+  transition:.25s;
 }
-.share-peer .nm{font-size:11px;letter-spacing:.16em;color:#fff;margin-bottom:3px;display:flex;justify-content:space-between}
-.share-peer .st{font-size:9px;color:var(--gold);letter-spacing:.14em;margin-bottom:3px}
-.share-peer .meta{font-size:8.5px;color:rgba(0,240,255,.6);letter-spacing:.06em}
-.share-peer.aprox .st{color:var(--ok)}
-.share-peer.afast .st{color:var(--danger)}
+.companion-item.offline{
+  border-left-color:rgba(150,150,150,.5);
+  background:rgba(150,150,150,.04);
+  opacity:.75;
+}
+.companion-item.offline .st-dot{background:rgba(150,150,150,.7);box-shadow:none}
+.companion-item .row1{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px}
+.companion-item .nm{font-size:12px;letter-spacing:.14em;color:#fff;font-weight:600;display:flex;align-items:center;gap:8px}
+.companion-item .st-dot{
+  width:9px;height:9px;border-radius:50%;background:var(--ok);
+  box-shadow:0 0 10px var(--ok);animation:blink 1.4s infinite;flex:0 0 9px;
+}
+.companion-item .row1 .badge{
+  font-size:8.5px;letter-spacing:.12em;color:var(--gold);
+  border:1px solid rgba(255,179,0,.4);padding:2px 6px;border-radius:2px;
+  background:rgba(255,179,0,.06);
+}
+.companion-item .row2{font-size:9px;letter-spacing:.06em;color:rgba(0,240,255,.55);margin-bottom:3px;line-height:1.5}
+.companion-item .row3{font-size:9px;letter-spacing:.06em;color:rgba(0,240,255,.45);line-height:1.5}
+.companion-item .row3 b{color:var(--gold);font-weight:600}
+.companion-item .acts{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.companion-item .acts button{flex:1;min-width:70px}
+
+.empty-companions{
+  text-align:center;padding:18px 12px;font-size:9px;letter-spacing:.16em;
+  color:rgba(0,240,255,.35);border:1px dashed rgba(0,240,255,.2);border-radius:2px;
+  line-height:1.8;
+}
 
 .osint-status{
   border:1px dashed rgba(0,240,255,.3);background:rgba(0,240,255,.03);
@@ -243,28 +269,6 @@ textarea{resize:vertical;min-height:80px;line-height:1.6}
   font-family:inherit;font-size:10px;letter-spacing:.22em;cursor:pointer;border-radius:2px;transition:.2s}
 .btn-add:hover{background:rgba(0,255,157,.25);box-shadow:0 0 20px rgba(0,255,157,.4)}
 .btn-add:disabled{opacity:.35;cursor:not-allowed;box-shadow:none;background:transparent}
-
-.import-methods{display:grid;gap:10px;margin-bottom:12px}
-.imp-block{border:1px solid rgba(0,240,255,.2);border-left:2px solid var(--neon);
-  background:rgba(0,240,255,.03);padding:11px 12px;border-radius:2px}
-.imp-block h3{font-size:9.5px;letter-spacing:.22em;color:var(--neon);
-  text-shadow:0 0 8px rgba(0,240,255,.5);margin-bottom:8px;font-weight:600}
-.imp-block p{font-size:9px;letter-spacing:.06em;color:rgba(0,240,255,.5);
-  line-height:1.6;margin-bottom:9px}
-.imp-block.unavailable{border-left-color:rgba(0,240,255,.2);opacity:.55}
-.btn-import{width:100%;padding:10px;border:1px solid var(--gold);background:rgba(255,179,0,.08);
-  color:var(--gold);font-family:inherit;font-size:10px;letter-spacing:.2em;cursor:pointer;
-  border-radius:2px;transition:.2s;text-align:center;display:block}
-.btn-import:hover:not(:disabled){background:rgba(255,179,0,.2);box-shadow:0 0 18px rgba(255,179,0,.4)}
-.btn-import:disabled{cursor:not-allowed;opacity:.4}
-.btn-import input[type=file]{display:none}
-.import-log{margin-top:10px;border:1px dashed rgba(0,240,255,.3);padding:9px 11px;border-radius:2px;
-  font-size:9px;letter-spacing:.06em;color:rgba(0,240,255,.6);line-height:1.7;
-  max-height:110px;overflow-y:auto;background:rgba(0,240,255,.02)}
-.import-log.ok{color:var(--ok);border-color:rgba(0,255,157,.35)}
-.import-log b{color:var(--gold)}
-.import-log .ln{display:block;color:rgba(0,240,255,.45)}
-.import-log .ln.err{color:var(--danger)}
 
 .hint{font-size:8.5px;letter-spacing:.1em;color:rgba(0,240,255,.4);margin-top:8px;line-height:1.7}
 
@@ -329,7 +333,6 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
   font-family:ui-monospace,monospace;pointer-events:none;
 }
 
-/* ============ MODO COMPANHEIRO ============ */
 #companionView{
   position:fixed;inset:0;z-index:9990;display:none;
   background:radial-gradient(circle at 50% 30%, rgba(0,240,255,.15), rgba(2,6,11,.98) 60%);
@@ -351,17 +354,23 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
   display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);
   box-shadow:0 0 10px var(--ok);margin-right:6px;animation:blink 1.4s infinite;
 }
+.companion-card input{
+  width:100%;background:rgba(0,255,157,.08);border:1px solid rgba(0,255,157,.4);
+  color:#fff;padding:11px 12px;font-family:inherit;font-size:12px;letter-spacing:.1em;
+  border-radius:2px;outline:none;text-align:center;margin-top:14px;
+}
+.companion-card input::placeholder{color:rgba(0,255,157,.4);letter-spacing:.14em}
 </style>
 </head>
 <body>
 
-<!-- ============ MODO COMPANHEIRO ============ -->
 <div id="companionView">
   <div class="companion-card">
     <div class="ico">📡</div>
     <h2>MODO COMPANHEIRO</h2>
     <div class="code" id="cCode">— — — — — —</div>
-    <div class="st" id="cStatus"><span class="dot"></span>Aguardando conexão…</div>
+    <input type="text" id="cName" placeholder="Digite seu nome (ex: Tio João)" maxlength="24">
+    <div class="st" id="cStatus" style="margin-top:16px"><span class="dot"></span>Aguardando conexão…</div>
     <div class="sub">
       Você está compartilhando sua localização.<br>
       Para parar, feche esta aba ou revogue o GPS.<br>
@@ -371,7 +380,6 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
   </div>
 </div>
 
-<!-- ============ MODO PRINCIPAL ============ -->
 <div class="wrap" id="mainView">
   <header>
     <div class="logo">
@@ -384,13 +392,13 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
     </div>
     <div class="brand">
       <h1>SENTINELA<span>-7</span></h1>
-      <p>PROTOCOLO JARDAS · AO VIVO · v0.7</p>
+      <p>PROTOCOLO JARDAS · COMPANHEIROS · v0.8</p>
     </div>
     <div class="status" id="statusTxt">INICIALIZANDO</div>
   </header>
 
   <div class="notice blue">
-    ℹ <b>RASTREAMENTO AO VIVO:</b> gere um link, envie para seu tio. Ele abre, autoriza o GPS e aparece no seu radar em tempo real. Voz anuncia metros, ETA e se está aproximando/afastando.
+    ℹ <b>COMPANHEIROS:</b> toda pessoa que abrir o link de autorização fica <b>salva permanentemente</b>. Você pode renomear, ver última posição, e ela reaparece no radar automaticamente quando reconectar.
   </div>
 
   <div class="grid">
@@ -431,14 +439,14 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 
     <div>
       <div class="card">
-        <h2>◈ RASTREAMENTO AO VIVO <em id="shareStatus">OFF</em></h2>
+        <h2>◈ GERAR LINK DE AUTORIZAÇÃO <em id="shareStatus">OFF</em></h2>
 
         <div id="shareStart">
           <p style="font-size:9.5px;letter-spacing:.06em;color:rgba(0,240,255,.6);line-height:1.7;margin-bottom:10px">
-            Gere um código, envie o link para a pessoa. Ela abre no celular, autoriza o GPS e aparece no seu radar em tempo real.
+            Gere o link, envie para quem vai compartilhar. Ele abre, digita o nome, autoriza o GPS — e fica <b>salvo aqui automaticamente</b>.
           </p>
           <button class="btn-import" id="btnCreateShare" style="border-color:var(--ok);color:var(--ok);background:rgba(0,255,157,.1)">
-            🔗 CRIAR LINK DE COMPARTILHAMENTO
+            🔗 CRIAR LINK DE AUTORIZAÇÃO
           </button>
         </div>
 
@@ -448,14 +456,20 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
           <div class="share-link" id="shareLink" title="Clique para copiar"></div>
           <div class="toggles" style="margin-top:10px">
             <button class="tg" id="btnCopyLink">📋 COPIAR LINK</button>
-            <button class="tg gold" id="btnShareWA">💬 ENVIAR WHATSAPP</button>
+            <button class="tg gold" id="btnShareWA">💬 WHATSAPP</button>
           </div>
           <div class="toggles" style="margin-top:8px">
-            <button class="tg" id="btnStopShare" style="border-color:var(--danger);color:var(--danger)">⏹ ENCERRAR</button>
+            <button class="tg" id="btnStopShare" style="border-color:var(--danger);color:var(--danger)">⏹ ENCERRAR SESSÃO</button>
           </div>
         </div>
+      </div>
 
-        <div id="shareList" style="margin-top:12px"></div>
+      <div class="card">
+        <h2>◈ COMPANHEIROS <em id="compCount">0</em></h2>
+        <div id="compList"></div>
+        <div class="hint" style="margin-top:10px">
+          🟢 online = transmitindo agora · ⚪ offline = última posição conhecida
+        </div>
       </div>
 
       <div class="card">
@@ -476,6 +490,7 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
         </div>
         <div class="toggles" style="margin-top:8px">
           <button class="tg on" id="tgAutoVoice">🎙 VOZ AUTOMÁTICA (20s)</button>
+          <button class="tg on" id="tgLiveVoice">📢 VOZ AO VIVO</button>
         </div>
       </div>
 
@@ -509,15 +524,6 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
         <div id="addrSuggest" style="display:none;margin-bottom:10px;border:1px solid var(--line);border-radius:2px;overflow:hidden"></div>
         <button class="btn-add" id="btnAdd" disabled>+ ADICIONAR AO MONITORAMENTO</button>
       </div>
-
-      <div class="card">
-        <h2>◈ ALVOS MONITORADOS <em id="listCount">0</em></h2>
-        <div style="display:flex;gap:6px;margin-bottom:10px">
-          <button class="mini" id="btnClear" style="flex:1;padding:7px">🗑 LIMPAR TUDO</button>
-          <button class="mini" id="btnExport" style="flex:1;padding:7px">⬇ EXPORTAR JSON</button>
-        </div>
-        <div id="list"></div>
-      </div>
     </div>
   </div>
 
@@ -549,16 +555,18 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
 /* =================================================================
-   SENTINELA-7 v0.7 — RASTREAMENTO AO VIVO VIA PEERJS
+   SENTINELA-7 v0.8 — COMPANHEIROS PERSISTENTES
    ================================================================= */
 
-const STORAGE_KEY = 'sentinela7.targets.v7';
-const GEO_TTL     = 10 * 60 * 1000;
+const STORAGE_KEY   = 'sentinela7.targets.v8';
+const COMP_KEY      = 'sentinela7.companions.v8';
+const GEO_TTL       = 10 * 60 * 1000;
 
 let map, meMarker, thCircle, meLatLng = null;
 let targets = [];
+let companions = {};   // { peerId: {code, name, lastLat, lastLng, lastTs, lastAcc, positions[], offline} }
 let threshold = 150;
-let voiceOn = true, soundOn = true, sonarOn = true, beepOn = true, autoVoiceOn = true;
+let voiceOn = true, soundOn = true, sonarOn = true, beepOn = true, autoVoiceOn = true, liveVoiceOn = true;
 let mutedUntil = 0, audioCtx = null;
 let picking = false, pickMarker = null, formLatLng = null;
 let myGeoCache = { ts:0, latlng:null };
@@ -572,12 +580,13 @@ const sonarDisc = $('sonarDisc');
 const sonarRangeEl = $('sonarRange');
 
 /* ================================================================
-   MODO COMPANHEIRO — detecta #share=CODE na URL
+   MODO COMPANHEIRO
    ================================================================ */
 (function checkCompanion(){
   const hash = window.location.hash || '';
   const m = hash.match(/share=([A-Z0-9]{6})/i);
   if(!m) return;
+  window.__companion__ = true;
 
   const code = m[1].toUpperCase();
   $('mainView').style.display = 'none';
@@ -585,13 +594,29 @@ const sonarRangeEl = $('sonarRange');
   $('cCode').textContent = code.split('').join(' ');
   $('cStatus').innerHTML = '<span class="dot" style="background:#ffb300;box-shadow:0 0 10px #ffb300"></span>Conectando…';
 
+  // Tenta recuperar nome salvo anteriormente
+  const savedName = localStorage.getItem('sentinela7.myname') || '';
+  if(savedName) $('cName').value = savedName;
+
   const peer = new Peer({ debug:0 });
   let conn = null;
+  let nomeAtual = savedName || '';
+
+  $('cName').addEventListener('input', e => {
+    nomeAtual = e.target.value.trim().slice(0,24);
+    localStorage.setItem('sentinela7.myname', nomeAtual);
+    if(conn && conn.open){
+      conn.send({ type:'hello', name: nomeAtual });
+    }
+  });
 
   peer.on('open', () => {
     conn = peer.connect('sentinela-' + code, { reliable:true });
     conn.on('open', () => {
-      $('cStatus').innerHTML = '<span class="dot"></span>Enviando sua localização';
+      $('cStatus').innerHTML = '<span class="dot"></span>Conectado · aguardando GPS…';
+      // envia o nome imediatamente se já tiver
+      if(nomeAtual) conn.send({ type:'hello', name: nomeAtual });
+
       if(!('geolocation' in navigator)){
         $('cStatus').innerHTML = '<span class="dot" style="background:#ff2d55"></span>GPS não suportado';
         return;
@@ -605,7 +630,8 @@ const sonarRangeEl = $('sonarRange');
             acc: pos.coords.accuracy,
             spd: pos.coords.speed,
             hdg: pos.coords.heading,
-            ts: Date.now()
+            ts:  Date.now(),
+            name: nomeAtual
           });
           $('cStatus').innerHTML = `<span class="dot"></span>Transmitindo · ±${Math.round(pos.coords.accuracy)} m`;
         },
@@ -618,23 +644,21 @@ const sonarRangeEl = $('sonarRange');
     conn.on('close', () => {
       $('cStatus').innerHTML = '<span class="dot" style="background:#ffb300"></span>Conexão encerrada';
     });
+    conn.on('error', err => {
+      $('cStatus').innerHTML = '<span class="dot" style="background:#ff2d55"></span>Erro: ' + (err.type || 'conexão');
+    });
   });
   peer.on('error', err => {
     $('cStatus').innerHTML = '<span class="dot" style="background:#ff2d55"></span>Erro: ' + (err.type || 'conexão');
   });
 })();
 
-// Se é modo companheiro, NÃO carrega o resto
-if(window.location.hash.match(/share=/i)) {
-  // bloqueia o boot principal abaixo
-  window.__companion__ = true;
-}
-
 /* ================================================================
    MODO PRINCIPAL
    ================================================================ */
 if(!window.__companion__){
 
+/* ---- Bridge com extensão Chrome ---- */
 const SENTINELA_BRIDGE = {
   ready: false, pending: new Map(),
   init(){
@@ -681,12 +705,10 @@ async function enrichNumber(numero){
   };
   const blocos = { facebook:$('spFB'), instagram:$('spIG'), tiktok:$('spTT') };
   const redes = ['facebook','instagram','tiktok'];
-
   redes.forEach(r => {
     blocos[r].className = 'sp-item loading';
     campos[r].innerHTML = '<span style="display:inline-block;width:11px;height:11px;border:2px solid rgba(255,179,0,.2);border-top-color:#ffb300;border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:6px;"></span>consultando…';
   });
-
   const resultados = {};
   for(const rede of redes){
     let r;
@@ -711,7 +733,6 @@ async function enrichNumber(numero){
       campos[rede].dataset.value = valor;
     }
   }
-
   const simWA = simulateOsint(numero)?.whatsapp || '';
   const bWA = $('spWA');
   if(simWA){
@@ -725,12 +746,66 @@ async function enrichNumber(numero){
   return resultados;
 }
 
-/* ----------------------------------------------------------------
-   RASTREAMENTO AO VIVO
-   ---------------------------------------------------------------- */
+/* ================================================================
+   COMPANHEIROS — persistência
+   ================================================================ */
+function loadCompanions(){
+  try{
+    const s = localStorage.getItem(COMP_KEY);
+    if(s){
+      companions = JSON.parse(s);
+      // todos começam offline até conectar
+      Object.keys(companions).forEach(k => { companions[k].online = false; });
+    }
+  }catch(e){ companions = {}; }
+}
+function saveCompanions(){
+  try{
+    const clean = {};
+    Object.keys(companions).forEach(k => {
+      const c = companions[k];
+      clean[k] = {
+        code: c.code,
+        name: c.name,
+        lastLat: c.lastLat,
+        lastLng: c.lastLng,
+        lastTs:  c.lastTs,
+        lastAcc: c.lastAcc,
+        positions: (c.positions || []).slice(-30)
+      };
+    });
+    localStorage.setItem(COMP_KEY, JSON.stringify(clean));
+  }catch(e){}
+}
+
+function getOrCreateCompanion(peerId, nameFromCompanion){
+  let c = companions[peerId];
+  if(!c){
+    c = {
+      code: peerId,
+      name: nameFromCompanion || ('AO VIVO-' + peerId.slice(-4).toUpperCase()),
+      lastLat: null, lastLng: null, lastTs: 0, lastAcc: null,
+      positions: [],
+      online: false,
+      marker: null,
+      blip: null,
+      _alerted: false,
+      _new: true
+    };
+    companions[peerId] = c;
+    saveCompanions();
+  }
+  if(nameFromCompanion && nameFromCompanion.trim()){
+    c.name = nameFromCompanion.trim().slice(0,24);
+  }
+  return c;
+}
+
+/* ================================================================
+   HOST PEER
+   ================================================================ */
 let hostPeer = null;
 let myShareCode = null;
-const activeShares = new Map(); // peerId -> {code, latlng, positions:[], marker, blip, lastSpeakTs, lastStatus, lastBeepTs, numero, name}
 
 function genCode(){
   const L = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -740,8 +815,7 @@ function genCode(){
 }
 
 function startHosting(){
-  if(hostPeer){ alert('Já está ativo. Encerre antes de criar outro.'); return; }
-
+  if(hostPeer){ alert('Já ativo. Encerre antes de criar outro.'); return; }
   myShareCode = genCode();
   hostPeer = new Peer('sentinela-' + myShareCode, { debug:0 });
 
@@ -754,219 +828,281 @@ function startHosting(){
     $('shareActive').style.display = 'block';
     $('shareStatus').textContent = 'ATIVO · ' + myShareCode;
     $('shareStatus').style.color = 'var(--ok)';
-    logShare(`Link pronto. Envie para quem vai compartilhar.`);
   });
 
   hostPeer.on('connection', conn => {
-    logShare('Conexão recebida: ' + conn.peer);
+    console.log('[SHARE] Conexão recebida:', conn.peer);
+
+    // Se já existia, marca online e talvez renomear
+    const existing = companions[conn.peer];
+    if(existing){
+      existing.online = true;
+      existing._new = false;
+    }
+
     conn.on('data', data => handleShareData(conn.peer, data));
     conn.on('close', () => {
-      logShare('Desconectado: ' + conn.peer);
-      removeShare(conn.peer);
+      console.log('[SHARE] Desconectado:', conn.peer);
+      const c = companions[conn.peer];
+      if(c){ c.online = false; saveCompanions(); renderCompanions(); renderSonarBlips(); renderMarkers(); }
     });
-    conn.on('error', err => logShare('Erro conn: ' + err));
   });
 
   hostPeer.on('error', err => {
-    logShare('Erro peer: ' + (err.type || err.message));
-    if(err.type === 'unavailable-id'){ alert('Código em uso, tente de novo.'); stopHosting(); }
+    console.error('[SHARE] Erro:', err);
+    if(err.type === 'unavailable-id'){ alert('Código em uso, tente novamente.'); stopHosting(); }
   });
 }
 
 function stopHosting(){
   if(hostPeer){ try{ hostPeer.destroy(); }catch(e){} hostPeer = null; }
-  activeShares.forEach(s => {
-    if(s.marker) map.removeLayer(s.marker);
-    if(s.blip) s.blip.remove();
+  Object.keys(companions).forEach(k => {
+    const c = companions[k];
+    c.online = false;
+    if(c.marker){ map.removeLayer(c.marker); c.marker = null; }
   });
-  activeShares.clear();
+  saveCompanions();
   myShareCode = null;
   $('shareStart').style.display = 'block';
   $('shareActive').style.display = 'none';
   $('shareStatus').textContent = 'OFF';
   $('shareStatus').style.color = 'rgba(0,240,255,.4)';
-  $('shareList').innerHTML = '';
   updateAll();
 }
 
 function handleShareData(peerId, data){
-  if(!data || data.type !== 'pos') return;
+  if(!data) return;
+
+  if(data.type === 'hello'){
+    const c = getOrCreateCompanion(peerId, data.name);
+    if(data.name) c.name = data.name.trim().slice(0,24);
+    saveCompanions();
+    renderCompanions();
+    renderSonarBlips();
+    renderMarkers();
+    return;
+  }
+
+  if(data.type !== 'pos') return;
+
   const now = Date.now();
-  let s = activeShares.get(peerId);
+  const isNewOrOffline = !companions[peerId] || !companions[peerId].online;
 
-  if(!s){
-    s = {
-      code: peerId,
-      name: 'AO VIVO-' + peerId.slice(-4).toUpperCase(),
-      latlng: null,
-      positions: [],
-      marker: null,
-      blip: null,
-      lastSpeakTs: 0,
-      lastStatus: null,
-      lastBeepTs: 0,
-      lastNum: '—'
-    };
-    activeShares.set(peerId, s);
-    logShare('▶ ' + s.name + ' começou a transmitir');
+  const c = getOrCreateCompanion(peerId, data.name);
+
+  // Primeira vez ou reconexão
+  if(isNewOrOffline){
+    c.online = true;
+    if(c._new){
+      speak(`Novo companheiro conectado: ${c.name}.`);
+      c._new = false;
+    } else {
+      speak(`${c.name} reconectou.`);
+    }
   }
 
-  s.latlng = L.latLng(data.lat, data.lng);
-  s.acc = data.acc;
-  s.lastUpdate = now;
-  s.positions.push({ lat:data.lat, lng:data.lng, ts:now });
-  if(s.positions.length > 120) s.positions.shift();
+  c.lastLat = data.lat;
+  c.lastLng = data.lng;
+  c.lastTs  = now;
+  c.lastAcc = data.acc;
 
-  if(!s.marker){
-    s.marker = L.marker(s.latlng, { icon: shareIcon(s, false), zIndexOffset: 500 }).addTo(map);
-    s.marker.on('click', () => { if(confirm('Ver detalhes de ' + s.name + '?')) showLiveDetails(s); });
-  } else {
-    s.marker.setLatLng(s.latlng);
-  }
+  c.positions = c.positions || [];
+  c.positions.push({ lat:data.lat, lng:data.lng, ts:now });
+  if(c.positions.length > 60) c.positions.shift();
 
-  renderShareList();
+  saveCompanions();
+  renderCompanions();
+  renderSonarBlips();
+  renderMarkers();
 }
 
-function shareIcon(s, hot){
-  return L.divIcon({
-    className:'',
-    html:`<div class="mk live ${hot?'hot':''}"><span>${escapeHtml(s.name)}</span></div>`,
-    iconSize:[16,16], iconAnchor:[8,8]
+function removeCompanion(peerId){
+  const c = companions[peerId];
+  if(!c) return;
+  if(c.marker) map.removeLayer(c.marker);
+  if(c.blip) c.blip.remove();
+  delete companions[peerId];
+  saveCompanions();
+  updateAll();
+}
+
+function renameCompanion(peerId){
+  const c = companions[peerId];
+  if(!c) return;
+  const novo = prompt('Novo nome para este companheiro:', c.name);
+  if(novo && novo.trim()){
+    c.name = novo.trim().slice(0,24);
+    saveCompanions();
+    updateAll();
+  }
+}
+
+/* ================================================================
+   RENDER COMPANHEIROS
+   ================================================================ */
+function renderCompanions(){
+  const keys = Object.keys(companions);
+  $('compCount').textContent = keys.length;
+
+  const cont = $('compList');
+
+  if(!keys.length){
+    cont.innerHTML = '<div class="empty-companions">NENHUM COMPANHEIRO<br><br>Gere o link acima e envie.<br>Quando a pessoa autorizar, ela aparece aqui.</div>';
+    return;
+  }
+
+  // ordena: online primeiro, mais recente primeiro
+  keys.sort((a,b) => {
+    const ca = companions[a], cb = companions[b];
+    if(ca.online !== cb.online) return ca.online ? -1 : 1;
+    return (cb.lastTs || 0) - (ca.lastTs || 0);
+  });
+
+  cont.innerHTML = keys.map(k => {
+    const c = companions[k];
+    const d = (c.lastLat && meLatLng) ? meLatLng.distanceTo(L.latLng(c.lastLat, c.lastLng)) : null;
+    const dTxt = d == null ? '—' : (d < 1000 ? Math.round(d)+' m' : (d/1000).toFixed(2)+' km');
+
+    let tempoTxt = '—';
+    if(c.lastTs){
+      const seg = Math.round((Date.now() - c.lastTs)/1000);
+      if(seg < 60) tempoTxt = seg + 's';
+      else if(seg < 3600) tempoTxt = Math.round(seg/60) + ' min';
+      else tempoTxt = Math.round(seg/3600) + ' h';
+    }
+
+    const statusCls = c.online ? '' : 'offline';
+    const badge = c.online ? '🟢 AO VIVO' : '⚪ OFFLINE';
+
+    let ultimaPosTxt = 'sem posição registrada';
+    if(c.lastLat != null){
+      ultimaPosTxt = `${c.lastLat.toFixed(5)}, ${c.lastLng.toFixed(5)}`;
+    }
+
+    return `
+      <div class="companion-item ${statusCls}" data-id="${k}">
+        <div class="row1">
+          <div class="nm">
+            <span class="st-dot"></span>
+            ${escapeHtml(c.name)}
+          </div>
+          <div class="badge">${badge}</div>
+        </div>
+        <div class="row2">📍 <b>${dTxt}</b> de você · atualizado há <b>${tempoTxt}</b>${c.lastAcc ? ' · ±'+Math.round(c.lastAcc)+'m' : ''}</div>
+        <div class="row3">Código: <b>${c.code}</b> · Última: ${ultimaPosTxt}</div>
+        <div class="acts">
+          <button class="mini" data-act="center">🎯 CENTRALIZAR</button>
+          <button class="mini" data-act="rename">✏ RENOMEAR</button>
+          <button class="mini" data-act="speak">🔊 FALAR</button>
+          <button class="mini del" data-act="del">✕ REMOVER</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  cont.querySelectorAll('.mini').forEach(btn => {
+    btn.onclick = e => {
+      e.stopPropagation();
+      const k = btn.closest('.companion-item').dataset.id;
+      const c = companions[k];
+      if(!c) return;
+      const act = btn.dataset.act;
+      if(act === 'center'){
+        if(c.lastLat != null) map.setView([c.lastLat, c.lastLng], 17);
+      }
+      if(act === 'rename') renameCompanion(k);
+      if(act === 'del'){
+        if(confirm(`Remover ${c.name} permanentemente?`)) removeCompanion(k);
+      }
+      if(act === 'speak'){
+        const d = (c.lastLat && meLatLng) ? meLatLng.distanceTo(L.latLng(c.lastLat, c.lastLng)) : null;
+        const dTxt = d == null ? 'distância desconhecida' : (d < 1000 ? Math.round(d)+' metros' : (d/1000).toFixed(2).replace('.',',')+' quilômetros');
+        speak(`${c.name}, ${dTxt}.`);
+      }
+    };
   });
 }
 
-function removeShare(peerId){
-  const s = activeShares.get(peerId);
-  if(!s) return;
-  if(s.marker) map.removeLayer(s.marker);
-  if(s.blip) s.blip.remove();
-  activeShares.delete(peerId);
-  renderShareList();
-}
-
-function computeApproach(s){
+/* ================================================================
+   PROXIMIDADE AO VIVO
+   ================================================================ */
+function computeApproach(c){
   const now = Date.now();
-  const recent = s.positions.filter(p => now - p.ts < 15000);
-  if(recent.length < 3) return { rate:0, eta:null, status:'aguardando', dist: s.latlng && meLatLng ? meLatLng.distanceTo(s.latlng) : null };
+  const positions = c.positions || [];
+  const recent = positions.filter(p => now - p.ts < 15000);
+
+  const dist = (c.lastLat != null && meLatLng)
+    ? meLatLng.distanceTo(L.latLng(c.lastLat, c.lastLng))
+    : null;
+
+  if(recent.length < 3 || dist == null) return { rate:0, eta:null, status:'aguardando', dist };
+
   const first = recent[0], last = recent[recent.length-1];
   const dt = (last.ts - first.ts)/1000;
-  if(dt < 2) return { rate:0, eta:null, status:'aguardando', dist: meLatLng ? meLatLng.distanceTo(s.latlng) : null };
+  if(dt < 2) return { rate:0, eta:null, status:'aguardando', dist };
+
   const dFirst = meLatLng.distanceTo(L.latLng(first.lat, first.lng));
   const dLast  = meLatLng.distanceTo(L.latLng(last.lat, last.lng));
   const rate = (dLast - dFirst) / dt;
+
   let status = 'parado';
   if(rate < -0.3) status = 'aproximando';
   else if(rate > 0.3) status = 'afastando';
+
   const eta = (status === 'aproximando' && Math.abs(rate) > 0.2) ? dLast / Math.abs(rate) : null;
   return { rate, eta, status, dist: dLast };
 }
 
-function renderShareList(){
-  const cont = $('shareList');
-  if(!activeShares.size){
-    cont.innerHTML = '';
-    return;
-  }
-  const html = [];
-  activeShares.forEach(s => {
-    const info = computeApproach(s);
-    const d = info.dist;
-    const dTxt = d == null ? '—' : (d < 1000 ? Math.round(d)+' m' : (d/1000).toFixed(2)+' km');
-    const etaTxt = info.eta != null ? Math.round(info.eta)+'s' : '—';
-    const statusTxt = { aproximando:'▲ APROXIMANDO', afastando:'▼ AFASTANDO', parado:'■ PARADO', aguardando:'…' }[info.status];
-    const cls = info.status === 'aproximando' ? 'aprox' : info.status === 'afastando' ? 'afast' : '';
-
-    html.push(`
-      <div class="share-peer ${cls}">
-        <div class="nm">${escapeHtml(s.name)}<span style="color:rgba(0,240,255,.5);font-size:9px">${s.acc?('±'+Math.round(s.acc)+'m'):''}</span></div>
-        <div class="st">${statusTxt} · ${dTxt}${info.eta != null ? ' · ETA '+etaTxt : ''}</div>
-        <div class="meta">Atualizado ${Math.round((Date.now()-s.lastUpdate)/1000)}s atrás</div>
-      </div>
-    `);
-  });
-  cont.innerHTML = html.join('');
-}
-
-function logShare(txt){
-  console.log('[SHARE]', txt);
-}
-
-/* ---- Link / botões ---- */
-$('btnCreateShare').onclick = startHosting;
-$('btnStopShare').onclick   = stopHosting;
-$('btnCopyLink').onclick = () => {
-  const url = $('shareLink').dataset.url;
-  if(!url) return;
-  navigator.clipboard.writeText(url).then(() => {
-    $('btnCopyLink').textContent = '✓ COPIADO';
-    setTimeout(() => $('btnCopyLink').textContent = '📋 COPIAR LINK', 2000);
-  });
-};
-$('btnShareWA').onclick = () => {
-  const url = $('shareLink').dataset.url;
-  if(!url) return;
-  const txt = encodeURIComponent('Abre este link e autoriza o GPS pra eu te ver no mapa: ' + url);
-  window.open('https://wa.me/?text=' + txt, '_blank');
-};
-
-/* ---- Loop de proximidade ---- */
 setInterval(() => {
-  if(!meLatLng || !activeShares.size) return;
+  if(!meLatLng) return;
   const now = Date.now();
 
-  activeShares.forEach(s => {
-    const info = computeApproach(s);
-    if(info.dist == null) return;
+  Object.keys(companions).forEach(k => {
+    const c = companions[k];
+    if(!c.online || c.lastLat == null) return;
 
-    // Atualiza o ícone do marcador conforme proximidade
-    const hot = info.dist <= threshold;
-    if(s.marker) s.marker.setIcon(shareIcon(s, hot));
+    const info = computeApproach(c);
 
-    // Bipe de proximidade
+    // Bipe
     if(beepOn && soundOn && info.dist < threshold * 3){
       let interval = 2500;
       if(info.status === 'aproximando') interval = 1500;
       if(info.dist < threshold) interval = Math.max(500, 300 + (info.dist/threshold)*400);
-      if(now - s.lastBeepTs > interval){
-        s.lastBeepTs = now;
+      if(now - (c._lastBeepTs || 0) > interval){
+        c._lastBeepTs = now;
         const freq = 800 + Math.max(0, (1 - info.dist/(threshold*3))) * 600;
         beepSingle(freq, 0.06);
       }
     }
 
-    // Voz automática
-    const statusChanged = info.status !== s.lastStatus;
-    const timeForSpeak = now - s.lastSpeakTs > 20000;
-    if(autoVoiceOn && voiceOn && (statusChanged || timeForSpeak)){
-      s.lastStatus = info.status;
-      s.lastSpeakTs = now;
-      const dTxt = info.dist < 1000 ? Math.round(info.dist)+' metros' : (info.dist/1000).toFixed(2).replace('.',',')+' quilômetros';
-      let frase = `Alvo ${s.name}. ${dTxt}`;
-      if(info.status === 'aproximando'){
-        if(info.eta != null){
-          const etaTxt = info.eta < 60 ? Math.round(info.eta)+' segundos' : Math.round(info.eta/60)+' minutos';
-          frase += `, aproximando. Chega em ${etaTxt}.`;
-        } else {
-          frase += `, aproximando.`;
-        }
-      } else if(info.status === 'afastando'){
-        frase += `, se afastando.`;
-      } else if(info.status === 'parado'){
-        frase += `, parado.`;
+    // Voz automática ao vivo
+    if(liveVoiceOn && autoVoiceOn && voiceOn && info.dist < threshold * 2.5){
+      const statusChanged = info.status !== c._lastStatus;
+      const timeForSpeak = now - (c._lastSpeakTs || 0) > 20000;
+      if(statusChanged || timeForSpeak){
+        c._lastStatus = info.status;
+        c._lastSpeakTs = now;
+        const dTxt = info.dist < 1000 ? Math.round(info.dist)+' metros' : (info.dist/1000).toFixed(2).replace('.',',')+' quilômetros';
+        let frase = `${c.name}. ${dTxt}`;
+        if(info.status === 'aproximando'){
+          if(info.eta != null){
+            const etaTxt = info.eta < 60 ? Math.round(info.eta)+' segundos' : Math.round(info.eta/60)+' minutos';
+            frase += `, aproximando. Chega em ${etaTxt}.`;
+          } else frase += `, aproximando.`;
+        } else if(info.status === 'afastando') frase += `, se afastando.`;
+        else if(info.status === 'parado') frase += `, parado.`;
+        speak(frase);
       }
-      speak(frase);
     }
 
-    // Alerta em overlay quando cruza o raio
-    if(info.dist <= threshold && !s._alerted && now > mutedUntil){
-      s._alerted = true;
-      showAlert({ codename:s.name, numero:'AO VIVO · '+s.code, socials:{} }, false, info.dist);
+    // Overlay quando cruza
+    if(info.dist <= threshold && !c._alerted && now > mutedUntil){
+      c._alerted = true;
+      showAlert({ codename:c.name, numero:'AO VIVO · '+c.code, socials:{} }, false, info.dist);
     } else if(info.dist > threshold * 1.25){
-      s._alerted = false;
+      c._alerted = false;
     }
   });
-
-  renderShareList();
 }, 1200);
 
 function beepSingle(freq, dur){
@@ -984,16 +1120,25 @@ function beepSingle(freq, dur){
   }catch(e){}
 }
 
-function showLiveDetails(s){
-  const info = computeApproach(s);
-  $('aName').textContent = s.name;
-  $('aPhone').textContent = 'AO VIVO · ' + s.code;
-  $('aDist').textContent = info.dist != null ? Math.round(info.dist) : '—';
-  $('aSocials').innerHTML = `<span class="soc">STATUS<b>${{aproximando:'APROXIMANDO',afastando:'AFASTANDO',parado:'PARADO',aguardando:'…'}[info.status]}</b></span>` +
-    (info.eta != null ? `<span class="soc">ETA<b>${Math.round(info.eta)}s</b></span>` : '');
-  $('aAddr').textContent = 'Posição em tempo real (GPS do dispositivo).';
-  overlay.classList.add('show');
-}
+/* ---- Botões do card de link ---- */
+$('btnCreateShare').onclick = startHosting;
+$('btnStopShare').onclick   = () => {
+  if(confirm('Encerrar sessão? Companheiros continuam salvos, só param de receber novas posições agora.')) stopHosting();
+};
+$('btnCopyLink').onclick = () => {
+  const url = $('shareLink').dataset.url;
+  if(!url) return;
+  navigator.clipboard.writeText(url).then(() => {
+    $('btnCopyLink').textContent = '✓ COPIADO';
+    setTimeout(() => $('btnCopyLink').textContent = '📋 COPIAR LINK', 2000);
+  });
+};
+$('btnShareWA').onclick = () => {
+  const url = $('shareLink').dataset.url;
+  if(!url) return;
+  const txt = encodeURIComponent('Abre este link, digita seu nome e autoriza o GPS pra eu te ver no mapa: ' + url);
+  window.open('https://wa.me/?text=' + txt, '_blank');
+};
 
 /* ================================================================
    MAPA
@@ -1071,7 +1216,7 @@ function startGPS(){
         });
       }
       if(first) map.setView(meLatLng,17);
-      positionSonar(); renderSonarBlips(); updateAll();
+      positionSonar(); renderSonarBlips(); renderMarkers(); renderCompanions(); render();
     },
     err => {
       setStatus('GPS NEGADO','danger');
@@ -1084,7 +1229,6 @@ function startGPS(){
         thCircle.setLatLng(meLatLng).setRadius(threshold);
         positionSonar(); renderSonarBlips();
       }
-      updateAll();
     },
     { enableHighAccuracy:true, maximumAge:5000, timeout:15000 }
   );
@@ -1182,24 +1326,19 @@ $('btnOsint').onclick = async () => {
     el.querySelector('span').textContent = '—';
     el.querySelector('span').dataset.value = '';
   });
-
   osintStatus.className = 'osint-status load';
   osintStatus.innerHTML = '<span class="spin"></span> Iniciando busca…';
-
   const data = simulateOsint(num);
   lastOsintData = data;
   if(!$('fName').value.trim()) $('fName').value = data.codename;
   validateForm();
-
   osintStatus.innerHTML = SENTINELA_BRIDGE.ready
     ? '<span class="spin"></span> Consultando Facebook, Instagram e TikTok…'
     : '<span class="spin"></span> Bridge ausente — usando simulação…';
-
   const res = await enrichNumber(num);
   if(res.facebook?.handle) lastOsintData.facebook  = res.facebook.handle;
   if(res.instagram?.handle) lastOsintData.instagram = res.instagram.handle;
   if(res.tiktok?.handle)   lastOsintData.tiktok    = res.tiktok.handle;
-
   beep(1);
   const achou = Object.values(res).filter(r => r && !r.error && (r.handle || r.name)).length;
   const modo = SENTINELA_BRIDGE.ready ? 'via sessão logada' : 'SIMULAÇÃO';
@@ -1307,7 +1446,6 @@ $('btnAdd').onclick = () => {
   targets.push(t);
   saveTargets(); updateAll();
   getTargetGeo(t).then(() => render());
-
   ['fName','fNum','fAddr'].forEach(id => $(id).value = '');
   formLatLng = null; lastOsintData = null;
   $('fCoords').textContent = '📍 Nenhuma localização definida';
@@ -1330,6 +1468,14 @@ $('btnAdd').onclick = () => {
   map.setView([t.lat,t.lon], 17);
   speak(`Alvo ${t.codename} adicionado.`);
 };
+
+function normalizePhone(raw){
+  if(!raw) return '';
+  let s = String(raw).trim().replace(/[^\d+]/g,'');
+  if(!s) return '';
+  if(!s.startsWith('+') && s.length >= 10) s = '+55' + s.replace(/^0+/,'');
+  return s;
+}
 
 /* ================================================================
    DISTÂNCIA / RUMO
@@ -1388,41 +1534,97 @@ function renderSonarBlips(){
     el.classList.toggle('hot', d <= threshold);
   });
 
-  // alvos ao vivo
-  activeShares.forEach(s => {
-    if(!s.latlng) return;
-    activeIds.add('s-' + s.code);
-    let el = sonarBlips['s-' + s.code];
+  // companheiros (online e offline)
+  Object.keys(companions).forEach(k => {
+    const c = companions[k];
+    if(c.lastLat == null) return;
+    activeIds.add('c-' + k);
+    let el = sonarBlips['c-' + k];
     if(!el){
       el = document.createElement('div');
       el.className = 'sblip live';
       sonarDisc.appendChild(el);
-      sonarBlips['s-' + s.code] = el;
+      sonarBlips['c-' + k] = el;
     }
-    const d = meLatLng.distanceTo(s.latlng);
-    el.style.opacity = 1;
-    el.dataset.label = s.name;
-    const brg = bearingTo({ lat:s.latlng.lat, lon:s.latlng.lng });
+    const d = meLatLng ? meLatLng.distanceTo(L.latLng(c.lastLat, c.lastLng)) : Infinity;
+    if(!isFinite(d)){ el.style.opacity = 0; return; }
+    el.style.opacity = c.online ? 1 : 0.45;
+    el.dataset.label = c.name;
+    const brg = bearingTo({ lat:c.lastLat, lon:c.lastLng });
     const ratio = Math.min(d / range, 1) * 46;
     const rad = (brg - 90) * Math.PI/180;
     el.style.left = (50 + ratio * Math.cos(rad)) + '%';
     el.style.top  = (50 + ratio * Math.sin(rad)) + '%';
     el.classList.toggle('hot', d <= threshold);
+    el.classList.toggle('live', c.online);
+    el.classList.toggle('offline', !c.online);
   });
 
-  // limpa órfãos
   Object.keys(sonarBlips).forEach(k => {
     if(!activeIds.has(k)){ sonarBlips[k].remove(); delete sonarBlips[k]; }
   });
 }
 
 /* ================================================================
-   LISTA
+   MARCADORES NO MAPA
+   ================================================================ */
+function renderMarkers(){
+  targets.forEach(t => {
+    const hot = distTo(t) <= threshold;
+    const latlng = [t.lat,t.lon];
+    if(!t._marker){
+      t._marker = L.marker(latlng,{ icon:mkIcon(t,hot) }).addTo(map);
+      t._marker.on('click', () => showAlert(t,true));
+    } else {
+      t._marker.setLatLng(latlng);
+      t._marker.setIcon(mkIcon(t,hot));
+    }
+  });
+
+  Object.keys(companions).forEach(k => {
+    const c = companions[k];
+    if(c.lastLat == null) return;
+    const latlng = [c.lastLat, c.lastLng];
+    const d = meLatLng ? meLatLng.distanceTo(L.latLng(c.lastLat, c.lastLng)) : Infinity;
+    const hot = d <= threshold;
+    const html = `<div class="mk ${c.online ? 'live' : 'offline'} ${hot ? 'hot' : ''}"><span>${escapeHtml(c.name)}</span></div>`;
+    const icon = L.divIcon({ className:'', html, iconSize:[16,16], iconAnchor:[8,8] });
+
+    if(!c.marker){
+      c.marker = L.marker(latlng, { icon, zIndexOffset: 500 }).addTo(map);
+      c.marker.on('click', () => {
+        const info = computeApproach(c);
+        showAlert({ codename:c.name, numero:'AO VIVO · '+c.code, socials:{}, lat:c.lastLat, lon:c.lastLng }, true, info.dist);
+      });
+    } else {
+      c.marker.setLatLng(latlng);
+      c.marker.setIcon(icon);
+    }
+  });
+}
+
+function mkIcon(t,hot){
+  return L.divIcon({
+    className:'',
+    html:`<div class="mk ${hot?'hot':''}"><span>${escapeHtml(t.codename)}</span></div>`,
+    iconSize:[16,16], iconAnchor:[8,8]
+  });
+}
+
+function updateAll(){
+  render();
+  renderCompanions();
+  renderMarkers();
+  positionSonar();
+  renderSonarBlips();
+}
+
+/* ================================================================
+   LISTA DE ALVOS ESTÁTICOS
    ================================================================ */
 function render(){
-  $('listCount').textContent = targets.length;
   if(!targets.length){
-    listEl.innerHTML = '<div class="empty">NENHUM ALVO<br>IMPORTE OU CADASTRE ACIMA</div>';
+    listEl.innerHTML = '<div class="empty">NENHUM ALVO ESTÁTICO<br>USE O PAINEL ACIMA</div>';
     return;
   }
   const sorted = [...targets].sort((a,b) => distTo(a) - distTo(b));
@@ -1432,7 +1634,6 @@ function render(){
     const dTxt = isFinite(d) ? (d < 1000 ? Math.round(d)+' m' : (d/1000).toFixed(2)+' km') : '—';
     const barW = isFinite(d) ? Math.min(d/(threshold*2.2)*100, 100) : 100;
     const geo = t._geo && t._geo.road ? `${t._geo.road}${t._geo.ref ? ' · '+t._geo.ref : ''}` : 'Endereço não consultado';
-    const socTxt = [t.socials.instagram, t.socials.facebook, t.socials.tiktok].filter(Boolean).slice(0,2).join(' · ') || '—';
     return `
       <div class="target ${hot?'hot':''}" data-id="${t.id}">
         <div class="top">
@@ -1441,7 +1642,6 @@ function render(){
         </div>
         <div class="num">${escapeHtml(t.numero)}</div>
         <div class="addr">📍 ${escapeHtml(geo)}</div>
-        <div class="addr">🔗 ${escapeHtml(socTxt)}</div>
         <div class="bar"><i style="width:${barW}%"></i></div>
         <div class="acts">
           <button class="mini" data-act="loc">🔊 FALAR</button>
@@ -1475,28 +1675,6 @@ function render(){
   });
 }
 
-function renderMarkers(){
-  targets.forEach(t => {
-    const hot = distTo(t) <= threshold;
-    const latlng = [t.lat,t.lon];
-    if(!t._marker){
-      t._marker = L.marker(latlng,{ icon:mkIcon(t,hot) }).addTo(map);
-      t._marker.on('click', () => showAlert(t,true));
-    } else {
-      t._marker.setLatLng(latlng);
-      t._marker.setIcon(mkIcon(t,hot));
-    }
-  });
-}
-function mkIcon(t,hot){
-  return L.divIcon({
-    className:'',
-    html:`<div class="mk ${hot?'hot':''}"><span>${escapeHtml(t.codename)}</span></div>`,
-    iconSize:[16,16], iconAnchor:[8,8]
-  });
-}
-function updateAll(){ render(); renderMarkers(); positionSonar(); renderSonarBlips(); }
-
 /* ================================================================
    LOOP
    ================================================================ */
@@ -1513,12 +1691,14 @@ setInterval(() => {
       if(!t._armed && Date.now() > mutedUntil){ t._armed = true; showAlert(t,false,d); }
     } else if(d > threshold*1.25){ t._armed = false; }
   });
-  activeShares.forEach(s => {
-    if(s.latlng && meLatLng.distanceTo(s.latlng) <= threshold) anyHot = true;
+  Object.values(companions).forEach(c => {
+    if(c.lastLat == null) return;
+    const d = meLatLng.distanceTo(L.latLng(c.lastLat, c.lastLng));
+    if(d <= threshold) anyHot = true;
   });
   setStatus(anyHot ? 'ALVO PRÓXIMO' : 'VARRENDO', anyHot ? 'danger' : '');
   updateAll();
-}, 1200);
+}, 1500);
 
 function setStatus(txt, cls){
   const el = $('statusTxt');
@@ -1587,13 +1767,13 @@ async function showAlert(t, manual, distOverride){
   overlay.classList.add('show');
   beep(3);
 
-  if(t.lat != null){
+  if(t.lat != null && t.lon != null){
     $('aAddr').textContent = 'Consultando…';
-    const g = await getTargetGeo(t);
+    const g = await reverseGeocode(t.lat, t.lon);
     const rua = g.road ? g.road : 'Local não identificado';
     const ref = g.ref ? `<br><b>Referência:</b> ${escapeHtml(g.ref)}` : '';
     $('aAddr').innerHTML = `📍 ${escapeHtml(rua)}${ref}`;
-    speak(`Atenção. Alvo ${t.codename} ${manual?'selecionado':'detectado'} a ${fmtDist(d)}. `
+    speak(`Atenção. ${t.codename} ${manual?'selecionado':'detectado'} a ${fmtDist(d)}. `
         + `Localizado ${g.road ? 'na '+g.road : 'em local não identificado'}`
         + `${g.ref ? ', próximo a '+g.ref : ''}.`);
   } else {
@@ -1653,25 +1833,10 @@ $('tgAutoVoice').onclick = function(){
   this.classList.toggle('on',autoVoiceOn);
   this.textContent = autoVoiceOn ? '🎙 VOZ AUTOMÁTICA (20s)' : '🎙 VOZ AUTO OFF';
 };
-$('btnClear').onclick = () => {
-  if(!targets.length) return;
-  if(!confirm('Remover TODOS os alvos estáticos?')) return;
-  targets.forEach(t => { if(t._marker) map.removeLayer(t._marker); });
-  targets = [];
-  saveTargets(); updateAll();
-};
-$('btnExport').onclick = () => {
-  if(!targets.length) return alert('Nada para exportar.');
-  const clean = targets.map(t => ({
-    codename:t.codename, numero:t.numero, lat:t.lat, lon:t.lon,
-    endereco: t._geo ? (t._geo.road || '') : '', socials:t.socials
-  }));
-  const blob = new Blob([JSON.stringify(clean,null,2)], {type:'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'sentinela7_alvos_' + new Date().toISOString().slice(0,10) + '.json';
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+$('tgLiveVoice').onclick = function(){
+  liveVoiceOn = !liveVoiceOn;
+  this.classList.toggle('on',liveVoiceOn);
+  this.textContent = liveVoiceOn ? '📢 VOZ AO VIVO' : '📢 VOZ LIVE OFF';
 };
 
 /* ================================================================
@@ -1699,13 +1864,14 @@ function loadTargets(){
 (function boot(){
   initMap();
   loadTargets();
+  loadCompanions();
   updateAll();
   startGPS();
   setTimeout(() => { if(!meLatLng) setStatus('SEM GPS','warn'); }, 4000);
   window.addEventListener('resize', () => { positionSonar(); renderSonarBlips(); });
 })();
 
-} // fim do modo principal
+} // fim modo principal
 </script>
 </body>
 </html>
