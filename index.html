@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SENTINELA-7 · AGENTES</title>
+<title>SENTINELA-7 · AGENTES + DRONE</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
 :root{
@@ -126,6 +126,7 @@ header{
 .sonar-disc .sblip.live{background:var(--ok);box-shadow:0 0 14px var(--ok), 0 0 30px var(--ok);border-color:#fff}
 .sonar-disc .sblip.live.hot{background:var(--danger);box-shadow:0 0 16px var(--danger), 0 0 34px var(--danger)}
 .sonar-disc .sblip.offline{background:rgba(150,150,150,.5);box-shadow:none;opacity:.5}
+.sonar-disc .sblip.drone{background:#ff00ff;box-shadow:0 0 14px #ff00ff, 0 0 30px #ff00ff;border-color:#fff}
 @keyframes sonarPulse{50%{transform:scale(1.9);opacity:.75}}
 .sonar-disc .sblip::after{content:attr(data-label);position:absolute;left:14px;top:-2px;
   font-size:8.5px;letter-spacing:.12em;color:#dffcff;white-space:nowrap;
@@ -144,6 +145,7 @@ header{
 .mk.live{background:var(--ok);box-shadow:0 0 14px var(--ok),0 0 30px var(--ok)}
 .mk.live.hot{background:var(--danger);box-shadow:0 0 16px var(--danger),0 0 36px var(--danger);animation:pulseMk .8s infinite}
 .mk.offline{background:rgba(150,150,150,.7);box-shadow:0 0 8px rgba(150,150,150,.5);border-color:rgba(255,255,255,.4)}
+.mk.drone{background:#ff00ff;box-shadow:0 0 16px #ff00ff,0 0 32px #ff00ff}
 .mk span{position:absolute;left:20px;top:-3px;font-size:9px;letter-spacing:.14em;color:#dffcff;
   white-space:nowrap;text-shadow:0 0 8px #000,0 0 12px var(--neon)}
 @keyframes pulseMk{50%{transform:scale(1.6);opacity:.7}}
@@ -365,6 +367,62 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
   border-radius:2px;outline:none;text-align:center;margin-top:14px;
 }
 .companion-card input::placeholder{color:rgba(0,255,157,.4);letter-spacing:.14em}
+
+/* ============ DRONE ============ */
+.drone-player{
+  position:relative;width:100%;aspect-ratio:16/9;
+  background:#000;border:1px solid var(--line);border-radius:2px;overflow:hidden;
+  margin-bottom:10px;
+}
+.drone-player video{width:100%;height:100%;object-fit:cover;display:block;background:#000}
+.drone-player .idle{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:10px;color:rgba(0,240,255,.35);
+  font-size:9.5px;letter-spacing:.22em;
+}
+.drone-player .idle .ico{font-size:44px;opacity:.35;filter:drop-shadow(0 0 10px rgba(0,240,255,.5))}
+.drone-hud{
+  position:absolute;inset:0;pointer-events:none;z-index:5;
+  display:none;
+}
+.drone-hud.on{display:block}
+.drone-hud .corner{
+  position:absolute;width:22px;height:22px;
+  border:2px solid var(--neon);filter:drop-shadow(0 0 6px var(--neon));
+}
+.drone-hud .corner.tl{top:8px;left:8px;border-right:0;border-bottom:0}
+.drone-hud .corner.tr{top:8px;right:8px;border-left:0;border-bottom:0}
+.drone-hud .corner.bl{bottom:8px;left:8px;border-right:0;border-top:0}
+.drone-hud .corner.br{bottom:8px;right:8px;border-left:0;border-top:0}
+.drone-hud .crosshair{
+  position:absolute;left:50%;top:50%;width:60px;height:60px;
+  transform:translate(-50%,-50%);pointer-events:none;
+}
+.drone-hud .crosshair::before,.drone-hud .crosshair::after{
+  content:"";position:absolute;background:var(--neon);box-shadow:0 0 6px var(--neon);
+}
+.drone-hud .crosshair::before{left:50%;top:0;bottom:0;width:1px;transform:translateX(-.5px)}
+.drone-hud .crosshair::after{top:50%;left:0;right:0;height:1px;transform:translateY(-.5px)}
+.drone-hud .rec{
+  position:absolute;top:12px;left:50%;transform:translateX(-50%);
+  font-size:9px;letter-spacing:.24em;color:var(--danger);
+  text-shadow:0 0 8px var(--danger);display:flex;align-items:center;gap:6px;
+}
+.drone-hud .rec .dot{
+  width:8px;height:8px;border-radius:50%;background:var(--danger);
+  box-shadow:0 0 8px var(--danger);animation:blink 1s infinite;
+}
+.drone-hud .tcinfo{
+  position:absolute;bottom:12px;left:12px;right:12px;
+  font-size:9px;letter-spacing:.14em;color:#dffcff;
+  text-shadow:0 0 8px #000;display:flex;justify-content:space-between;
+}
+.drone-hud .tcinfo b{color:var(--gold)}
+.drone-hud .scanh{
+  position:absolute;left:0;right:0;height:60px;
+  background:linear-gradient(180deg,transparent,rgba(0,240,255,.15),transparent);
+  animation:scanline 4s linear infinite;
+}
 </style>
 </head>
 <body>
@@ -397,13 +455,13 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
     </div>
     <div class="brand">
       <h1>SENTINELA<span>-7</span></h1>
-      <p>PROTOCOLO JARDAS · AGENTES · v1.0</p>
+      <p>PROTOCOLO JARDAS · AGENTES + DRONE · v1.1</p>
     </div>
     <div class="status" id="statusTxt">INICIALIZANDO</div>
   </header>
 
   <div class="notice blue">
-    ℹ <b>AGENTES:</b> toda pessoa que abrir o link de autorização fica <b>salva permanentemente</b>. Renomeie, veja última posição, e ela reaparece no radar quando reconectar.
+    ℹ <b>DRONE:</b> cole a URL do stream (HLS/MP4/MJPEG/YouTube Live). No <b>MODO TESTE</b>, usa a câmera do seu celular para você ver o painel funcionando agora.
   </div>
 
   <div class="grid">
@@ -447,6 +505,56 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
           <div class="sp" id="myAcc">—</div>
         </div>
       </div>
+
+      <div class="card">
+        <h2>◈ DRONE · VISÃO AÉREA AO VIVO <em id="droneStatus">OFF</em></h2>
+
+        <div class="drone-player" id="dronePlayerWrap">
+          <video id="droneVideo" autoplay muted playsinline></video>
+          <div class="idle" id="droneIdle">
+            <div class="ico">🛸</div>
+            <div>SEM SINAL · AGUARDANDO STREAM</div>
+          </div>
+          <div class="drone-hud" id="droneHud">
+            <div class="corner tl"></div>
+            <div class="corner tr"></div>
+            <div class="corner bl"></div>
+            <div class="corner br"></div>
+            <div class="crosshair"></div>
+            <div class="scanh"></div>
+            <div class="rec"><span class="dot"></span>REC · AO VIVO</div>
+            <div class="tcinfo">
+              <span>◈ <b id="droneTcSource">—</b></span>
+              <span><b id="droneTcTime">00:00:00</b></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row" style="margin-bottom:8px">
+          <input type="text" id="droneUrl" placeholder="URL do stream (HLS .m3u8 / MP4 / MJPEG / YouTube)">
+        </div>
+
+        <div class="toggles" style="margin-bottom:10px">
+          <button class="tg green" id="btnDronePlay">▶ CONECTAR STREAM</button>
+          <button class="tg gold" id="btnDroneTest">📷 MODO TESTE (câmera)</button>
+          <button class="tg" id="btnDroneStop" style="border-color:var(--danger);color:var(--danger)">⏹ PARAR</button>
+        </div>
+
+        <div class="form-row" style="margin-bottom:8px">
+          <input type="text" id="droneCoords" placeholder="Lat, Lon do drone (opcional, ex: -23.55, -46.63)">
+          <button class="tg gold" id="btnDroneSetPos" style="flex:0 0 110px">📍 POSICIONAR</button>
+        </div>
+
+        <div class="toggles">
+          <button class="tg" id="btnDroneCenter">🎯 VER DRONE</button>
+          <button class="tg on" id="tgDroneTrack">📍 SEGUIR DRONE</button>
+          <button class="tg on" id="tgDroneFacing">🎥 DIREÇÃO DO VOO</button>
+        </div>
+
+        <div class="hint">
+          <b>Como funciona:</b> a maioria dos drones (DJI etc.) transmite por rádio para o controle — não vai direto pra internet. Para o navegador ver, o drone precisa transmitir em RTMP para um serviço (YouTube Live, Restream, nginx-rtmp) que devolve uma URL <code>.m3u8</code>. Cole essa URL acima. Use <b>MODO TESTE</b> para ver o painel funcionando com a câmera do celular.
+        </div>
+      </div>
     </div>
 
     <div>
@@ -480,7 +588,7 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
         <h2>◈ AGENTES <em id="compCount">0</em></h2>
         <div id="compList"></div>
         <div class="hint" style="margin-top:10px">
-          🟢 online = transmitindo agora · ⚪ offline = última posição conhecida
+          🟢 online · ⚪ offline · 🟣 drone
         </div>
       </div>
 
@@ -540,7 +648,7 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
   </div>
 
   <footer>
-    SENTINELA-7 · MAPAS © ESRI · GEOCODIFICAÇÃO © PHOTON · BRIDGE © PEERJS<br>
+    SENTINELA-7 · MAPAS © ESRI · GEOCODIFICAÇÃO © PHOTON · BRIDGE © PEERJS · HLS © HLS.JS<br>
     FERRAMENTA EDUCACIONAL · USO RESPONSÁVEL
   </footer>
 </div>
@@ -565,14 +673,16 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js"></script>
 <script>
 /* =================================================================
-   SENTINELA-7 v1.0 — AGENTES + GPS 3 CAMADAS
+   SENTINELA-7 v1.1 — AGENTES + DRONE
    ================================================================= */
 
-const STORAGE_KEY   = 'sentinela7.targets.v10';
-const COMP_KEY      = 'sentinela7.agents.v10';
+const STORAGE_KEY   = 'sentinela7.targets.v11';
+const COMP_KEY      = 'sentinela7.agents.v11';
 const BASE_KEY      = 'sentinela7.homebase';
+const DRONE_KEY     = 'sentinela7.drone';
 const GEO_TTL       = 10 * 60 * 1000;
 
 let map, meMarker, thCircle, meLatLng = null;
@@ -586,6 +696,16 @@ let myGeoCache = { ts:0, latlng:null };
 let followGPS = true;
 let lastOsintData = null;
 let gpsWatchId = null;
+
+/* DRONE */
+let droneMarker = null;
+let droneBlip = null;
+let droneLatLng = null;
+let droneHls = null;
+let droneStream = null;
+let droneFollow = true;
+let droneFacing = true;
+let droneHeading = 0;
 
 const $ = id => document.getElementById(id);
 const overlay = $('overlay');
@@ -755,7 +875,7 @@ async function enrichNumber(numero){
 }
 
 /* ================================================================
-   AGENTES — persistência
+   AGENTES
    ================================================================ */
 function loadCompanions(){
   try{
@@ -772,19 +892,15 @@ function saveCompanions(){
     Object.keys(companions).forEach(k => {
       const c = companions[k];
       clean[k] = {
-        code: c.code,
-        name: c.name,
-        lastLat: c.lastLat,
-        lastLng: c.lastLng,
-        lastTs:  c.lastTs,
-        lastAcc: c.lastAcc,
+        code: c.code, name: c.name,
+        lastLat: c.lastLat, lastLng: c.lastLng,
+        lastTs:  c.lastTs, lastAcc: c.lastAcc,
         positions: (c.positions || []).slice(-30)
       };
     });
     localStorage.setItem(COMP_KEY, JSON.stringify(clean));
   }catch(e){}
 }
-
 function getOrCreateCompanion(peerId, nameFromCompanion){
   let c = companions[peerId];
   if(!c){
@@ -792,12 +908,8 @@ function getOrCreateCompanion(peerId, nameFromCompanion){
       code: peerId,
       name: nameFromCompanion || ('AGENTE-' + peerId.slice(-4).toUpperCase()),
       lastLat: null, lastLng: null, lastTs: 0, lastAcc: null,
-      positions: [],
-      online: false,
-      marker: null,
-      blip: null,
-      _alerted: false,
-      _new: true
+      positions: [], online: false, marker: null, blip: null,
+      _alerted: false, _new: true
     };
     companions[peerId] = c;
     saveCompanions();
@@ -808,9 +920,6 @@ function getOrCreateCompanion(peerId, nameFromCompanion){
   return c;
 }
 
-/* ================================================================
-   HOST PEER
-   ================================================================ */
 let hostPeer = null;
 let myShareCode = null;
 
@@ -822,7 +931,7 @@ function genCode(){
 }
 
 function startHosting(){
-  if(hostPeer){ alert('Já ativo. Encerre antes de criar outro.'); return; }
+  if(hostPeer){ alert('Já ativo.'); return; }
   myShareCode = genCode();
   hostPeer = new Peer('sentinela-' + myShareCode, { debug:0 });
 
@@ -838,22 +947,16 @@ function startHosting(){
   });
 
   hostPeer.on('connection', conn => {
-    console.log('[AGENTE] Conexão recebida:', conn.peer);
     const existing = companions[conn.peer];
-    if(existing){
-      existing.online = true;
-      existing._new = false;
-    }
+    if(existing){ existing.online = true; existing._new = false; }
     conn.on('data', data => handleShareData(conn.peer, data));
     conn.on('close', () => {
-      console.log('[AGENTE] Desconectado:', conn.peer);
       const c = companions[conn.peer];
       if(c){ c.online = false; saveCompanions(); renderCompanions(); renderSonarBlips(); renderMarkers(); }
     });
   });
 
   hostPeer.on('error', err => {
-    console.error('[AGENTE] Erro:', err);
     if(err.type === 'unavailable-id'){ alert('Código em uso, tente novamente.'); stopHosting(); }
   });
 }
@@ -876,47 +979,31 @@ function stopHosting(){
 
 function handleShareData(peerId, data){
   if(!data) return;
-
   if(data.type === 'hello'){
     const c = getOrCreateCompanion(peerId, data.name);
     if(data.name) c.name = data.name.trim().slice(0,24);
-    saveCompanions();
-    renderCompanions();
-    renderSonarBlips();
-    renderMarkers();
+    saveCompanions(); renderCompanions(); renderSonarBlips(); renderMarkers();
     return;
   }
-
   if(data.type !== 'pos') return;
 
   const now = Date.now();
   const isNewOrOffline = !companions[peerId] || !companions[peerId].online;
-
   const c = getOrCreateCompanion(peerId, data.name);
 
   if(isNewOrOffline){
     c.online = true;
-    if(c._new){
-      speak(`Novo agente conectado: ${c.name}.`);
-      c._new = false;
-    } else {
-      speak(`${c.name} reconectou.`);
-    }
+    if(c._new){ speak(`Novo agente conectado: ${c.name}.`); c._new = false; }
+    else { speak(`${c.name} reconectou.`); }
   }
 
-  c.lastLat = data.lat;
-  c.lastLng = data.lng;
-  c.lastTs  = now;
-  c.lastAcc = data.acc;
-
+  c.lastLat = data.lat; c.lastLng = data.lng;
+  c.lastTs = now; c.lastAcc = data.acc;
   c.positions = c.positions || [];
   c.positions.push({ lat:data.lat, lng:data.lng, ts:now });
   if(c.positions.length > 60) c.positions.shift();
 
-  saveCompanions();
-  renderCompanions();
-  renderSonarBlips();
-  renderMarkers();
+  saveCompanions(); renderCompanions(); renderSonarBlips(); renderMarkers();
 }
 
 function removeCompanion(peerId){
@@ -925,32 +1012,23 @@ function removeCompanion(peerId){
   if(c.marker) map.removeLayer(c.marker);
   if(c.blip) c.blip.remove();
   delete companions[peerId];
-  saveCompanions();
-  updateAll();
+  saveCompanions(); updateAll();
 }
 
 function renameCompanion(peerId){
   const c = companions[peerId];
   if(!c) return;
   const novo = prompt('Novo nome para este agente:', c.name);
-  if(novo && novo.trim()){
-    c.name = novo.trim().slice(0,24);
-    saveCompanions();
-    updateAll();
-  }
+  if(novo && novo.trim()){ c.name = novo.trim().slice(0,24); saveCompanions(); updateAll(); }
 }
 
-/* ================================================================
-   RENDER AGENTES
-   ================================================================ */
 function renderCompanions(){
   const keys = Object.keys(companions);
   $('compCount').textContent = keys.length;
 
   const cont = $('compList');
-
   if(!keys.length){
-    cont.innerHTML = '<div class="empty-companions">NENHUM AGENTE<br><br>Gere o link acima e envie.<br>Quando a pessoa autorizar, ela aparece aqui.</div>';
+    cont.innerHTML = '<div class="empty-companions">NENHUM AGENTE<br><br>Gere o link acima e envie.</div>';
     return;
   }
 
@@ -964,7 +1042,6 @@ function renderCompanions(){
     const c = companions[k];
     const d = (c.lastLat && meLatLng) ? meLatLng.distanceTo(L.latLng(c.lastLat, c.lastLng)) : null;
     const dTxt = d == null ? '—' : (d < 1000 ? Math.round(d)+' m' : (d/1000).toFixed(2)+' km');
-
     let tempoTxt = '—';
     if(c.lastTs){
       const seg = Math.round((Date.now() - c.lastTs)/1000);
@@ -972,25 +1049,17 @@ function renderCompanions(){
       else if(seg < 3600) tempoTxt = Math.round(seg/60) + ' min';
       else tempoTxt = Math.round(seg/3600) + ' h';
     }
-
     const statusCls = c.online ? '' : 'offline';
     const badge = c.online ? '🟢 AO VIVO' : '⚪ OFFLINE';
-
-    let ultimaPosTxt = 'sem posição registrada';
-    if(c.lastLat != null){
-      ultimaPosTxt = `${c.lastLat.toFixed(5)}, ${c.lastLng.toFixed(5)}`;
-    }
+    const ultimaPosTxt = c.lastLat != null ? `${c.lastLat.toFixed(5)}, ${c.lastLng.toFixed(5)}` : 'sem posição';
 
     return `
       <div class="companion-item ${statusCls}" data-id="${k}">
         <div class="row1">
-          <div class="nm">
-            <span class="st-dot"></span>
-            ${escapeHtml(c.name)}
-          </div>
+          <div class="nm"><span class="st-dot"></span>${escapeHtml(c.name)}</div>
           <div class="badge">${badge}</div>
         </div>
-        <div class="row2">📍 <b>${dTxt}</b> de você · atualizado há <b>${tempoTxt}</b>${c.lastAcc ? ' · ±'+Math.round(c.lastAcc)+'m' : ''}</div>
+        <div class="row2">📍 <b>${dTxt}</b> · atualizado há <b>${tempoTxt}</b>${c.lastAcc ? ' · ±'+Math.round(c.lastAcc)+'m' : ''}</div>
         <div class="row3">Código: <b>${c.code}</b> · Última: ${ultimaPosTxt}</div>
         <div class="acts">
           <button class="mini" data-act="center">🎯 CENTRALIZAR</button>
@@ -998,8 +1067,7 @@ function renderCompanions(){
           <button class="mini" data-act="speak">🔊 FALAR</button>
           <button class="mini del" data-act="del">✕ REMOVER</button>
         </div>
-      </div>
-    `;
+      </div>`;
   }).join('');
 
   cont.querySelectorAll('.mini').forEach(btn => {
@@ -1009,13 +1077,9 @@ function renderCompanions(){
       const c = companions[k];
       if(!c) return;
       const act = btn.dataset.act;
-      if(act === 'center'){
-        if(c.lastLat != null) map.setView([c.lastLat, c.lastLng], 17);
-      }
+      if(act === 'center' && c.lastLat != null) map.setView([c.lastLat, c.lastLng], 17);
       if(act === 'rename') renameCompanion(k);
-      if(act === 'del'){
-        if(confirm(`Remover agente ${c.name} permanentemente?`)) removeCompanion(k);
-      }
+      if(act === 'del' && confirm(`Remover agente ${c.name} permanentemente?`)) removeCompanion(k);
       if(act === 'speak'){
         const d = (c.lastLat && meLatLng) ? meLatLng.distanceTo(L.latLng(c.lastLat, c.lastLng)) : null;
         const dTxt = d == null ? 'distância desconhecida' : (d < 1000 ? Math.round(d)+' metros' : (d/1000).toFixed(2).replace('.',',')+' quilômetros');
@@ -1026,31 +1090,23 @@ function renderCompanions(){
 }
 
 /* ================================================================
-   PROXIMIDADE AO VIVO
+   PROXIMIDADE
    ================================================================ */
 function computeApproach(c){
   const now = Date.now();
   const positions = c.positions || [];
   const recent = positions.filter(p => now - p.ts < 15000);
-
-  const dist = (c.lastLat != null && meLatLng)
-    ? meLatLng.distanceTo(L.latLng(c.lastLat, c.lastLng))
-    : null;
-
+  const dist = (c.lastLat != null && meLatLng) ? meLatLng.distanceTo(L.latLng(c.lastLat, c.lastLng)) : null;
   if(recent.length < 3 || dist == null) return { rate:0, eta:null, status:'aguardando', dist };
-
   const first = recent[0], last = recent[recent.length-1];
   const dt = (last.ts - first.ts)/1000;
   if(dt < 2) return { rate:0, eta:null, status:'aguardando', dist };
-
   const dFirst = meLatLng.distanceTo(L.latLng(first.lat, first.lng));
   const dLast  = meLatLng.distanceTo(L.latLng(last.lat, last.lng));
   const rate = (dLast - dFirst) / dt;
-
   let status = 'parado';
   if(rate < -0.3) status = 'aproximando';
   else if(rate > 0.3) status = 'afastando';
-
   const eta = (status === 'aproximando' && Math.abs(rate) > 0.2) ? dLast / Math.abs(rate) : null;
   return { rate, eta, status, dist: dLast };
 }
@@ -1058,13 +1114,10 @@ function computeApproach(c){
 setInterval(() => {
   if(!meLatLng) return;
   const now = Date.now();
-
   Object.keys(companions).forEach(k => {
     const c = companions[k];
     if(!c.online || c.lastLat == null) return;
-
     const info = computeApproach(c);
-
     if(beepOn && soundOn && info.dist < threshold * 3){
       let interval = 2500;
       if(info.status === 'aproximando') interval = 1500;
@@ -1075,7 +1128,6 @@ setInterval(() => {
         beepSingle(freq, 0.06);
       }
     }
-
     if(liveVoiceOn && autoVoiceOn && voiceOn && info.dist < threshold * 2.5){
       const statusChanged = info.status !== c._lastStatus;
       const timeForSpeak = now - (c._lastSpeakTs || 0) > 20000;
@@ -1094,7 +1146,6 @@ setInterval(() => {
         speak(frase);
       }
     }
-
     if(info.dist <= threshold && !c._alerted && now > mutedUntil){
       c._alerted = true;
       showAlert({ codename:c.name, numero:'AO VIVO · '+c.code, socials:{} }, false, info.dist);
@@ -1119,10 +1170,10 @@ function beepSingle(freq, dur){
   }catch(e){}
 }
 
-/* ---- Botões do card de link ---- */
+/* Botões do link */
 $('btnCreateShare').onclick = startHosting;
 $('btnStopShare').onclick   = () => {
-  if(confirm('Encerrar sessão? Agentes continuam salvos, só param de receber novas posições agora.')) stopHosting();
+  if(confirm('Encerrar sessão?')) stopHosting();
 };
 $('btnCopyLink').onclick = () => {
   const url = $('shareLink').dataset.url;
@@ -1137,6 +1188,232 @@ $('btnShareWA').onclick = () => {
   if(!url) return;
   const txt = encodeURIComponent('Abre este link, digita seu nome e autoriza o GPS pra eu te ver no mapa: ' + url);
   window.open('https://wa.me/?text=' + txt, '_blank');
+};
+
+/* ================================================================
+   DRONE
+   ================================================================ */
+function setDroneStatus(txt, cls){
+  const el = $('droneStatus');
+  el.textContent = txt;
+  el.style.color = cls === 'on' ? 'var(--ok)' : cls === 'warn' ? 'var(--gold)' : cls === 'danger' ? 'var(--danger)' : 'rgba(0,240,255,.4)';
+}
+
+function setHud(on){
+  $('droneHud').classList.toggle('on', !!on);
+  $('droneIdle').style.display = on ? 'none' : 'flex';
+}
+
+function stopDrone(){
+  try{ if(droneHls){ droneHls.destroy(); droneHls = null; } }catch(e){}
+  try{
+    if(droneStream){
+      droneStream.getTracks().forEach(t => t.stop());
+      droneStream = null;
+    }
+  }catch(e){}
+  const v = $('droneVideo');
+  try{ v.pause(); v.srcObject = null; v.removeAttribute('src'); v.load(); }catch(e){}
+  setHud(false);
+  setDroneStatus('OFF', 'off');
+}
+
+async function playStream(url){
+  stopDrone();
+  const v = $('droneVideo');
+  setDroneStatus('CONECTANDO…', 'warn');
+  $('droneTcSource').textContent = 'STREAM';
+
+  // YouTube
+  const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/live\/)([A-Za-z0-9_-]+)/);
+  if(ytMatch){
+    const vid = ytMatch[1];
+    // Embed via iframe substitui o <video>
+    const wrap = $('dronePlayerWrap');
+    let frame = document.getElementById('droneYT');
+    if(!frame){
+      frame = document.createElement('iframe');
+      frame.id = 'droneYT';
+      frame.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:0;z-index:3;';
+      frame.allow = 'autoplay; encrypted-media';
+      wrap.appendChild(frame);
+    }
+    frame.src = `https://www.youtube.com/embed/${vid}?autoplay=1&mute=1&controls=1`;
+    $('droneVideo').style.display = 'none';
+    setHud(true);
+    setDroneStatus('YOUTUBE LIVE', 'on');
+    startDroneClock();
+    return;
+  }
+
+  $('droneVideo').style.display = 'block';
+  const oldYT = document.getElementById('droneYT');
+  if(oldYT) oldYT.remove();
+
+  // HLS
+  if(url.match(/\.m3u8(\?|$)/i) || url.includes('.m3u8')){
+    if(window.Hls && Hls.isSupported()){
+      droneHls = new Hls({ lowLatencyMode:true });
+      droneHls.loadSource(url);
+      droneHls.attachMedia(v);
+      droneHls.on(Hls.Events.MANIFEST_PARSED, () => {
+        v.play().catch(()=>{});
+        setHud(true);
+        setDroneStatus('HLS · AO VIVO', 'on');
+        startDroneClock();
+      });
+      droneHls.on(Hls.Events.ERROR, (e, data) => {
+        if(data.fatal){ setDroneStatus('ERRO HLS', 'danger'); }
+      });
+      return;
+    }
+    if(v.canPlayType('application/vnd.apple.mpegurl')){
+      v.src = url;
+      v.play().catch(()=>{});
+      setHud(true);
+      setDroneStatus('HLS NATIVO', 'on');
+      startDroneClock();
+      return;
+    }
+    setDroneStatus('HLS NÃO SUPORTADO', 'danger');
+    return;
+  }
+
+  // MP4 / WebM / MJPEG direto
+  v.src = url;
+  v.play().then(() => {
+    setHud(true);
+    setDroneStatus('STREAM ATIVO', 'on');
+    startDroneClock();
+  }).catch(err => {
+    setDroneStatus('ERRO STREAM', 'danger');
+    console.warn('[DRONE]', err);
+  });
+}
+
+async function startTestCamera(){
+  stopDrone();
+  setDroneStatus('ABRINDO CÂMERA…', 'warn');
+  $('droneTcSource').textContent = 'MODO TESTE · CÂMERA';
+  const oldYT = document.getElementById('droneYT');
+  if(oldYT) oldYT.remove();
+  try{
+    droneStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } },
+      audio: false
+    });
+    const v = $('droneVideo');
+    v.style.display = 'block';
+    v.srcObject = droneStream;
+    v.play().catch(()=>{});
+    setHud(true);
+    setDroneStatus('MODO TESTE · CÂMERA', 'on');
+    startDroneClock();
+  }catch(err){
+    setDroneStatus('CÂMERA NEGADA', 'danger');
+    alert('Não consegui acessar a câmera. Permita o acesso no cadeado 🔒 da barra de endereço.\n\nDetalhe: ' + err.message);
+  }
+}
+
+let droneClockTimer = null;
+function startDroneClock(){
+  if(droneClockTimer) clearInterval(droneClockTimer);
+  const t0 = Date.now();
+  const upd = () => {
+    const s = Math.floor((Date.now()-t0)/1000);
+    const hh = String(Math.floor(s/3600)).padStart(2,'0');
+    const mm = String(Math.floor((s%3600)/60)).padStart(2,'0');
+    const ss = String(s%60).padStart(2,'0');
+    $('droneTcTime').textContent = `${hh}:${mm}:${ss}`;
+  };
+  upd();
+  droneClockTimer = setInterval(upd, 1000);
+}
+
+/* Marcador do drone */
+function droneIcon(){
+  return L.divIcon({
+    className:'',
+    html:`<div class="mk drone"><span>🛸 DRONE</span></div>`,
+    iconSize:[16,16], iconAnchor:[8,8]
+  });
+}
+
+function setDronePosition(lat, lon, label){
+  droneLatLng = L.latLng(lat, lon);
+
+  if(!droneMarker){
+    droneMarker = L.marker(droneLatLng, { icon:droneIcon(), zIndexOffset:900 }).addTo(map);
+    droneMarker.on('click', () => {
+      const d = meLatLng ? meLatLng.distanceTo(droneLatLng) : null;
+      speak(`Drone ${d != null ? `a ${Math.round(d)} metros` : 'posicionado'}.`);
+    });
+  } else {
+    droneMarker.setLatLng(droneLatLng);
+  }
+
+  if(label) $('droneTcSource').textContent = label;
+
+  if(droneFollow && map) map.setView(droneLatLng, Math.max(map.getZoom(), 17));
+
+  saveDrone();
+  renderSonarBlips();
+  renderMarkers();
+}
+
+function saveDrone(){
+  try{
+    if(droneLatLng){
+      localStorage.setItem(DRONE_KEY, JSON.stringify({
+        lat: droneLatLng.lat, lon: droneLatLng.lng
+      }));
+    }
+  }catch(e){}
+}
+
+function loadDrone(){
+  try{
+    const s = localStorage.getItem(DRONE_KEY);
+    if(s){
+      const d = JSON.parse(s);
+      droneLatLng = L.latLng(d.lat, d.lon);
+    }
+  }catch(e){}
+}
+
+/* Botões drone */
+$('btnDronePlay').onclick = () => {
+  const url = $('droneUrl').value.trim();
+  if(!url){ alert('Cole a URL do stream (HLS, MP4, MJPEG ou YouTube Live).'); return; }
+  playStream(url);
+};
+$('btnDroneTest').onclick = startTestCamera;
+$('btnDroneStop').onclick = stopDrone;
+
+$('btnDroneSetPos').onclick = () => {
+  const raw = $('droneCoords').value.trim();
+  if(!raw){ alert('Cole coordenadas no formato: -23.5505, -46.6333'); return; }
+  const m = raw.match(/(-?\d+(?:\.\d+)?)[^\d\-]+(-?\d+(?:\.\d+)?)/);
+  if(!m){ alert('Formato inválido. Use: -23.5505, -46.6333'); return; }
+  const lat = parseFloat(m[1]), lon = parseFloat(m[2]);
+  if(isNaN(lat) || isNaN(lon)){ alert('Números inválidos.'); return; }
+  setDronePosition(lat, lon, 'POSIÇÃO MANUAL');
+  speak('Posição do drone atualizada.');
+};
+
+$('btnDroneCenter').onclick = () => {
+  if(droneLatLng) map.setView(droneLatLng, Math.max(map.getZoom(), 17));
+  else alert('Drone não posicionado ainda.');
+};
+
+$('tgDroneTrack').onclick = function(){
+  droneFollow = !droneFollow;
+  this.classList.toggle('on', droneFollow);
+};
+
+$('tgDroneFacing').onclick = function(){
+  droneFacing = !droneFacing;
+  this.classList.toggle('on', droneFacing);
 };
 
 /* ================================================================
@@ -1177,7 +1454,7 @@ function initMap(){
 }
 
 /* ================================================================
-   GPS EM 3 CAMADAS
+   GPS
    ================================================================ */
 function startGPS(){
   const isSecure = window.isSecureContext;
@@ -1189,38 +1466,26 @@ function startGPS(){
     $('myAddr').innerHTML = isFile
       ? '<b style="color:#ff2d55">⚠ Arquivo aberto direto (file://). GPS bloqueado.</b><br>Tentando IP…'
       : '<b style="color:#ff2d55">⚠ Precisa ser HTTPS ou localhost.</b><br>Tentando IP…';
-    ipFallback();
-    return;
+    ipFallback(); return;
   }
-
-  if(!('geolocation' in navigator)){
-    setStatus('SEM GPS','warn');
-    ipFallback();
-    return;
-  }
+  if(!('geolocation' in navigator)){ setStatus('SEM GPS','warn'); ipFallback(); return; }
 
   setStatus('BUSCANDO GPS','warn');
   $('myAddr').textContent = 'Aguardando permissão…';
 
   let gotFirstFix = false;
-
   const fallbackTimer = setTimeout(() => {
-    if(!gotFirstFix){
-      console.warn('[GPS] Sem fix em 8s — usando IP');
-      ipFallback();
-    }
+    if(!gotFirstFix){ ipFallback(); }
   }, 8000);
 
-  try{
-    if(gpsWatchId != null) navigator.geolocation.clearWatch(gpsWatchId);
-  }catch(e){}
+  try{ if(gpsWatchId != null) navigator.geolocation.clearWatch(gpsWatchId); }catch(e){}
 
   gpsWatchId = navigator.geolocation.watchPosition(
     pos => {
       gotFirstFix = true;
       clearTimeout(fallbackTimer);
       const { latitude:lat, longitude:lon, accuracy:acc } = pos.coords;
-      const first = !meLatLng || (window.__lastWasFallback === true);
+      const first = !meLatLng || window.__lastWasFallback === true;
       window.__lastWasFallback = false;
       meLatLng = L.latLng(lat,lon);
 
@@ -1248,18 +1513,12 @@ function startGPS(){
       if(first){ map.setView(meLatLng,17); }
       positionSonar(); renderSonarBlips(); renderMarkers(); renderCompanions(); render();
     },
-    err => {
-      clearTimeout(fallbackTimer);
-      console.warn('[GPS] Erro:', err.code, err.message);
-      ipFallback();
-    },
+    err => { clearTimeout(fallbackTimer); ipFallback(); },
     { enableHighAccuracy:true, maximumAge:5000, timeout:8000 }
   );
 }
 
-/* ---- Fallback: base salva → IP → São Paulo ---- */
 async function ipFallback(){
-  // Camada 1: base salva pelo usuário
   try{
     const saved = localStorage.getItem(BASE_KEY);
     if(saved){
@@ -1269,7 +1528,6 @@ async function ipFallback(){
     }
   }catch(e){}
 
-  // Camada 2: IP
   setStatus('LOCALIZANDO POR IP','warn');
   $('myAddr').textContent = 'GPS indisponível · descobrindo sua região por IP…';
 
@@ -1281,7 +1539,7 @@ async function ipFallback(){
       applyFallback(j.latitude, j.longitude, `🌐 Aproximado por IP · ${label}`, true);
       return;
     }
-  }catch(e){ console.warn('[IP] ipwho.is falhou:', e); }
+  }catch(e){}
 
   try{
     const r = await fetch('https://ipapi.co/json/');
@@ -1291,12 +1549,11 @@ async function ipFallback(){
       applyFallback(j.latitude, j.longitude, `🌐 Aproximado por IP · ${label}`, true);
       return;
     }
-  }catch(e){ console.warn('[IP] ipapi.co falhou:', e); }
+  }catch(e){}
 
-  // Camada 3
   setStatus('SEM LOCALIZAÇÃO','danger');
-  $('myAddr').innerHTML = '<b style="color:#ff2d55">⚠ Sem GPS e sem IP.</b><br>Clique em 📍 DEFINIR MINHA BASE para fixar seu endereço.';
-  applyFallback(-23.5505, -46.6333, '⚠ Fallback padrão (São Paulo) · defina sua base', true);
+  $('myAddr').innerHTML = '<b style="color:#ff2d55">⚠ Sem GPS e sem IP.</b><br>Clique em 📍 DEFINIR MINHA BASE.';
+  applyFallback(-23.5505, -46.6333, '⚠ Fallback padrão (São Paulo)', true);
 }
 
 function applyFallback(lat, lon, label, isFallback){
@@ -1315,53 +1572,37 @@ function applyFallback(lat, lon, label, isFallback){
   $('myAcc').textContent = '—';
   $('mapInfo').textContent = isFallback ? 'FALLBACK' : 'BASE';
   map.setView(meLatLng, 14);
-
   $('myAddr').innerHTML = `<b style="color:#ffb300">${label}</b>`;
   setStatus(isFallback ? 'FALLBACK ATIVO' : 'BASE ATIVA', 'warn');
 
   positionSonar(); renderSonarBlips(); renderMarkers(); renderCompanions(); render();
 }
 
-/* ---- Botões de base ---- */
 $('btnSetBase').onclick = async () => {
   const q = prompt('Digite seu endereço (rua, número, cidade):');
   if(!q || !q.trim()) return;
-
   const btn = $('btnSetBase');
-  const original = btn.textContent;
-  btn.textContent = '🔍 BUSCANDO…';
-  btn.disabled = true;
-
+  const orig = btn.textContent;
+  btn.textContent = '🔍 BUSCANDO…'; btn.disabled = true;
   const list = await geocodeAddressList(q);
-  btn.textContent = original;
-  btn.disabled = false;
-
-  if(!list.length){ alert('Endereço não encontrado. Tente ser mais específico.'); return; }
-
+  btn.textContent = orig; btn.disabled = false;
+  if(!list.length){ alert('Endereço não encontrado.'); return; }
   const r = list[0];
   const base = { lat:r.lat, lon:r.lon, label: r.linha1 + (r.linha2 ? ', '+r.linha2 : '') };
   localStorage.setItem(BASE_KEY, JSON.stringify(base));
-
   applyFallback(base.lat, base.lon, `📍 ${base.label}`, false);
   speak(`Base definida em ${r.linha1}.`);
-  alert('✅ Base salva!\n\nSempre que o GPS falhar, o mapa vai abrir exatamente aqui.');
+  alert('✅ Base salva!');
 };
-
 $('btnClearBase').onclick = () => {
   if(!confirm('Apagar sua base salva?')) return;
   localStorage.removeItem(BASE_KEY);
-  alert('Base apagada.');
 };
-
 $('btnRetryGPS').onclick = () => {
   const btn = $('btnRetryGPS');
-  btn.textContent = '🔄 TENTANDO…';
-  btn.disabled = true;
+  btn.textContent = '🔄 TENTANDO…'; btn.disabled = true;
   startGPS();
-  setTimeout(() => {
-    btn.textContent = '🔄 TENTAR GPS';
-    btn.disabled = false;
-  }, 9000);
+  setTimeout(() => { btn.textContent = '🔄 TENTAR GPS'; btn.disabled = false; }, 9000);
 };
 
 /* ================================================================
@@ -1409,7 +1650,7 @@ async function getTargetGeo(t){
 }
 
 /* ================================================================
-   OSINT SIMULADO
+   OSINT
    ================================================================ */
 function hashPhone(num){
   const digits = num.replace(/\D/g,'');
@@ -1608,7 +1849,7 @@ function normalizePhone(raw){
 }
 
 /* ================================================================
-   DISTÂNCIA / RUMO
+   DISTÂNCIA
    ================================================================ */
 function distTo(t){ return meLatLng ? meLatLng.distanceTo(L.latLng(t.lat,t.lon)) : Infinity; }
 function bearingTo(t){
@@ -1688,6 +1929,30 @@ function renderSonarBlips(){
     el.classList.toggle('offline', !c.online);
   });
 
+  // DRONE
+  if(droneLatLng){
+    activeIds.add('drone');
+    let el = sonarBlips['drone'];
+    if(!el){
+      el = document.createElement('div');
+      el.className = 'sblip drone';
+      sonarDisc.appendChild(el);
+      sonarBlips['drone'] = el;
+    }
+    const d = meLatLng ? meLatLng.distanceTo(droneLatLng) : Infinity;
+    if(isFinite(d)){
+      el.style.opacity = 1;
+      el.dataset.label = '🛸 DRONE';
+      const brg = bearingTo({ lat:droneLatLng.lat, lon:droneLatLng.lng });
+      const ratio = Math.min(d / range, 1) * 46;
+      const rad = (brg - 90) * Math.PI/180;
+      el.style.left = (50 + ratio * Math.cos(rad)) + '%';
+      el.style.top  = (50 + ratio * Math.sin(rad)) + '%';
+    } else {
+      el.style.opacity = 0;
+    }
+  }
+
   Object.keys(sonarBlips).forEach(k => {
     if(!activeIds.has(k)){ sonarBlips[k].remove(); delete sonarBlips[k]; }
   });
@@ -1729,6 +1994,11 @@ function renderMarkers(){
       c.marker.setIcon(icon);
     }
   });
+
+  // DRONE marker já tratado em setDronePosition
+  if(droneLatLng && !droneMarker){
+    droneMarker = L.marker(droneLatLng, { icon:droneIcon(), zIndexOffset:900 }).addTo(map);
+  }
 }
 
 function mkIcon(t,hot){
@@ -1748,7 +2018,7 @@ function updateAll(){
 }
 
 /* ================================================================
-   LISTA DE ALVOS
+   LISTA ALVOS
    ================================================================ */
 function render(){
   if(!targets.length){
@@ -1808,7 +2078,9 @@ function render(){
    ================================================================ */
 setInterval(() => {
   if(!meLatLng) return;
-  if(followGPS) map.panTo(meLatLng, { animate:true, duration:.7 });
+
+  // Se followGPS E não estiver seguindo o drone, pan pro usuário
+  if(followGPS && !droneFollow) map.panTo(meLatLng, { animate:true, duration:.7 });
 
   let anyHot = false;
   targets.forEach(t => {
@@ -1835,7 +2107,7 @@ function setStatus(txt, cls){
 }
 
 /* ================================================================
-   VOZ / ÁUDIO
+   VOZ
    ================================================================ */
 function beep(times=3){
   if(!soundOn) return;
@@ -1901,9 +2173,7 @@ async function showAlert(t, manual, distOverride){
     const rua = g.road ? g.road : 'Local não identificado';
     const ref = g.ref ? `<br><b>Referência:</b> ${escapeHtml(g.ref)}` : '';
     $('aAddr').innerHTML = `📍 ${escapeHtml(rua)}${ref}`;
-    speak(`Atenção. ${t.codename} ${manual?'selecionado':'detectado'} a ${fmtDist(d)}. `
-        + `Localizado ${g.road ? 'na '+g.road : 'em local não identificado'}`
-        + `${g.ref ? ', próximo a '+g.ref : ''}.`);
+    speak(`Atenção. ${t.codename} ${manual?'selecionado':'detectado'} a ${fmtDist(d)}.`);
   } else {
     $('aAddr').textContent = 'Posição em tempo real.';
     speak(`Atenção. ${t.codename} a ${fmtDist(d)}.`);
@@ -1993,10 +2263,15 @@ function loadTargets(){
   initMap();
   loadTargets();
   loadCompanions();
+  loadDrone();
   updateAll();
   startGPS();
   setTimeout(() => { if(!meLatLng) setStatus('SEM GPS','warn'); }, 4000);
   window.addEventListener('resize', () => { positionSonar(); renderSonarBlips(); });
+
+  if(droneLatLng){
+    setDronePosition(droneLatLng.lat, droneLatLng.lng, 'ÚLTIMA POSIÇÃO');
+  }
 })();
 
 } // fim modo principal
