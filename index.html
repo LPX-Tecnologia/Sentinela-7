@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SENTINELA-7 · SONAR NO MAPA</title>
+<title>SENTINELA-7 · IMPORTAÇÃO EM MASSA</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
 :root{
@@ -35,7 +35,6 @@ body::after{
 }
 .wrap{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:16px}
 
-/* HEADER */
 header{
   display:flex;align-items:center;gap:16px;
   border:1px solid var(--line);
@@ -46,7 +45,7 @@ header{
 }
 .logo{width:54px;height:54px;flex:0 0 54px;color:var(--neon);filter:drop-shadow(0 0 8px var(--neon));animation:breathe 3s ease-in-out infinite}
 .logo svg{width:100%;height:100%}
-@keyframes breathe{0%,100%{opacity:.75;filter:drop-shadow(0 0 6px var(--neon))}50%{opacity:1;filter:drop-shadow(0 0 16px var(--neon))}}
+@keyframes breathe{0%,100%{opacity:.75}50%{opacity:1;filter:drop-shadow(0 0 16px var(--neon))}}
 .brand h1{font-size:clamp(17px,3.4vw,28px);letter-spacing:.22em;font-weight:800;text-shadow:0 0 10px var(--neon),0 0 30px rgba(0,240,255,.5)}
 .brand h1 span{color:var(--gold);text-shadow:0 0 10px var(--gold)}
 .brand p{font-size:9px;letter-spacing:.26em;color:rgba(0,240,255,.55);margin-top:4px}
@@ -62,142 +61,79 @@ header{
   border-left:3px solid var(--gold);background:rgba(255,179,0,.07);
   padding:9px 14px;color:rgba(255,179,0,.9);border-radius:2px}
 .notice b{color:#ffd166}
+.notice.blue{border-left-color:var(--neon);background:rgba(0,240,255,.05);color:rgba(0,240,255,.85)}
 
 .grid{display:grid;grid-template-columns:1.25fr .95fr;gap:16px;margin-top:16px}
 @media(max-width:960px){.grid{grid-template-columns:1fr}}
 
 .card{border:1px solid var(--line);border-radius:4px;background:var(--panel);
-  padding:14px;position:relative;box-shadow:inset 0 0 40px rgba(0,240,255,.04)}
+  padding:14px;position:relative;box-shadow:inset 0 0 40px rgba(0,240,255,.04);margin-bottom:16px}
 .card::before{content:"";position:absolute;top:0;left:0;width:34px;height:2px;background:var(--gold);box-shadow:0 0 12px var(--gold)}
 .card h2{font-size:10px;letter-spacing:.3em;color:var(--gold);margin-bottom:12px;
   text-shadow:0 0 8px rgba(255,179,0,.6);font-weight:600;display:flex;justify-content:space-between;align-items:center}
 .card h2 em{font-style:normal;color:rgba(0,240,255,.4);letter-spacing:.14em;font-size:9px}
 
-/* ============ MAPA + SONAR DENTRO ============ */
-.map-wrap{
-  position:relative;width:100%;height:520px;
+.map-wrap{position:relative;width:100%;height:520px;
   border:1px solid var(--line);border-radius:3px;overflow:hidden;
   box-shadow:0 0 30px rgba(0,240,255,.15), inset 0 0 40px rgba(0,240,255,.06);
-  background:#02060b;
-}
+  background:#02060b}
 @media(max-width:600px){.map-wrap{height:400px}}
 #map{position:absolute;inset:0;background:#02060b;z-index:1}
-
-/* tinta azulada + vinheta sobre o satélite */
-.map-wrap .tint{
-  position:absolute;inset:0;pointer-events:none;z-index:400;
-  background:
-    radial-gradient(circle at 50% 50%, rgba(0,240,255,.05), rgba(2,6,11,.55) 90%),
-    linear-gradient(rgba(0,40,80,.18), rgba(0,40,80,.18));
-  mix-blend-mode:multiply;
-}
-/* linha de varredura */
-.map-wrap .scanline{
-  position:absolute;left:0;right:0;height:140px;top:0;pointer-events:none;z-index:401;
+.map-wrap .tint{position:absolute;inset:0;pointer-events:none;z-index:400;
+  background:radial-gradient(circle at 50% 50%, rgba(0,240,255,.05), rgba(2,6,11,.55) 90%),
+             linear-gradient(rgba(0,40,80,.18), rgba(0,40,80,.18));
+  mix-blend-mode:multiply}
+.map-wrap .scanline{position:absolute;left:0;right:0;height:140px;top:0;pointer-events:none;z-index:401;
   background:linear-gradient(180deg,transparent,rgba(0,240,255,.14),transparent);
-  animation:scanline 6s linear infinite;
-}
+  animation:scanline 6s linear infinite}
 @keyframes scanline{from{top:-140px}to{top:100%}}
-
 .leaflet-container{background:#02060b !important;font-family:inherit !important}
-/* satélite levemente escurecido e azulado */
 .leaflet-tile-pane{filter:brightness(.78) saturate(1.05) contrast(1.05) hue-rotate(-8deg)}
 .leaflet-control-attribution{background:rgba(2,6,11,.75) !important;color:rgba(0,240,255,.5) !important;font-size:8px !important}
 .leaflet-control-attribution a{color:rgba(0,240,255,.7) !important}
 .leaflet-bar a{background:#04121a !important;color:var(--neon) !important;border-color:var(--line) !important}
-.leaflet-bar a:hover{background:#062430 !important}
 
-/* ---- SONAR SOBREPOSTO AO MAPA ---- */
-.sonar-overlay{
-  position:absolute;
-  width:clamp(220px, 46vw, 360px);
-  height:clamp(220px, 46vw, 360px);
-  transform:translate(-50%,-50%);
-  pointer-events:none;
-  z-index:800;
-  transition:opacity .3s;
-}
-.sonar-overlay.off{opacity:0;pointer-events:none}
-.sonar-disc{
-  position:absolute;inset:0;border-radius:50%;
-  background:
-    radial-gradient(circle, rgba(0,240,255,.14), rgba(0,240,255,.03) 55%, transparent 74%);
+.sonar-overlay{position:absolute;width:clamp(220px,46vw,360px);height:clamp(220px,46vw,360px);
+  transform:translate(-50%,-50%);pointer-events:none;z-index:800;transition:opacity .3s}
+.sonar-overlay.off{opacity:0}
+.sonar-disc{position:absolute;inset:0;border-radius:50%;
+  background:radial-gradient(circle, rgba(0,240,255,.14), rgba(0,240,255,.03) 55%, transparent 74%);
   border:1.5px solid rgba(0,240,255,.75);
-  box-shadow:
-    0 0 26px rgba(0,240,255,.55),
-    0 0 60px rgba(0,240,255,.25),
-    inset 0 0 50px rgba(0,240,255,.15);
-  overflow:hidden;
-}
-.sonar-disc .cross-x{position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(0,240,255,.3);transform:translateY(-.5px)}
-.sonar-disc .cross-y{position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(0,240,255,.3);transform:translateX(-.5px)}
-.sonar-disc .ring{
-  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-  border:1px solid rgba(0,240,255,.28);border-radius:50%
-}
+  box-shadow:0 0 26px rgba(0,240,255,.55), 0 0 60px rgba(0,240,255,.25), inset 0 0 50px rgba(0,240,255,.15);
+  overflow:hidden}
+.sonar-disc .cross-x{position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(0,240,255,.3)}
+.sonar-disc .cross-y{position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(0,240,255,.3)}
+.sonar-disc .ring{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  border:1px solid rgba(0,240,255,.28);border-radius:50%}
 .sonar-disc .ring.r1{width:33%;height:33%}
 .sonar-disc .ring.r2{width:66%;height:66%}
 .sonar-disc .ring.r3{width:99%;height:99%;border-color:rgba(0,240,255,.6);border-style:dashed}
-.sonar-disc .sweep{
-  position:absolute;inset:0;border-radius:50%;
-  background:conic-gradient(from 0deg,
-    rgba(0,240,255,.75) 0deg,
-    rgba(0,240,255,.32) 22deg,
-    rgba(0,240,255,.08) 48deg,
-    transparent 72deg,
-    transparent 360deg);
-  animation:sonarSpin 3.2s linear infinite;
-  transform-origin:50% 50%;
-}
+.sonar-disc .sweep{position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(from 0deg, rgba(0,240,255,.75) 0deg, rgba(0,240,255,.32) 22deg,
+    rgba(0,240,255,.08) 48deg, transparent 72deg, transparent 360deg);
+  animation:sonarSpin 3.2s linear infinite}
 @keyframes sonarSpin{to{transform:rotate(360deg)}}
-.sonar-disc .me-dot{
-  position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;
-  background:var(--neon);border-radius:50%;
-  box-shadow:0 0 14px var(--neon), 0 0 28px var(--neon);
-  border:1.5px solid #fff;z-index:4
-}
-.sonar-disc .me-dot::after{
-  content:"";position:absolute;inset:-8px;border-radius:50%;
-  border:1px solid var(--neon);animation:ripple 2s infinite
-}
+.sonar-disc .me-dot{position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;
+  background:var(--neon);border-radius:50%;box-shadow:0 0 14px var(--neon), 0 0 28px var(--neon);
+  border:1.5px solid #fff;z-index:4}
+.sonar-disc .me-dot::after{content:"";position:absolute;inset:-8px;border-radius:50%;
+  border:1px solid var(--neon);animation:ripple 2s infinite}
 @keyframes ripple{0%{transform:scale(.6);opacity:.9}100%{transform:scale(1.9);opacity:0}}
-
-.sonar-disc .sblip{
-  position:absolute;width:11px;height:11px;margin:-5.5px 0 0 -5.5px;border-radius:50%;
-  background:var(--gold);
-  box-shadow:0 0 10px var(--gold), 0 0 22px var(--gold);
-  border:1.5px solid rgba(255,255,255,.85);
-  transition:left .9s linear, top .9s linear, background .3s;
-  z-index:3;
-}
-.sonar-disc .sblip.hot{
-  background:var(--danger);
-  box-shadow:0 0 14px var(--danger), 0 0 30px var(--danger);
-  animation:sonarPulse .85s infinite;
-}
+.sonar-disc .sblip{position:absolute;width:11px;height:11px;margin:-5.5px 0 0 -5.5px;border-radius:50%;
+  background:var(--gold);box-shadow:0 0 10px var(--gold), 0 0 22px var(--gold);
+  border:1.5px solid rgba(255,255,255,.85);transition:left .9s linear, top .9s linear, background .3s;z-index:3}
+.sonar-disc .sblip.hot{background:var(--danger);box-shadow:0 0 14px var(--danger), 0 0 30px var(--danger);animation:sonarPulse .85s infinite}
 @keyframes sonarPulse{50%{transform:scale(1.9);opacity:.75}}
-.sonar-disc .sblip::after{
-  content:attr(data-label);
-  position:absolute;left:14px;top:-2px;
+.sonar-disc .sblip::after{content:attr(data-label);position:absolute;left:14px;top:-2px;
   font-size:8.5px;letter-spacing:.12em;color:#dffcff;white-space:nowrap;
-  text-shadow:0 0 6px #000, 0 0 10px var(--neon);
-  opacity:.85;
-}
+  text-shadow:0 0 6px #000,0 0 10px var(--neon);opacity:.85}
+.sonar-range{position:absolute;left:50%;bottom:-24px;transform:translateX(-50%);
+  font-size:8px;letter-spacing:.26em;color:var(--neon);text-shadow:0 0 8px var(--neon);
+  white-space:nowrap;background:rgba(2,6,11,.7);padding:2px 8px;border-radius:2px;
+  border:1px solid rgba(0,240,255,.3)}
+.sonar-north{position:absolute;left:50%;top:-4px;transform:translateX(-50%);
+  font-size:8px;letter-spacing:.3em;color:var(--neon);text-shadow:0 0 8px var(--neon);opacity:.75}
 
-.sonar-range{
-  position:absolute;left:50%;bottom:-24px;transform:translateX(-50%);
-  font-size:8px;letter-spacing:.26em;color:var(--neon);
-  text-shadow:0 0 8px var(--neon);white-space:nowrap;
-  background:rgba(2,6,11,.7);padding:2px 8px;border-radius:2px;
-  border:1px solid rgba(0,240,255,.3);
-}
-.sonar-north{
-  position:absolute;left:50%;top:-4px;transform:translateX(-50%);
-  font-size:8px;letter-spacing:.3em;color:var(--neon);
-  text-shadow:0 0 8px var(--neon);opacity:.75;
-}
-
-/* marcadores Leaflet */
 .mk{width:16px;height:16px;border-radius:50%;background:var(--gold);
   box-shadow:0 0 12px var(--gold),0 0 26px var(--gold);
   border:2px solid rgba(255,255,255,.7);position:relative}
@@ -217,7 +153,6 @@ header{
 .geobar .val{color:#dffcff;word-break:break-word}
 .geobar .sp{margin-left:auto;color:var(--gold);font-size:9px;letter-spacing:.16em}
 
-/* CONTROLES */
 .ctrl{margin-bottom:14px}
 .ctrl label{display:flex;justify-content:space-between;font-size:10px;letter-spacing:.18em;color:rgba(0,240,255,.75);margin-bottom:8px}
 .ctrl label b{color:var(--gold);text-shadow:0 0 8px rgba(255,179,0,.6)}
@@ -235,29 +170,29 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border:0;border-radiu
 
 .form-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
 .form-row > *{flex:1;min-width:120px}
-input[type=text],input[type=tel]{width:100%;background:rgba(0,240,255,.05);border:1px solid var(--line);color:#dffcff;
+input[type=text],input[type=tel],textarea{
+  width:100%;background:rgba(0,240,255,.05);border:1px solid var(--line);color:#dffcff;
   padding:9px 10px;font-family:inherit;font-size:11px;letter-spacing:.05em;border-radius:2px;outline:none;transition:.2s}
-input[type=text]::placeholder,input[type=tel]::placeholder{color:rgba(0,240,255,.3);letter-spacing:.1em}
-input[type=text]:focus,input[type=tel]:focus{border-color:var(--neon);box-shadow:0 0 14px rgba(0,240,255,.25);background:rgba(0,240,255,.08)}
+input[type=text]::placeholder,input[type=tel]::placeholder,textarea::placeholder{color:rgba(0,240,255,.3);letter-spacing:.1em}
+input[type=text]:focus,input[type=tel]:focus,textarea:focus{border-color:var(--neon);box-shadow:0 0 14px rgba(0,240,255,.25);background:rgba(0,240,255,.08)}
+textarea{resize:vertical;min-height:80px;line-height:1.6}
 
 .osint-status{
   border:1px dashed rgba(0,240,255,.3);background:rgba(0,240,255,.03);
   padding:9px 11px;border-radius:2px;font-size:9.5px;letter-spacing:.1em;
   color:rgba(0,240,255,.6);margin-bottom:10px;min-height:36px;
-  display:flex;align-items:center;gap:8px;line-height:1.5
-}
+  display:flex;align-items:center;gap:8px;line-height:1.5}
 .osint-status.ok{color:var(--ok);border-color:rgba(0,255,157,.4);border-style:solid}
 .osint-status.load{color:var(--gold);border-color:rgba(255,179,0,.5)}
+.osint-status.err{color:var(--danger);border-color:rgba(255,45,85,.5)}
 .osint-status .spin{width:12px;height:12px;border:2px solid rgba(255,179,0,.2);border-top-color:var(--gold);
   border-radius:50%;animation:spin .8s linear infinite;flex:0 0 12px}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 .social-preview{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
-.social-preview .sp-item{
-  font-size:9px;letter-spacing:.06em;padding:7px 9px;border-radius:2px;
+.social-preview .sp-item{font-size:9px;letter-spacing:.06em;padding:7px 9px;border-radius:2px;
   border:1px solid var(--line);background:rgba(0,240,255,.04);
-  color:#cdf9ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap
-}
+  color:#cdf9ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .social-preview .sp-item b{color:var(--gold);font-weight:600;margin-right:5px}
 .social-preview .sp-item.empty{opacity:.35}
 
@@ -271,9 +206,32 @@ input[type=text]:focus,input[type=tel]:focus{border-color:var(--neon);box-shadow
 .btn-add:hover{background:rgba(0,255,157,.25);box-shadow:0 0 20px rgba(0,255,157,.4)}
 .btn-add:disabled{opacity:.35;cursor:not-allowed;box-shadow:none;background:transparent}
 
+/* IMPORTAR */
+.import-methods{display:grid;gap:10px;margin-bottom:12px}
+.imp-block{border:1px solid rgba(0,240,255,.2);border-left:2px solid var(--neon);
+  background:rgba(0,240,255,.03);padding:11px 12px;border-radius:2px}
+.imp-block h3{font-size:9.5px;letter-spacing:.22em;color:var(--neon);
+  text-shadow:0 0 8px rgba(0,240,255,.5);margin-bottom:8px;font-weight:600}
+.imp-block p{font-size:9px;letter-spacing:.06em;color:rgba(0,240,255,.5);
+  line-height:1.6;margin-bottom:9px}
+.imp-block.unavailable{border-left-color:rgba(0,240,255,.2);opacity:.55}
+.imp-block.unavailable .tg{cursor:not-allowed;opacity:.5}
+.btn-import{width:100%;padding:10px;border:1px solid var(--gold);background:rgba(255,179,0,.08);
+  color:var(--gold);font-family:inherit;font-size:10px;letter-spacing:.2em;cursor:pointer;
+  border-radius:2px;transition:.2s;text-align:center;display:block}
+.btn-import:hover:not(:disabled){background:rgba(255,179,0,.2);box-shadow:0 0 18px rgba(255,179,0,.4)}
+.btn-import:disabled{cursor:not-allowed;opacity:.4}
+.btn-import input[type=file]{display:none}
+.import-log{margin-top:10px;border:1px dashed rgba(0,240,255,.3);padding:9px 11px;border-radius:2px;
+  font-size:9px;letter-spacing:.06em;color:rgba(0,240,255,.6);line-height:1.7;
+  max-height:110px;overflow-y:auto;background:rgba(0,240,255,.02)}
+.import-log.ok{color:var(--ok);border-color:rgba(0,255,157,.35)}
+.import-log b{color:var(--gold)}
+.import-log .ln{display:block;color:rgba(0,240,255,.45)}
+.import-log .ln.err{color:var(--danger)}
+
 .hint{font-size:8.5px;letter-spacing:.1em;color:rgba(0,240,255,.4);margin-top:8px;line-height:1.7}
 
-/* LISTA */
 .target{border:1px solid rgba(0,240,255,.18);border-left:2px solid var(--neon);
   padding:10px 12px;margin-bottom:10px;border-radius:2px;
   background:rgba(0,240,255,.03);transition:.25s}
@@ -295,7 +253,6 @@ input[type=text]:focus,input[type=tel]:focus{border-color:var(--neon);box-shadow
 .empty{text-align:center;padding:22px 10px;font-size:9.5px;letter-spacing:.18em;
   color:rgba(0,240,255,.35);border:1px dashed rgba(0,240,255,.2);border-radius:2px}
 
-/* OVERLAY ALERTA */
 .overlay{position:fixed;inset:0;z-index:9999;display:none;
   background:radial-gradient(circle at 50% 40%,rgba(255,45,85,.22),rgba(2,6,11,.96) 60%);
   backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px}
@@ -345,28 +302,29 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
     </div>
     <div class="brand">
       <h1>SENTINELA<span>-7</span></h1>
-      <p>PROTOCOLO JARDAS · SONAR TÁTICO · v0.4</p>
+      <p>PROTOCOLO JARDAS · IMPORTAÇÃO · v0.5</p>
     </div>
     <div class="status" id="statusTxt">INICIALIZANDO</div>
   </header>
 
   <div class="notice">
-    ⚠ <b>USO PESSOAL / EDUCACIONAL.</b> O mapa é satélite real (Esri, sem chave de API).
-    Sua localização é GPS real. Os alvos são posicionados por <u>você</u>.
-    A busca por número é <b>SIMULAÇÃO OSINT</b> — nenhuma API pública devolve redes sociais de um telefone.
+    ⚠ <b>USO PESSOAL / EDUCACIONAL.</b> Importe apenas contatos que você tem autorização para tratar.
+    A busca por número é <b>SIMULAÇÃO OSINT</b> — nenhuma API pública devolve redes sociais reais de um telefone.
+  </div>
+
+  <div class="notice blue">
+    ℹ <b>REALIDADE TÉCNICA:</b> nenhum site consegue ler contatos do WhatsApp (salvos ou não salvos) —
+    isso é dado privado do app. Os métodos abaixo são o que <u>é tecnicamente possível</u> a partir do navegador.
   </div>
 
   <div class="grid">
     <div>
       <div class="card">
         <h2>◈ MAPA TÁTICO <em id="mapInfo">AGUARDANDO GPS…</em></h2>
-
         <div class="map-wrap" id="mapWrap">
           <div id="map"></div>
           <div class="tint"></div>
           <div class="scanline"></div>
-
-          <!-- SONAR SOBREPOSTO AO MAPA -->
           <div class="sonar-overlay" id="sonarOverlay">
             <div class="sonar-north">N</div>
             <div class="sonar-disc" id="sonarDisc">
@@ -381,7 +339,6 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
             <div class="sonar-range" id="sonarRange">0 m</div>
           </div>
         </div>
-
         <div class="geobar">
           <div>
             <div class="lbl">SUA POSIÇÃO</div>
@@ -397,7 +354,7 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
     </div>
 
     <div>
-      <div class="card" style="margin-bottom:16px">
+      <div class="card">
         <h2>◈ PROTOCOLO DE APROXIMAÇÃO</h2>
         <div class="ctrl">
           <label>RAIO DE ALERTA <b id="thVal">150 m</b></label>
@@ -411,37 +368,76 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
         <div class="toggles" style="margin-top:8px">
           <button class="tg on" id="tgTrack">📍 SEGUIR GPS</button>
           <button class="tg gold" id="tgCenter">🎯 CENTRALIZAR</button>
-        </div>
-        <div class="toggles" style="margin-top:8px">
-          <button class="tg gold" id="tgScan">▶ RELATÓRIO DE VOZ</button>
+          <button class="tg gold" id="tgScan">▶ VOZ</button>
         </div>
       </div>
 
-      <div class="card" style="margin-bottom:16px">
-        <h2>◈ CADASTRAR ALVO <em>OSINT SIMULADO</em></h2>
+      <!-- ============ IMPORTAÇÃO ============ -->
+      <div class="card">
+        <h2>◈ IMPORTAR CONTATOS <em>EM MASSA</em></h2>
 
+        <div class="import-methods">
+
+          <!-- MÉTODO 1: Contact Picker API -->
+          <div class="imp-block" id="blkPicker">
+            <h3>📱 CONTATOS DO CELULAR (nativo)</h3>
+            <p id="pickerMsg">Abre o seletor nativo do sistema. Você escolhe quais contatos importar.
+               Funciona apenas em <b>Chrome no Android</b> com HTTPS.</p>
+            <button class="btn-import" id="btnPicker" type="button">
+              📇 ESCOLHER CONTATOS DO CELULAR
+            </button>
+          </div>
+
+          <!-- MÉTODO 2: Arquivo -->
+          <div class="imp-block">
+            <h3>📁 IMPORTAR ARQUIVO (.vcf / .csv / .txt)</h3>
+            <p>Exporte seus contatos do <b>Google Contacts</b>, <b>iCloud</b> ou qualquer app e jogue aqui.
+               Aceita vCard (.vcf), CSV e lista de números pura.</p>
+            <label class="btn-import" for="fileInput">📂 ESCOLHER ARQUIVO</label>
+            <input type="file" id="fileInput" accept=".vcf,.csv,.txt,text/vcard,text/csv,text/plain" multiple>
+          </div>
+
+          <!-- MÉTODO 3: Colar lista -->
+          <div class="imp-block">
+            <h3>📋 COLAR LISTA DE NÚMEROS</h3>
+            <p>Cole um número por linha (com ou sem nome, formato <code>Nome, +55 11 9…</code> ou só o número).</p>
+            <textarea id="pasteArea" placeholder="+55 11 99999-0001&#10;+55 21 98888-0002&#10;Maria Silva, +55 31 97777-0003&#10;(11) 96666-0004"></textarea>
+            <button class="btn-import" id="btnPaste" type="button" style="margin-top:8px">
+              ⚡ IMPORTAR TEXTO COLADO
+            </button>
+          </div>
+
+        </div>
+
+        <div class="import-log" id="importLog">
+          ⟨ log de importação ⟩ Nada importado ainda.
+        </div>
+        <div class="hint">
+          Todos os contatos entram posicionados na <b>sua localização atual</b>.
+          Depois você pode reposicionar clicando em <b>🗺 IR</b> ou usando o cadastro manual.
+        </div>
+      </div>
+
+      <!-- CADASTRO MANUAL -->
+      <div class="card">
+        <h2>◈ CADASTRAR ALVO <em>INDIVIDUAL</em></h2>
         <div class="form-row" style="margin-bottom:10px">
           <input type="tel" id="fNum" placeholder="NÚMERO (+55 11 99999-0000)" maxlength="24">
           <button class="tg gold" id="btnOsint" type="button" style="flex:0 0 110px">🔎 BUSCAR</button>
         </div>
-
         <div class="osint-status" id="osintStatus">
           ⟨ aguardando número ⟩ Digite um telefone e clique em BUSCAR.
         </div>
-
         <div class="form-row">
           <input type="text" id="fName" placeholder="CODINOME (auto se vazio)" maxlength="18">
         </div>
-
         <div class="social-preview" id="socialPreview">
           <div class="sp-item empty"><b>FB</b>—</div>
           <div class="sp-item empty"><b>IG</b>—</div>
           <div class="sp-item empty"><b>TT</b>—</div>
           <div class="sp-item empty"><b>WA</b>—</div>
         </div>
-
         <div class="coords" id="fCoords">📍 Nenhuma localização definida</div>
-
         <div class="toggles" style="margin-bottom:10px">
           <button class="tg gold" id="btnMyLoc" type="button">📡 MINHA POSIÇÃO</button>
           <button class="tg gold" id="btnPick"  type="button">🖱 CLICAR NO MAPA</button>
@@ -450,13 +446,15 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
           <input type="text" id="fAddr" placeholder="Buscar endereço (rua, nº, cidade)">
           <button class="tg gold" id="btnSearch" type="button" style="flex:0 0 90px">🔍 IR</button>
         </div>
-
         <button class="btn-add" id="btnAdd" disabled>+ ADICIONAR AO MONITORAMENTO</button>
-        <div class="hint">A busca OSINT é determinística: o mesmo número sempre gera os mesmos handles.</div>
       </div>
 
       <div class="card">
         <h2>◈ ALVOS MONITORADOS <em id="listCount">0</em></h2>
+        <div style="display:flex;gap:6px;margin-bottom:10px">
+          <button class="mini" id="btnClear" style="flex:1;padding:7px">🗑 LIMPAR TUDO</button>
+          <button class="mini" id="btnExport" style="flex:1;padding:7px">⬇ EXPORTAR JSON</button>
+        </div>
         <div id="list"></div>
       </div>
     </div>
@@ -473,10 +471,7 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
     <div class="hdr">▲ ALVO EM APROXIMAÇÃO ▲</div>
     <div class="codename" id="aName">—</div>
     <div class="phone" id="aPhone">—</div>
-    <div class="distbox">
-      <b id="aDist">0</b>
-      <span>METROS DE DISTÂNCIA</span>
-    </div>
+    <div class="distbox"><b id="aDist">0</b><span>METROS DE DISTÂNCIA</span></div>
     <div class="locbox">
       <span class="k">◈ LOCALIZAÇÃO DO ALVO</span>
       <div class="v" id="aAddr">Consultando…</div>
@@ -492,12 +487,13 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 /* =================================================================
-   SENTINELA-7 v0.4
-   • Tiles: Esri World Imagery (satélite) — SEM chave de API
-   • Sonar: sobreposto ao mapa, centrado no GPS real
+   SENTINELA-7 v0.5 — IMPORTAÇÃO EM MASSA
+   • Contact Picker API (Chrome Android)
+   • VCF / CSV / TXT
+   • Colar texto
    ================================================================= */
 
-const STORAGE_KEY = 'sentinela7.targets.v4';
+const STORAGE_KEY = 'sentinela7.targets.v5';
 const GEO_TTL     = 10 * 60 * 1000;
 
 let map, meMarker, thCircle, meLatLng = null;
@@ -512,35 +508,25 @@ let lastOsintData = null;
 
 const $ = id => document.getElementById(id);
 const overlay = $('overlay'), listEl = $('list');
-const mapWrap = $('mapWrap');
 const sonarOverlay = $('sonarOverlay');
 const sonarDisc = $('sonarDisc');
 const sonarRangeEl = $('sonarRange');
+const importLog = $('importLog');
 
 /* ----------------------------------------------------------------
-   1. MAPA — Esri World Imagery (grátis, sem chave)
+   1. MAPA
    ---------------------------------------------------------------- */
 function initMap(){
-  map = L.map('map',{
-    zoomControl:true,
-    preferCanvas:true,
-    worldCopyJump:true
-  }).setView([-23.5505,-46.6333],16);
+  map = L.map('map',{ zoomControl:true, preferCanvas:true, worldCopyJump:true })
+        .setView([-23.5505,-46.6333],16);
 
-  // Satélite (sem chave)
-  L.tileLayer(
-    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-    {
-      maxZoom:19,
-      attribution:'&copy; Esri, Maxar, Earthstar Geographics'
-    }
-  ).addTo(map);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{
+    maxZoom:19, attribution:'&copy; Esri, Maxar, Earthstar Geographics'
+  }).addTo(map);
 
-  // Nomes de ruas / lugares por cima (também sem chave)
-  L.tileLayer(
-    'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
-    { maxZoom:19, opacity:.7 }
-  ).addTo(map);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{
+    maxZoom:19, opacity:.7
+  }).addTo(map);
 
   thCircle = L.circle([-23.5505,-46.6333],{
     radius:threshold, color:'#ffb300', weight:1, dashArray:'6 6',
@@ -560,11 +546,7 @@ function initMap(){
     map.getContainer().style.cursor = '';
   });
 
-  // reposiciona o sonar sempre que o mapa se move
-  map.on('move zoom zoomend moveend viewreset', () => {
-    positionSonar();
-    renderSonarBlips();
-  });
+  map.on('move zoom zoomend moveend viewreset', () => { positionSonar(); renderSonarBlips(); });
   map.on('resize', positionSonar);
 }
 
@@ -606,11 +588,8 @@ function startGPS(){
             : (g.display || 'Endereço não identificado');
         });
       }
-
-      if(first){ map.setView(meLatLng,17); }
-      positionSonar();
-      renderSonarBlips();
-      updateAll();
+      if(first) map.setView(meLatLng,17);
+      positionSonar(); renderSonarBlips(); updateAll();
     },
     err => {
       setStatus('GPS NEGADO','danger');
@@ -621,8 +600,7 @@ function startGPS(){
           icon:L.divIcon({className:'',html:'<div class="mk-me"></div>',iconSize:[16,16],iconAnchor:[8,8]})
         }).addTo(map);
         thCircle.setLatLng(meLatLng).setRadius(threshold);
-        positionSonar();
-        renderSonarBlips();
+        positionSonar(); renderSonarBlips();
       }
       updateAll();
     },
@@ -631,7 +609,7 @@ function startGPS(){
 }
 
 /* ----------------------------------------------------------------
-   3. GEOCODIFICAÇÃO — Photon (sem chave)
+   3. GEOCODIFICAÇÃO (Photon)
    ---------------------------------------------------------------- */
 async function reverseGeocode(lat, lon){
   try{
@@ -647,15 +625,10 @@ async function reverseGeocode(lat, lon){
       p.suburb && p.suburb !== road ? p.suburb : ''
     ].filter(Boolean);
     const ref = [...new Set(refParts)].slice(0,2).join(', ');
-    return {
-      road: road + (num ? ', '+num : ''),
-      ref,
-      display: [road, num, p.city, p.state, p.country].filter(Boolean).join(', '),
-      number: num
-    };
+    return { road: road + (num ? ', '+num : ''), ref,
+      display: [road, num, p.city, p.state, p.country].filter(Boolean).join(', '), number: num };
   }catch(e){ return { road:'', ref:'', display:'', number:'' }; }
 }
-
 async function geocodeAddress(q){
   try{
     const r = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&lang=pt&limit=1`);
@@ -669,7 +642,6 @@ async function geocodeAddress(q){
     return { lat, lon, name: nome || 'Local selecionado' };
   }catch(e){ return null; }
 }
-
 async function getTargetGeo(t){
   const now = Date.now();
   if(t._geo && (now - t._geo.ts) < GEO_TTL) return t._geo;
@@ -680,15 +652,12 @@ async function getTargetGeo(t){
 }
 
 /* ----------------------------------------------------------------
-   4. OSINT SIMULADO (determinístico)
+   4. OSINT SIMULADO
    ---------------------------------------------------------------- */
 function hashPhone(num){
   const digits = num.replace(/\D/g,'');
   let h = 2166136261;
-  for(let i=0;i<digits.length;i++){
-    h ^= digits.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
+  for(let i=0;i<digits.length;i++){ h ^= digits.charCodeAt(i); h = Math.imul(h, 16777619); }
   return Math.abs(h>>>0);
 }
 function simulateOsint(numero){
@@ -712,26 +681,238 @@ function simulateOsint(numero){
   };
 }
 
+/* ----------------------------------------------------------------
+   5. IMPORTAÇÃO — núcleo comum
+   ---------------------------------------------------------------- */
+function normalizePhone(raw){
+  if(!raw) return '';
+  let s = String(raw).trim().replace(/[^\d+]/g,'');
+  if(!s) return '';
+  if(!s.startsWith('+') && s.length >= 10) s = '+55' + s.replace(/^0+/,'');
+  return s;
+}
+function validPhone(p){
+  const d = p.replace(/\D/g,'');
+  return d.length >= 8 && d.length <= 15;
+}
+
+/** Adiciona um lote de {name, phone} aos alvos, posicionados em meLatLng */
+function addBatch(items, sourceLabel){
+  if(!meLatLng){
+    importLog.innerHTML = '<span class="ln err">✗ GPS ainda não disponível. Aguarde a localização e tente de novo.</span>';
+    importLog.className = 'import-log';
+    return { ok:0, fail:0, dup:0 };
+  }
+
+  const result = { ok:0, fail:0, dup:0 };
+  const existing = new Set(targets.map(t => t.numero.replace(/\D/g,'')));
+
+  items.forEach(it => {
+    const phone = normalizePhone(it.phone);
+    if(!validPhone(phone)){ result.fail++; return; }
+    if(existing.has(phone.replace(/\D/g,''))){ result.dup++; return; }
+
+    const osint = simulateOsint(phone);
+    const codename = (it.name && it.name.trim())
+      ? it.name.trim().slice(0,18).toUpperCase()
+      : (osint ? osint.codename : 'ALVO-'+Date.now().toString().slice(-4));
+
+    const t = {
+      id: Date.now() + Math.floor(Math.random()*100000),
+      codename,
+      numero: phone,
+      lat: meLatLng.lat, lon: meLatLng.lng,
+      socials: {
+        facebook:  osint?.facebook  || '',
+        instagram: osint?.instagram || '',
+        tiktok:    osint?.tiktok    || '',
+        whatsapp:  osint?.whatsapp  || '',
+        kwai:      osint?.kwai      || ''
+      },
+      _armed:false, _geo:null
+    };
+    targets.push(t);
+    existing.add(phone.replace(/\D/g,''));
+    result.ok++;
+  });
+
+  saveTargets();
+  updateAll();
+
+  // consulta endereços em background (limita a 5 por vez pra não sobrecarregar)
+  let i = 0;
+  (function step(){
+    if(i >= targets.length) return;
+    const batch = targets.slice(i, i+5);
+    i += 5;
+    Promise.all(batch.map(t => t._geo ? null : getTargetGeo(t))).then(step);
+  })();
+
+  logImport(result, sourceLabel);
+  if(result.ok) speak(`Importação concluída. ${result.ok} alvos adicionados.`);
+  return result;
+}
+
+function logImport(r, source){
+  const parts = [`<span class="ln"><b>◈ ${source}</b></span>`];
+  if(r.ok)   parts.push(`<span class="ln">✓ ${r.ok} contato(s) importado(s)</span>`);
+  if(r.dup)  parts.push(`<span class="ln">≡ ${r.dup} duplicado(s) ignorado(s)</span>`);
+  if(r.fail) parts.push(`<span class="ln err">✗ ${r.fail} inválido(s) ignorado(s)</span>`);
+  if(!r.ok && !r.dup && !r.fail) parts.push('<span class="ln">— nada a importar</span>');
+  importLog.innerHTML = parts.join('');
+  importLog.className = 'import-log' + (r.ok ? ' ok' : '');
+}
+
+/* ---------- MÉTODO 1: Contact Picker API ---------- */
+(function setupPicker(){
+  const blk = $('blkPicker');
+  const btn = $('btnPicker');
+  const msg = $('pickerMsg');
+
+  const supported = ('contacts' in navigator) && ('ContactsManager' in window);
+
+  if(!supported){
+    blk.classList.add('unavailable');
+    btn.disabled = true;
+    btn.textContent = '✕ NÃO DISPONÍVEL NESTE NAVEGADOR';
+    msg.innerHTML = 'Este navegador não suporta a <b>Contact Picker API</b>. ' +
+                    'Use o método de <b>arquivo</b> ou <b>colar lista</b> abaixo. ' +
+                    '(Suporte: Chrome no Android, com HTTPS.)';
+    return;
+  }
+
+  btn.onclick = async () => {
+    try{
+      const props = ['name','tel'];
+      const opts  = { multiple: true };
+      const list  = await navigator.contacts.select(props, opts);
+      if(!list || !list.length){
+        importLog.innerHTML = '<span class="ln">— seleção cancelada</span>';
+        return;
+      }
+      const items = list.map(c => ({
+        name: (c.name && c.name[0]) || '',
+        phone: (c.tel && c.tel[0]) || ''
+      })).filter(x => x.phone);
+
+      addBatch(items, 'CONTACT PICKER (celular)');
+    }catch(err){
+      importLog.innerHTML = `<span class="ln err">✗ ${err.message || 'Erro ao abrir seletor'}</span>`;
+    }
+  };
+})();
+
+/* ---------- MÉTODO 2: Arquivo (.vcf / .csv / .txt) ---------- */
+$('fileInput').addEventListener('change', async e => {
+  const files = [...e.target.files];
+  if(!files.length) return;
+
+  let all = [];
+  for(const f of files){
+    const txt = await f.text();
+    const items = parseContactsFile(txt, f.name);
+    all = all.concat(items);
+  }
+  if(!all.length){
+    importLog.innerHTML = '<span class="ln err">✗ Nenhum número encontrado no(s) arquivo(s).</span>';
+    e.target.value = '';
+    return;
+  }
+  addBatch(all, `ARQUIVO (${files.map(f=>f.name).join(', ')})`);
+  e.target.value = '';
+});
+
+function parseContactsFile(txt, filename){
+  const lower = filename.toLowerCase();
+  if(lower.endsWith('.vcf') || txt.includes('BEGIN:VCARD')){
+    return parseVCard(txt);
+  }
+  // CSV / TXT — heurística simples
+  return parseLooseList(txt);
+}
+
+function parseVCard(txt){
+  const out = [];
+  // divide em blocos VCARD
+  const cards = txt.split(/BEGIN:VCARD/i).slice(1);
+  cards.forEach(card => {
+    const nameMatch = card.match(/\nFN[^:]*:(.+)/i) || card.match(/\nN[^:]*:(.+)/i);
+    let name = nameMatch ? nameMatch[1].trim().replace(/;+/g,' ').trim() : '';
+
+    const tels = [];
+    const re = /\nTEL[^:]*:(.+)/gi;
+    let m;
+    while((m = re.exec(card)) !== null){
+      // pode ter múltiplos separados por ;
+      m[1].split(';').forEach(t => {
+        const v = t.trim();
+        if(v) tels.push(v);
+      });
+    }
+    tels.forEach(t => out.push({ name, phone: t }));
+  });
+  return out;
+}
+
+function parseLooseList(txt){
+  const out = [];
+  const lines = txt.split(/\r?\n/);
+  lines.forEach(line => {
+    line = line.trim();
+    if(!line) return;
+    if(line.startsWith('#') || line.startsWith('//')) return;
+
+    // tenta "Nome, +55 11 9..." ou "Nome;+55..."
+    let name = '', phone = '';
+    const sepMatch = line.match(/^([^,;]+)[,;](.+)$/);
+    if(sepMatch && /\d{6,}/.test(sepMatch[2])){
+      name = sepMatch[1].trim();
+      phone = sepMatch[2].trim();
+    } else {
+      phone = line;
+    }
+
+    // extrai o telefone (primeira sequência com ≥8 dígitos permitindo + - () espaço)
+    const phoneMatch = phone.match(/\+?\d[\d\s\-().]{6,}\d/);
+    if(!phoneMatch) return;
+    out.push({ name, phone: phoneMatch[0] });
+  });
+  return out;
+}
+
+/* ---------- MÉTODO 3: Colar lista ---------- */
+$('btnPaste').onclick = () => {
+  const txt = $('pasteArea').value;
+  if(!txt.trim()){
+    importLog.innerHTML = '<span class="ln err">✗ Cole algum número antes de importar.</span>';
+    return;
+  }
+  const items = parseLooseList(txt);
+  if(!items.length){
+    importLog.innerHTML = '<span class="ln err">✗ Nenhum número válido encontrado no texto.</span>';
+    return;
+  }
+  const r = addBatch(items, 'TEXTO COLADO');
+  if(r.ok) $('pasteArea').value = '';
+};
+
+/* ----------------------------------------------------------------
+   6. FORMULÁRIO MANUAL
+   ---------------------------------------------------------------- */
 const osintStatus = $('osintStatus');
 const socialPreview = $('socialPreview');
 function renderSocialPreview(data){
-  const cells = [
-    ['FB', data?.facebook],
-    ['IG', data?.instagram],
-    ['TT', data?.tiktok],
-    ['WA', data?.whatsapp]
-  ];
+  const cells = [['FB',data?.facebook],['IG',data?.instagram],['TT',data?.tiktok],['WA',data?.whatsapp]];
   socialPreview.innerHTML = cells.map(([k,v]) =>
-    `<div class="sp-item ${v ? '' : 'empty'}"><b>${k}</b>${v ? escapeHtml(v) : '—'}</div>`
-  ).join('');
+    `<div class="sp-item ${v?'':'empty'}"><b>${k}</b>${v?escapeHtml(v):'—'}</div>`).join('');
 }
 renderSocialPreview(null);
 
 $('btnOsint').onclick = async () => {
   const num = $('fNum').value.trim();
   if(num.replace(/\D/g,'').length < 8){
-    osintStatus.className = 'osint-status';
-    osintStatus.innerHTML = '⚠ Número inválido. Digite ao menos 8 dígitos.';
+    osintStatus.className = 'osint-status err';
+    osintStatus.innerHTML = '⚠ Número inválido.';
     return;
   }
   osintStatus.className = 'osint-status load';
@@ -748,12 +929,9 @@ $('btnOsint').onclick = async () => {
   speak(`Perfil sintetizado. Codinome ${data.codename}.`);
 };
 
-/* ----------------------------------------------------------------
-   5. FORMULÁRIO
-   ---------------------------------------------------------------- */
 function setFormLocation(lat, lon, label){
   formLatLng = { lat, lon };
-  $('fCoords').textContent = `📍 ${lat.toFixed(6)}, ${lon.toFixed(6)}${label ? ' · '+label : ''}`;
+  $('fCoords').textContent = `📍 ${lat.toFixed(6)}, ${lon.toFixed(6)}${label?' · '+label:''}`;
   $('fCoords').classList.add('ok');
   validateForm();
 }
@@ -782,7 +960,7 @@ $('btnSearch').onclick = async function(){
   this.textContent = '…';
   const r = await geocodeAddress(q);
   this.textContent = '🔍 IR';
-  if(!r){ alert('Endereço não encontrado. Tente ser mais específico.'); return; }
+  if(!r){ alert('Endereço não encontrado.'); return; }
   setFormLocation(r.lat, r.lon, r.name.split(',').slice(0,2).join(','));
   map.setView([r.lat, r.lon], 17);
   if(pickMarker) map.removeLayer(pickMarker);
@@ -797,7 +975,7 @@ $('btnAdd').onclick = () => {
   const t = {
     id: Date.now(),
     codename: $('fName').value.trim().toUpperCase() || lastOsintData.codename,
-    numero: $('fNum').value.trim(),
+    numero: normalizePhone($('fNum').value.trim()),
     lat: formLatLng.lat, lon: formLatLng.lon,
     socials: {
       facebook:  lastOsintData?.facebook  || '',
@@ -826,16 +1004,13 @@ $('btnAdd').onclick = () => {
   map.getContainer().style.cursor = '';
   validateForm();
   map.setView([t.lat,t.lon], 17);
-  speak(`Alvo ${t.codename} adicionado ao monitoramento.`);
+  speak(`Alvo ${t.codename} adicionado.`);
 };
 
 /* ----------------------------------------------------------------
-   6. DISTÂNCIA / RUMO
+   7. DISTÂNCIA / RUMO
    ---------------------------------------------------------------- */
-function distTo(t){
-  if(!meLatLng) return Infinity;
-  return meLatLng.distanceTo(L.latLng(t.lat,t.lon));
-}
+function distTo(t){ return meLatLng ? meLatLng.distanceTo(L.latLng(t.lat,t.lon)) : Infinity; }
 function bearingTo(t){
   if(!meLatLng) return 0;
   const φ1 = meLatLng.lat*Math.PI/180, φ2 = t.lat*Math.PI/180;
@@ -849,36 +1024,24 @@ function escapeHtml(s){
 }
 
 /* ----------------------------------------------------------------
-   7. SONAR SOBREPOSTO AO MAPA
+   8. SONAR SOBREPOSTO
    ---------------------------------------------------------------- */
-let sonarBlips = {};   // id -> elemento DOM
-
-function sonarRangeMeters(){
-  return Math.max(threshold * 3, 500);
-}
-
-/** Move o sonar para o pixel da sua posição GPS dentro do mapa */
+let sonarBlips = {};
+function sonarRangeMeters(){ return Math.max(threshold * 3, 500); }
 function positionSonar(){
   if(!meLatLng || !map) return;
   const pt = map.latLngToContainerPoint(meLatLng);
   sonarOverlay.style.left = pt.x + 'px';
   sonarOverlay.style.top  = pt.y + 'px';
 }
-
-/** Atualiza os blips dentro do disco do sonar */
 function renderSonarBlips(){
   if(!sonarOn) return;
-
   const range = sonarRangeMeters();
   sonarRangeEl.textContent = range >= 1000
-    ? (range/1000).toFixed(1).replace('.',',')+' km'
-    : range+' m';
+    ? (range/1000).toFixed(1).replace('.',',')+' km' : range+' m';
 
-  // remove órfãos
   Object.keys(sonarBlips).forEach(id => {
-    if(!targets.some(t => String(t.id) === id)){
-      sonarBlips[id].remove(); delete sonarBlips[id];
-    }
+    if(!targets.some(t => String(t.id) === id)){ sonarBlips[id].remove(); delete sonarBlips[id]; }
   });
 
   targets.forEach(t => {
@@ -886,35 +1049,30 @@ function renderSonarBlips(){
     if(!el){
       el = document.createElement('div');
       el.className = 'sblip';
-      el.dataset.label = t.codename;
       sonarDisc.appendChild(el);
       sonarBlips[t.id] = el;
     }
-
     const d = distTo(t);
     if(!isFinite(d)){ el.style.opacity = 0; return; }
     el.style.opacity = 1;
     el.dataset.label = t.codename;
 
     const brg = bearingTo(t);
-    const ratio = Math.min(d / range, 1) * 46;   // 46% = borda do disco
-    const rad = (brg - 90) * Math.PI/180;        // 0° = norte = topo
-    const x = 50 + ratio * Math.cos(rad);
-    const y = 50 + ratio * Math.sin(rad);
-    el.style.left = x + '%';
-    el.style.top  = y + '%';
-
+    const ratio = Math.min(d / range, 1) * 46;
+    const rad = (brg - 90) * Math.PI/180;
+    el.style.left = (50 + ratio * Math.cos(rad)) + '%';
+    el.style.top  = (50 + ratio * Math.sin(rad)) + '%';
     el.classList.toggle('hot', d <= threshold);
   });
 }
 
 /* ----------------------------------------------------------------
-   8. LISTA / MARCADORES
+   9. LISTA / MARCADORES
    ---------------------------------------------------------------- */
 function render(){
   $('listCount').textContent = targets.length;
   if(!targets.length){
-    listEl.innerHTML = '<div class="empty">NENHUM ALVO CADASTRADO<br>USE O PAINEL ACIMA</div>';
+    listEl.innerHTML = '<div class="empty">NENHUM ALVO<br>IMPORTE OU CADASTRE ACIMA</div>';
     return;
   }
   const sorted = [...targets].sort((a,b) => distTo(a) - distTo(b));
@@ -936,8 +1094,9 @@ function render(){
         <div class="addr">📍 ${escapeHtml(geo)}</div>
         <div class="bar"><i style="width:${barW}%"></i></div>
         <div class="acts">
-          <button class="mini" data-act="loc">🔊 FALAR LOCAL</button>
+          <button class="mini" data-act="loc">🔊 FALAR</button>
           <button class="mini" data-act="go">🗺 IR</button>
+          <button class="mini" data-act="move">📌 MOVER AQUI</button>
           <button class="mini del" data-act="del">✕ REMOVER</button>
         </div>
       </div>`;
@@ -955,6 +1114,12 @@ function render(){
         saveTargets(); updateAll();
       }
       if(btn.dataset.act==='go') map.setView([t.lat,t.lon],17);
+      if(btn.dataset.act==='move'){
+        if(!meLatLng) return alert('GPS indisponível.');
+        t.lat = meLatLng.lat; t.lon = meLatLng.lng; t._geo = null;
+        saveTargets(); updateAll(); getTargetGeo(t).then(render);
+        speak(`Alvo ${t.codename} reposicionado na sua localização.`);
+      }
       if(btn.dataset.act==='loc') speakTargetLocation(t);
     };
   });
@@ -980,20 +1145,13 @@ function mkIcon(t,hot){
     iconSize:[16,16], iconAnchor:[8,8]
   });
 }
-
-function updateAll(){
-  render();
-  renderMarkers();
-  positionSonar();
-  renderSonarBlips();
-}
+function updateAll(){ render(); renderMarkers(); positionSonar(); renderSonarBlips(); }
 
 /* ----------------------------------------------------------------
-   9. LOOP
+   10. LOOP
    ---------------------------------------------------------------- */
 setInterval(() => {
   if(!meLatLng) return;
-
   if(followGPS) map.panTo(meLatLng, { animate:true, duration:.7 });
 
   let anyHot = false;
@@ -1002,15 +1160,9 @@ setInterval(() => {
     const hot = d <= threshold;
     if(hot){
       anyHot = true;
-      if(!t._armed && Date.now() > mutedUntil){
-        t._armed = true;
-        showAlert(t,false,d);
-      }
-    } else if(d > threshold*1.25){
-      t._armed = false;
-    }
+      if(!t._armed && Date.now() > mutedUntil){ t._armed = true; showAlert(t,false,d); }
+    } else if(d > threshold*1.25){ t._armed = false; }
   });
-
   setStatus(anyHot ? 'ALVO PRÓXIMO' : 'VARRENDO', anyHot ? 'danger' : '');
   updateAll();
 }, 1200);
@@ -1022,7 +1174,7 @@ function setStatus(txt, cls){
 }
 
 /* ----------------------------------------------------------------
-   10. VOZ / ÁUDIO
+   11. VOZ / ÁUDIO
    ---------------------------------------------------------------- */
 function beep(times=3){
   if(!soundOn) return;
@@ -1031,8 +1183,7 @@ function beep(times=3){
     for(let i=0;i<times;i++){
       const t0 = audioCtx.currentTime + i*0.22;
       const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-      o.type='square';
-      o.frequency.setValueAtTime(i%2?1180:880, t0);
+      o.type='square'; o.frequency.setValueAtTime(i%2?1180:880, t0);
       o.connect(g); g.connect(audioCtx.destination);
       g.gain.setValueAtTime(0.0001,t0);
       g.gain.exponentialRampToValueAtTime(0.15,t0+0.012);
@@ -1051,8 +1202,7 @@ function speak(text){
   window.speechSynthesis.speak(u);
 }
 function fmtDist(m){
-  return m<1000 ? Math.round(m)+' metros'
-                : (m/1000).toFixed(2).replace('.',',')+' quilômetros';
+  return m<1000 ? Math.round(m)+' metros' : (m/1000).toFixed(2).replace('.',',')+' quilômetros';
 }
 async function speakTargetLocation(t){
   const d = distTo(t);
@@ -1063,7 +1213,7 @@ async function speakTargetLocation(t){
 }
 
 /* ----------------------------------------------------------------
-   11. ALERTA
+   12. ALERTA
    ---------------------------------------------------------------- */
 async function showAlert(t, manual, distOverride){
   const d = distOverride ?? distTo(t);
@@ -1103,13 +1253,12 @@ $('aMute').onclick = () => {
 };
 
 /* ----------------------------------------------------------------
-   12. CONTROLES
+   13. CONTROLES
    ---------------------------------------------------------------- */
 $('threshold').addEventListener('input', e => {
   threshold = +e.target.value;
   $('thVal').textContent = threshold >= 1000
-    ? (threshold/1000).toFixed(1).replace('.',',')+' km'
-    : threshold+' m';
+    ? (threshold/1000).toFixed(1).replace('.',',')+' km' : threshold+' m';
   if(thCircle) thCircle.setRadius(threshold);
   targets.forEach(t => { if(distTo(t) > threshold*1.25) t._armed = false; });
   updateAll();
@@ -1135,15 +1284,14 @@ $('tgTrack').onclick = function(){
   this.classList.toggle('on',followGPS);
 };
 $('tgCenter').onclick = () => {
-  if(meLatLng) map.setView(meLatLng,17);
-  else alert('GPS ainda não disponível.');
+  if(meLatLng) map.setView(meLatLng,17); else alert('GPS indisponível.');
 };
 $('tgScan').onclick = async () => {
   if(!targets.length){ speak('Nenhum alvo cadastrado.'); return; }
   beep(1);
   const sorted = [...targets].sort((a,b)=>distTo(a)-distTo(b));
   speak(`Relatório tático. ${targets.length} alvos monitorados.`);
-  for(const t of sorted){
+  for(const t of sorted.slice(0,10)){
     const g = await getTargetGeo(t);
     const d = distTo(t);
     const rua = g.road ? `na ${g.road}` : 'local não identificado';
@@ -1152,9 +1300,32 @@ $('tgScan').onclick = async () => {
     await new Promise(r => setTimeout(r,2200));
   }
 };
+$('btnClear').onclick = () => {
+  if(!targets.length) return;
+  if(!confirm('Remover TODOS os alvos?')) return;
+  targets.forEach(t => { if(t._marker) map.removeLayer(t._marker); });
+  Object.values(sonarBlips).forEach(el => el.remove());
+  sonarBlips = {};
+  targets = [];
+  saveTargets(); updateAll();
+  logImport({ok:0,dup:0,fail:0},'LIMPEZA');
+};
+$('btnExport').onclick = () => {
+  if(!targets.length) return alert('Nada para exportar.');
+  const clean = targets.map(t => ({
+    codename:t.codename, numero:t.numero, lat:t.lat, lon:t.lon,
+    endereco: t._geo ? (t._geo.road || '') : '', socials:t.socials
+  }));
+  const blob = new Blob([JSON.stringify(clean,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'sentinela7_alvos_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+};
 
 /* ----------------------------------------------------------------
-   13. PERSISTÊNCIA
+   14. PERSISTÊNCIA
    ---------------------------------------------------------------- */
 function saveTargets(){
   try{
@@ -1173,7 +1344,7 @@ function loadTargets(){
 }
 
 /* ----------------------------------------------------------------
-   14. BOOT
+   15. BOOT
    ---------------------------------------------------------------- */
 (function boot(){
   initMap();
@@ -1182,6 +1353,11 @@ function loadTargets(){
   startGPS();
   setTimeout(() => { if(!meLatLng) setStatus('SEM GPS','warn'); }, 4000);
   window.addEventListener('resize', () => { positionSonar(); renderSonarBlips(); });
+
+  // detecta suporte à Contact Picker API para exibir aviso apropriado
+  if(!('contacts' in navigator)){
+    console.info('[SENTINELA-7] Contact Picker API indisponível — use arquivo ou colar lista.');
+  }
 })();
 </script>
 </body>
