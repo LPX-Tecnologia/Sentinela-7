@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SENTINELA-7 · AGENTES + DRONE</title>
+<title>SENTINELA-7 · AGENTES + DRONE + CÂMERA AO VIVO</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
 :root{
@@ -127,6 +127,7 @@ header{
 .sonar-disc .sblip.live.hot{background:var(--danger);box-shadow:0 0 16px var(--danger), 0 0 34px var(--danger)}
 .sonar-disc .sblip.offline{background:rgba(150,150,150,.5);box-shadow:none;opacity:.5}
 .sonar-disc .sblip.drone{background:#ff00ff;box-shadow:0 0 14px #ff00ff, 0 0 30px #ff00ff;border-color:#fff}
+.sonar-disc .sblip.cam{background:#ff2d55;box-shadow:0 0 14px #ff2d55, 0 0 30px #ff2d55;border-color:#fff}
 @keyframes sonarPulse{50%{transform:scale(1.9);opacity:.75}}
 .sonar-disc .sblip::after{content:attr(data-label);position:absolute;left:14px;top:-2px;
   font-size:8.5px;letter-spacing:.12em;color:#dffcff;white-space:nowrap;
@@ -176,6 +177,8 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border:0;border-radiu
 .tg.gold:hover{background:rgba(255,179,0,.12);box-shadow:0 0 14px rgba(255,179,0,.3)}
 .tg.green{border-color:var(--ok);color:var(--ok);background:rgba(0,255,157,.08)}
 .tg.green:hover{background:rgba(0,255,157,.2);box-shadow:0 0 14px rgba(0,255,157,.4)}
+.tg.red{border-color:var(--danger);color:var(--danger)}
+.tg.red:hover{background:rgba(255,45,85,.15);box-shadow:0 0 14px rgba(255,45,85,.4)}
 .tg:active{transform:scale(.97)}
 
 .form-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
@@ -212,7 +215,7 @@ textarea{resize:vertical;min-height:80px;line-height:1.6}
 }
 .companion-item.offline .st-dot{background:rgba(150,150,150,.7);box-shadow:none}
 .companion-item .row1{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px}
-.companion-item .nm{font-size:12px;letter-spacing:.14em;color:#fff;font-weight:600;display:flex;align-items:center;gap:8px}
+.companion-item .nm{font-size:12px;letter-spacing:.14em;color:#fff;font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .companion-item .st-dot{
   width:9px;height:9px;border-radius:50%;background:var(--ok);
   box-shadow:0 0 10px var(--ok);animation:blink 1.4s infinite;flex:0 0 9px;
@@ -227,6 +230,27 @@ textarea{resize:vertical;min-height:80px;line-height:1.6}
 .companion-item .row3 b{color:var(--gold);font-weight:600}
 .companion-item .acts{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
 .companion-item .acts button{flex:1;min-width:70px}
+
+.battery-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:9px;letter-spacing:.1em;padding:3px 7px;border-radius:2px;
+  border:1px solid rgba(0,255,157,.4);background:rgba(0,255,157,.06);
+  color:#c9ffe7;
+}
+.battery-badge.low{border-color:var(--danger);background:rgba(255,45,85,.08);color:#ffd0dc}
+.battery-badge.warn{border-color:var(--gold);background:rgba(255,179,0,.08);color:#ffe6b3}
+.battery-badge b{color:#fff}
+
+.cam-live-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:8.5px;letter-spacing:.14em;padding:3px 7px;border-radius:2px;
+  border:1px solid var(--danger);background:rgba(255,45,85,.08);
+  color:#ffd0dc;
+}
+.cam-live-badge .rd{
+  width:6px;height:6px;border-radius:50%;background:var(--danger);
+  box-shadow:0 0 6px var(--danger);animation:blink 1s infinite;
+}
 
 .empty-companions{
   text-align:center;padding:18px 12px;font-size:9px;letter-spacing:.16em;
@@ -296,6 +320,10 @@ textarea{resize:vertical;min-height:80px;line-height:1.6}
   border:1px solid var(--line);background:transparent;color:rgba(0,240,255,.6);border-radius:2px;transition:.2s}
 .mini:hover{border-color:var(--neon);color:var(--neon);box-shadow:0 0 10px rgba(0,240,255,.25)}
 .mini.del:hover{border-color:var(--danger);color:var(--danger);box-shadow:0 0 10px rgba(255,45,85,.3)}
+.mini.cam{border-color:var(--danger);color:var(--danger);background:rgba(255,45,85,.08);animation:blink 1.6s infinite}
+.mini.cam:hover{background:rgba(255,45,85,.2)}
+.mini.mic{border-color:var(--gold);color:var(--gold);background:rgba(255,179,0,.06)}
+.mini.mic:hover{background:rgba(255,179,0,.2)}
 
 .empty{text-align:center;padding:22px 10px;font-size:9.5px;letter-spacing:.18em;
   color:rgba(0,240,255,.35);border:1px dashed rgba(0,240,255,.2);border-radius:2px}
@@ -343,30 +371,148 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 #companionView{
   position:fixed;inset:0;z-index:9990;display:none;
   background:radial-gradient(circle at 50% 30%, rgba(0,240,255,.15), rgba(2,6,11,.98) 60%);
-  align-items:center;justify-content:center;padding:20px;
+  align-items:center;justify-content:center;padding:20px;overflow-y:auto;
 }
 #companionView.show{display:flex}
 .companion-card{
-  width:min(420px,100%);border:1px solid var(--ok);border-radius:4px;
+  width:min(440px,100%);border:1px solid var(--ok);border-radius:4px;
   background:linear-gradient(180deg,rgba(0,255,157,.1),rgba(2,6,11,.96));
   box-shadow:0 0 60px rgba(0,255,157,.35);
-  padding:26px 22px;text-align:center;
+  padding:22px;text-align:center;margin:auto;
 }
-.companion-card h2{font-size:11px;letter-spacing:.34em;color:var(--ok);margin-bottom:16px;text-shadow:0 0 14px var(--ok)}
-.companion-card .ico{font-size:44px;margin-bottom:12px;filter:drop-shadow(0 0 12px var(--ok))}
-.companion-card .code{font-size:26px;letter-spacing:.32em;color:var(--ok);text-shadow:0 0 16px var(--ok);font-weight:800;margin:10px 0}
-.companion-card .st{font-size:11px;letter-spacing:.16em;color:#c9ffe7;margin:12px 0;line-height:1.7}
-.companion-card .sub{font-size:9px;letter-spacing:.1em;color:rgba(0,240,255,.55);line-height:1.8;margin-top:14px}
+.companion-card h2{font-size:11px;letter-spacing:.34em;color:var(--ok);margin-bottom:14px;text-shadow:0 0 14px var(--ok)}
+.companion-card .ico{font-size:40px;margin-bottom:10px;filter:drop-shadow(0 0 12px var(--ok))}
+.companion-card .code{font-size:22px;letter-spacing:.32em;color:var(--ok);text-shadow:0 0 16px var(--ok);font-weight:800;margin:8px 0}
+.companion-card .st{font-size:11px;letter-spacing:.14em;color:#c9ffe7;margin:10px 0;line-height:1.7}
+.companion-card .sub{font-size:8.5px;letter-spacing:.1em;color:rgba(0,240,255,.5);line-height:1.8;margin-top:12px}
 .companion-card .dot{
   display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);
   box-shadow:0 0 10px var(--ok);margin-right:6px;animation:blink 1.4s infinite;
 }
 .companion-card input{
   width:100%;background:rgba(0,255,157,.08);border:1px solid rgba(0,255,157,.4);
-  color:#fff;padding:11px 12px;font-family:inherit;font-size:12px;letter-spacing:.1em;
-  border-radius:2px;outline:none;text-align:center;margin-top:14px;
+  color:#fff;padding:10px 12px;font-family:inherit;font-size:12px;letter-spacing:.08em;
+  border-radius:2px;outline:none;text-align:center;margin-top:12px;
 }
-.companion-card input::placeholder{color:rgba(0,255,157,.4);letter-spacing:.14em}
+.companion-card input::placeholder{color:rgba(0,255,157,.4);letter-spacing:.12em}
+
+.battery-box{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  padding:10px;margin:12px 0;border-radius:2px;
+  border:1px solid rgba(0,255,157,.3);background:rgba(0,255,157,.05);
+  font-size:11px;letter-spacing:.1em;color:#c9ffe7;
+}
+.battery-box .lvl{font-size:18px;font-weight:800;color:var(--ok);letter-spacing:.06em}
+
+.consent-box{
+  margin:14px 0;padding:12px;border-radius:2px;
+  border:1px solid rgba(255,179,0,.35);background:rgba(255,179,0,.05);
+  text-align:left;font-size:9.5px;letter-spacing:.06em;color:rgba(255,220,150,.95);line-height:1.6;
+}
+.consent-box .ct{font-size:9px;letter-spacing:.24em;color:var(--gold);margin-bottom:8px;font-weight:700;text-shadow:0 0 8px rgba(255,179,0,.5)}
+.consent-btns{display:flex;gap:8px;margin-top:10px}
+.consent-btns button{
+  flex:1;padding:10px 8px;font-family:inherit;font-size:9.5px;letter-spacing:.12em;
+  border-radius:2px;cursor:pointer;transition:.2s;border:1px solid var(--line);
+  background:rgba(0,240,255,.03);color:rgba(0,240,255,.7);
+}
+.consent-btns button.on{color:var(--ok);border-color:var(--ok);background:rgba(0,255,157,.12);box-shadow:0 0 14px rgba(0,255,157,.3)}
+.consent-btns button.red.on{color:var(--danger);border-color:var(--danger);background:rgba(255,45,85,.12);box-shadow:0 0 14px rgba(255,45,85,.35)}
+
+.rec-indicator{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  margin-top:12px;padding:8px;border-radius:2px;
+  border:1px solid var(--danger);background:rgba(255,45,85,.08);
+  font-size:10px;letter-spacing:.22em;color:#ffd0dc;
+}
+.rec-indicator .rd{
+  width:9px;height:9px;border-radius:50%;background:var(--danger);
+  box-shadow:0 0 10px var(--danger);animation:blink .9s infinite;
+}
+
+/* ============ MODAL CÂMERA ============ */
+#camModal{
+  position:fixed;inset:0;z-index:9995;display:none;
+  background:rgba(2,6,11,.94);backdrop-filter:blur(6px);
+  align-items:center;justify-content:center;padding:20px;
+}
+#camModal.show{display:flex;animation:fadein .2s}
+.cam-modal{
+  width:min(900px,100%);max-height:92vh;
+  border:1px solid var(--danger);border-radius:4px;
+  background:linear-gradient(180deg,rgba(255,45,85,.06),rgba(2,6,11,.98));
+  box-shadow:0 0 60px rgba(255,45,85,.45);
+  overflow:hidden;display:flex;flex-direction:column;
+}
+.cam-modal-hdr{
+  display:flex;align-items:center;gap:12px;padding:12px 16px;
+  border-bottom:1px solid rgba(255,45,85,.3);background:rgba(255,45,85,.06);
+}
+.cam-modal-hdr .ttl{
+  font-size:11px;letter-spacing:.24em;color:var(--danger);font-weight:700;
+  text-shadow:0 0 12px var(--danger);flex:1;
+  display:flex;align-items:center;gap:8px;
+}
+.cam-modal-hdr .ttl .rd{
+  width:9px;height:9px;border-radius:50%;background:var(--danger);
+  box-shadow:0 0 10px var(--danger);animation:blink .9s infinite;
+}
+.cam-modal-hdr button{
+  padding:6px 12px;font-family:inherit;font-size:9px;letter-spacing:.16em;
+  border:1px solid var(--line);background:transparent;color:rgba(0,240,255,.7);
+  cursor:pointer;border-radius:2px;transition:.2s;
+}
+.cam-modal-hdr button:hover{border-color:var(--neon);color:var(--neon)}
+
+.cam-video-wrap{position:relative;flex:1;background:#000;aspect-ratio:16/9;min-height:200px}
+.cam-video-wrap video{width:100%;height:100%;object-fit:contain;display:block;background:#000}
+.cam-hud{
+  position:absolute;inset:0;pointer-events:none;z-index:5;
+}
+.cam-hud .corner{
+  position:absolute;width:20px;height:20px;
+  border:2px solid var(--danger);filter:drop-shadow(0 0 6px var(--danger));
+}
+.cam-hud .corner.tl{top:8px;left:8px;border-right:0;border-bottom:0}
+.cam-hud .corner.tr{top:8px;right:8px;border-left:0;border-bottom:0}
+.cam-hud .corner.bl{bottom:8px;left:8px;border-right:0;border-top:0}
+.cam-hud .corner.br{bottom:8px;right:8px;border-left:0;border-top:0}
+.cam-hud .crosshair{
+  position:absolute;left:50%;top:50%;width:50px;height:50px;
+  transform:translate(-50%,-50%);
+}
+.cam-hud .crosshair::before,.cam-hud .crosshair::after{
+  content:"";position:absolute;background:var(--danger);box-shadow:0 0 6px var(--danger);
+}
+.cam-hud .crosshair::before{left:50%;top:0;bottom:0;width:1px;transform:translateX(-.5px)}
+.cam-hud .crosshair::after{top:50%;left:0;right:0;height:1px;transform:translateY(-.5px)}
+.cam-hud .info{
+  position:absolute;top:10px;left:50%;transform:translateX(-50%);
+  font-size:9px;letter-spacing:.24em;color:var(--danger);
+  text-shadow:0 0 8px var(--danger);display:flex;align-items:center;gap:6px;
+}
+
+.cam-modal-ftr{
+  display:flex;gap:8px;padding:12px 16px;
+  border-top:1px solid rgba(255,45,85,.3);background:rgba(255,45,85,.04);
+  flex-wrap:wrap;
+}
+.cam-modal-ftr button{
+  flex:1;min-width:110px;
+  padding:10px;font-family:inherit;font-size:9.5px;letter-spacing:.16em;
+  border:1px solid var(--line);background:transparent;color:rgba(0,240,255,.7);
+  cursor:pointer;border-radius:2px;transition:.2s;
+}
+.cam-modal-ftr button:hover{border-color:var(--neon);color:var(--neon);box-shadow:0 0 12px rgba(0,240,255,.3)}
+.cam-modal-ftr button.rec{border-color:var(--danger);color:var(--danger)}
+.cam-modal-ftr button.rec:hover{background:rgba(255,45,85,.15);box-shadow:0 0 12px rgba(255,45,85,.35)}
+
+.cam-meta{
+  display:flex;gap:12px;padding:8px 16px;flex-wrap:wrap;
+  font-size:9px;letter-spacing:.12em;color:rgba(0,240,255,.55);
+  border-bottom:1px solid rgba(255,45,85,.15);
+}
+.cam-meta b{color:var(--gold)}
 
 /* ============ DRONE ============ */
 .drone-player{
@@ -382,8 +528,7 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 }
 .drone-player .idle .ico{font-size:44px;opacity:.35;filter:drop-shadow(0 0 10px rgba(0,240,255,.5))}
 .drone-hud{
-  position:absolute;inset:0;pointer-events:none;z-index:5;
-  display:none;
+  position:absolute;inset:0;pointer-events:none;z-index:5;display:none;
 }
 .drone-hud.on{display:block}
 .drone-hud .corner{
@@ -396,7 +541,7 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 .drone-hud .corner.br{bottom:8px;right:8px;border-left:0;border-top:0}
 .drone-hud .crosshair{
   position:absolute;left:50%;top:50%;width:60px;height:60px;
-  transform:translate(-50%,-50%);pointer-events:none;
+  transform:translate(-50%,-50%);
 }
 .drone-hud .crosshair::before,.drone-hud .crosshair::after{
   content:"";position:absolute;background:var(--neon);box-shadow:0 0 6px var(--neon);
@@ -423,6 +568,13 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
   background:linear-gradient(180deg,transparent,rgba(0,240,255,.15),transparent);
   animation:scanline 4s linear infinite;
 }
+
+/* snapshot */
+.snapshot-thumb{
+  display:none;margin-top:10px;border:1px solid var(--line);border-radius:2px;
+  max-width:200px;
+}
+.snapshot-thumb.show{display:block}
 </style>
 </head>
 <body>
@@ -432,12 +584,32 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
     <div class="ico">📡</div>
     <h2>MODO AGENTE</h2>
     <div class="code" id="cCode">— — — — — —</div>
-    <input type="text" id="cName" placeholder="Digite seu nome (ex: Tio João)" maxlength="24">
-    <div class="st" id="cStatus" style="margin-top:16px"><span class="dot"></span>Aguardando conexão…</div>
+    <input type="text" id="cName" placeholder="Digite seu nome" maxlength="24">
+    <div class="st" id="cStatus" style="margin-top:12px"><span class="dot"></span>Aguardando conexão…</div>
+
+    <div class="battery-box" id="cBatteryBox">
+      🔋 <span style="opacity:.7">BATERIA</span>
+      <span class="lvl" id="cBattery">—</span>
+    </div>
+
+    <div class="consent-box">
+      <div class="ct">◈ AUTORIZAÇÃO DE CAPTURA</div>
+      <p>
+        Se você autorizar, quem enviou o link poderá ver sua câmera e ouvir seu microfone <b>em tempo real</b>.
+        Você pode desligar a qualquer momento clicando de novo.
+      </p>
+      <div class="consent-btns">
+        <button id="cBtnCam">📷 LIGAR CÂMERA</button>
+        <button id="cBtnMic">🎤 LIGAR MICROFONE</button>
+      </div>
+      <div class="rec-indicator" id="cRecIndicator" style="display:none">
+        <span class="rd"></span>
+        <span id="cRecText">AO VIVO</span>
+      </div>
+    </div>
+
     <div class="sub">
-      Você está compartilhando sua localização.<br>
-      Para parar, feche esta aba ou revogue o GPS.<br>
-      <br>
+      Para parar tudo, feche esta aba.<br>
       🔒 Seus dados vão somente para quem enviou o link.
     </div>
   </div>
@@ -455,13 +627,13 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
     </div>
     <div class="brand">
       <h1>SENTINELA<span>-7</span></h1>
-      <p>PROTOCOLO JARDAS · AGENTES + DRONE · v1.1</p>
+      <p>PROTOCOLO JARDAS · AGENTES + DRONE + CÂMERA · v1.2</p>
     </div>
     <div class="status" id="statusTxt">INICIALIZANDO</div>
   </header>
 
   <div class="notice blue">
-    ℹ <b>DRONE:</b> cole a URL do stream (HLS/MP4/MJPEG/YouTube Live). No <b>MODO TESTE</b>, usa a câmera do seu celular para você ver o painel funcionando agora.
+    ℹ <b>CÂMERA AO VIVO:</b> o agente precisa autorizar explicitamente no link. Quando autorizar, aparece <b>🎥 CÂMERA</b> no card dele. Você poderá ver o vídeo em tempo real, ouvir o áudio e tirar snapshot.
   </div>
 
   <div class="grid">
@@ -508,7 +680,6 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 
       <div class="card">
         <h2>◈ DRONE · VISÃO AÉREA AO VIVO <em id="droneStatus">OFF</em></h2>
-
         <div class="drone-player" id="dronePlayerWrap">
           <video id="droneVideo" autoplay muted playsinline></video>
           <div class="idle" id="droneIdle">
@@ -529,30 +700,25 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
             </div>
           </div>
         </div>
-
         <div class="form-row" style="margin-bottom:8px">
           <input type="text" id="droneUrl" placeholder="URL do stream (HLS .m3u8 / MP4 / MJPEG / YouTube)">
         </div>
-
         <div class="toggles" style="margin-bottom:10px">
           <button class="tg green" id="btnDronePlay">▶ CONECTAR STREAM</button>
           <button class="tg gold" id="btnDroneTest">📷 MODO TESTE (câmera)</button>
           <button class="tg" id="btnDroneStop" style="border-color:var(--danger);color:var(--danger)">⏹ PARAR</button>
         </div>
-
         <div class="form-row" style="margin-bottom:8px">
-          <input type="text" id="droneCoords" placeholder="Lat, Lon do drone (opcional, ex: -23.55, -46.63)">
+          <input type="text" id="droneCoords" placeholder="Lat, Lon do drone (opcional)">
           <button class="tg gold" id="btnDroneSetPos" style="flex:0 0 110px">📍 POSICIONAR</button>
         </div>
-
         <div class="toggles">
           <button class="tg" id="btnDroneCenter">🎯 VER DRONE</button>
           <button class="tg on" id="tgDroneTrack">📍 SEGUIR DRONE</button>
           <button class="tg on" id="tgDroneFacing">🎥 DIREÇÃO DO VOO</button>
         </div>
-
         <div class="hint">
-          <b>Como funciona:</b> a maioria dos drones (DJI etc.) transmite por rádio para o controle — não vai direto pra internet. Para o navegador ver, o drone precisa transmitir em RTMP para um serviço (YouTube Live, Restream, nginx-rtmp) que devolve uma URL <code>.m3u8</code>. Cole essa URL acima. Use <b>MODO TESTE</b> para ver o painel funcionando com a câmera do celular.
+          <b>Como funciona:</b> a maioria dos drones transmite por rádio para o controle. Para o navegador ver, o drone precisa transmitir em RTMP para um serviço (YouTube Live, Restream, nginx-rtmp) que devolve uma URL <code>.m3u8</code>. Use <b>MODO TESTE</b> para ver o painel com a câmera do celular.
         </div>
       </div>
     </div>
@@ -560,16 +726,14 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
     <div>
       <div class="card">
         <h2>◈ GERAR LINK DE AUTORIZAÇÃO <em id="shareStatus">OFF</em></h2>
-
         <div id="shareStart">
           <p style="font-size:9.5px;letter-spacing:.06em;color:rgba(0,240,255,.6);line-height:1.7;margin-bottom:10px">
-            Gere o link, envie para quem vai compartilhar. Ele abre, digita o nome, autoriza o GPS — e fica <b>salvo aqui automaticamente</b>.
+            Gere o link, envie para quem vai compartilhar. Ele abre, digita o nome, autoriza o GPS — e fica <b>salvo aqui automaticamente</b>. Se ele quiser, pode também autorizar <b>câmera e microfone</b>.
           </p>
           <button class="btn-import" id="btnCreateShare" style="border-color:var(--ok);color:var(--ok);background:rgba(0,255,157,.1)">
             🔗 CRIAR LINK DE AUTORIZAÇÃO
           </button>
         </div>
-
         <div id="shareActive" style="display:none">
           <div class="share-code" id="shareCode">— — — — — —</div>
           <div class="share-hint">Envie este link para quem vai compartilhar:</div>
@@ -588,7 +752,7 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
         <h2>◈ AGENTES <em id="compCount">0</em></h2>
         <div id="compList"></div>
         <div class="hint" style="margin-top:10px">
-          🟢 online · ⚪ offline · 🟣 drone
+          🟢 online · ⚪ offline · 🎥 câmera ativa · 🔋 bateria
         </div>
       </div>
 
@@ -671,16 +835,47 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
   </div>
 </div>
 
+<div id="camModal">
+  <div class="cam-modal">
+    <div class="cam-modal-hdr">
+      <div class="ttl"><span class="rd"></span><span id="camModalTitle">CÂMERA · AGENTE</span></div>
+      <button id="camModalFull">⛶ TELA CHEIA</button>
+      <button id="camModalClose">✕ FECHAR</button>
+    </div>
+    <div class="cam-meta" id="camModalMeta">
+      <span>◈ <b id="camModalBattery">—</b></span>
+      <span>◈ <b id="camModalDist">—</b></span>
+      <span>◈ <b id="camModalSince">—</b></span>
+    </div>
+    <div class="cam-video-wrap">
+      <video id="camModalVideo" autoplay playsinline muted></video>
+      <div class="cam-hud">
+        <div class="corner tl"></div>
+        <div class="corner tr"></div>
+        <div class="corner bl"></div>
+        <div class="corner br"></div>
+        <div class="crosshair"></div>
+        <div class="info"><span class="rd" style="width:8px;height:8px;border-radius:50%;background:var(--danger);box-shadow:0 0 8px var(--danger);animation:blink 1s infinite"></span>AO VIVO · TEMPO REAL</div>
+      </div>
+    </div>
+    <div class="cam-modal-ftr">
+      <button class="rec" id="camSnapshot">📸 SNAPSHOT</button>
+      <button id="camToggleMute">🔇 MUDO</button>
+      <button id="camToggleMic">🎤 OUVIR ÁUDIO</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js"></script>
 <script>
 /* =================================================================
-   SENTINELA-7 v1.1 — AGENTES + DRONE
+   SENTINELA-7 v1.2
    ================================================================= */
 
-const STORAGE_KEY   = 'sentinela7.targets.v11';
-const COMP_KEY      = 'sentinela7.agents.v11';
+const STORAGE_KEY   = 'sentinela7.targets.v12';
+const COMP_KEY      = 'sentinela7.agents.v12';
 const BASE_KEY      = 'sentinela7.homebase';
 const DRONE_KEY     = 'sentinela7.drone';
 const GEO_TTL       = 10 * 60 * 1000;
@@ -699,13 +894,16 @@ let gpsWatchId = null;
 
 /* DRONE */
 let droneMarker = null;
-let droneBlip = null;
 let droneLatLng = null;
 let droneHls = null;
 let droneStream = null;
 let droneFollow = true;
 let droneFacing = true;
-let droneHeading = 0;
+
+/* CÂMERA REMOTA */
+const agentMedia = {}; // peerId -> { camStream, micStream, camCall, micCall, audioEl, batteryHistory }
+let camModalAgent = null;
+let camModalAudioOn = false;
 
 const $ = id => document.getElementById(id);
 const overlay = $('overlay');
@@ -734,18 +932,129 @@ const sonarRangeEl = $('sonarRange');
   const peer = new Peer({ debug:0 });
   let conn = null;
   let nomeAtual = savedName || '';
+  let batteryObj = null;
+  let camStream = null, micStream = null;
+  let camCall = null, micCall = null;
 
+  /* Nome */
   $('cName').addEventListener('input', e => {
     nomeAtual = e.target.value.trim().slice(0,24);
     localStorage.setItem('sentinela7.myname', nomeAtual);
     if(conn && conn.open) conn.send({ type:'hello', name: nomeAtual });
   });
 
+  /* Bateria */
+  async function initBattery(){
+    if(!('getBattery' in navigator)){
+      $('cBattery').textContent = 'N/D';
+      return;
+    }
+    try{
+      batteryObj = await navigator.getBattery();
+      updateBatteryUI();
+      batteryObj.addEventListener('levelchange', updateBatteryUI);
+      batteryObj.addEventListener('chargingchange', updateBatteryUI);
+      setInterval(sendBattery, 30000);
+      sendBattery();
+    }catch(e){
+      $('cBattery').textContent = 'N/D';
+    }
+  }
+  function updateBatteryUI(){
+    if(!batteryObj) return;
+    const pct = Math.round(batteryObj.level * 100);
+    const charging = batteryObj.charging ? ' ⚡' : '';
+    $('cBattery').textContent = pct + '%' + charging;
+  }
+  function sendBattery(){
+    if(!conn || !conn.open || !batteryObj) return;
+    conn.send({
+      type: 'battery',
+      level: batteryObj.level,
+      charging: batteryObj.charging,
+      ts: Date.now()
+    });
+  }
+
+  /* Indicador REC */
+  function updateRecIndicator(){
+    const on = !!(camStream || micStream);
+    const el = $('cRecIndicator');
+    if(on){
+      el.style.display = 'flex';
+      let txt = [];
+      if(camStream) txt.push('CÂMERA');
+      if(micStream) txt.push('MICROFONE');
+      $('cRecText').textContent = 'AO VIVO · ' + txt.join(' + ');
+    } else {
+      el.style.display = 'none';
+    }
+  }
+
+  /* Câmera */
+  async function startCamera(){
+    if(camStream) return;
+    try{
+      camStream = await navigator.mediaDevices.getUserMedia({
+        video: { width:{ ideal:640 }, height:{ ideal:480 }, frameRate:{ ideal:15 } },
+        audio: false
+      });
+      const mainId = 'sentinela-' + code;
+      camCall = peer.call(mainId, camStream, {
+        metadata: { type:'camera', peerId: peer.id, name: nomeAtual }
+      });
+      $('cBtnCam').classList.add('on');
+      $('cBtnCam').textContent = '📷 CÂMERA ATIVA';
+      updateRecIndicator();
+    }catch(e){
+      alert('Não consegui acessar a câmera. Permita o acesso no cadeado 🔒.\n\nDetalhe: ' + e.message);
+    }
+  }
+  function stopCamera(){
+    if(camStream){ camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+    if(camCall){ try{ camCall.close(); }catch(e){} camCall = null; }
+    $('cBtnCam').classList.remove('on');
+    $('cBtnCam').textContent = '📷 LIGAR CÂMERA';
+    updateRecIndicator();
+  }
+
+  /* Microfone */
+  async function startMic(){
+    if(micStream) return;
+    try{
+      micStream = await navigator.mediaDevices.getUserMedia({
+        video: false,
+        audio: { echoCancellation:true, noiseSuppression:true }
+      });
+      const mainId = 'sentinela-' + code;
+      micCall = peer.call(mainId, micStream, {
+        metadata: { type:'audio', peerId: peer.id, name: nomeAtual }
+      });
+      $('cBtnMic').classList.add('on');
+      $('cBtnMic').textContent = '🎤 MIC ATIVO';
+      updateRecIndicator();
+    }catch(e){
+      alert('Não consegui acessar o microfone. Permita o acesso no cadeado 🔒.\n\nDetalhe: ' + e.message);
+    }
+  }
+  function stopMic(){
+    if(micStream){ micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+    if(micCall){ try{ micCall.close(); }catch(e){} micCall = null; }
+    $('cBtnMic').classList.remove('on');
+    $('cBtnMic').textContent = '🎤 LIGAR MICROFONE';
+    updateRecIndicator();
+  }
+
+  $('cBtnCam').onclick = () => camStream ? stopCamera() : startCamera();
+  $('cBtnMic').onclick = () => micStream ? stopMic() : startMic();
+
   peer.on('open', () => {
     conn = peer.connect('sentinela-' + code, { reliable:true });
     conn.on('open', () => {
       $('cStatus').innerHTML = '<span class="dot"></span>Conectado · aguardando GPS…';
       if(nomeAtual) conn.send({ type:'hello', name: nomeAtual });
+      initBattery();
+
       if(!('geolocation' in navigator)){
         $('cStatus').innerHTML = '<span class="dot" style="background:#ff2d55"></span>GPS não suportado';
         return;
@@ -773,12 +1082,13 @@ const sonarRangeEl = $('sonarRange');
     conn.on('close', () => {
       $('cStatus').innerHTML = '<span class="dot" style="background:#ffb300"></span>Conexão encerrada';
     });
-    conn.on('error', err => {
-      $('cStatus').innerHTML = '<span class="dot" style="background:#ff2d55"></span>Erro: ' + (err.type || 'conexão');
-    });
   });
   peer.on('error', err => {
     $('cStatus').innerHTML = '<span class="dot" style="background:#ff2d55"></span>Erro: ' + (err.type || 'conexão');
+  });
+
+  window.addEventListener('beforeunload', () => {
+    stopCamera(); stopMic();
   });
 })();
 
@@ -882,7 +1192,14 @@ function loadCompanions(){
     const s = localStorage.getItem(COMP_KEY);
     if(s){
       companions = JSON.parse(s);
-      Object.keys(companions).forEach(k => { companions[k].online = false; });
+      Object.keys(companions).forEach(k => {
+        companions[k].online = false;
+        companions[k].camActive = false;
+        companions[k].micActive = false;
+        companions[k].camCall = null;
+        companions[k].micCall = null;
+        companions[k].batteryHistory = companions[k].batteryHistory || [];
+      });
     }
   }catch(e){ companions = {}; }
 }
@@ -895,7 +1212,11 @@ function saveCompanions(){
         code: c.code, name: c.name,
         lastLat: c.lastLat, lastLng: c.lastLng,
         lastTs:  c.lastTs, lastAcc: c.lastAcc,
-        positions: (c.positions || []).slice(-30)
+        positions: (c.positions || []).slice(-30),
+        batteryLevel: c.batteryLevel,
+        batteryCharging: c.batteryCharging,
+        batteryTs: c.batteryTs,
+        batteryHistory: (c.batteryHistory || []).slice(-20)
       };
     });
     localStorage.setItem(COMP_KEY, JSON.stringify(clean));
@@ -909,7 +1230,12 @@ function getOrCreateCompanion(peerId, nameFromCompanion){
       name: nameFromCompanion || ('AGENTE-' + peerId.slice(-4).toUpperCase()),
       lastLat: null, lastLng: null, lastTs: 0, lastAcc: null,
       positions: [], online: false, marker: null, blip: null,
-      _alerted: false, _new: true
+      _alerted: false, _new: true,
+      batteryLevel: null, batteryCharging: null, batteryTs: 0,
+      batteryHistory: [],
+      camActive: false, micActive: false,
+      camCall: null, micCall: null,
+      _camSince: 0
     };
     companions[peerId] = c;
     saveCompanions();
@@ -952,7 +1278,66 @@ function startHosting(){
     conn.on('data', data => handleShareData(conn.peer, data));
     conn.on('close', () => {
       const c = companions[conn.peer];
-      if(c){ c.online = false; saveCompanions(); renderCompanions(); renderSonarBlips(); renderMarkers(); }
+      if(c){
+        c.online = false;
+        c.camActive = false; c.micActive = false;
+        if(c.camCall){ try{ c.camCall.close(); }catch(e){} c.camCall = null; }
+        if(c.micCall){ try{ c.micCall.close(); }catch(e){} c.micCall = null; }
+        saveCompanions(); renderCompanions(); renderSonarBlips(); renderMarkers();
+      }
+    });
+  });
+
+  /* CHAMADAS DE MÍDIA (câmera / mic) */
+  hostPeer.on('call', call => {
+    const meta = call.metadata || {};
+    const agentId = meta.peerId;
+    if(!agentId){ try{ call.close(); }catch(e){} return; }
+
+    const c = getOrCreateCompanion(agentId, meta.name);
+
+    call.answer(); // sem stream de volta
+    call.on('stream', stream => {
+      if(meta.type === 'camera'){
+        c.camCall = call;
+        c.camStream = stream;
+        c.camActive = true;
+        c._camSince = Date.now();
+        saveCompanions();
+        renderCompanions();
+        renderSonarBlips();
+        speak(`${c.name} ligou a câmera.`);
+        // Se o modal está aberto para esse agente, anexa
+        if(camModalAgent === agentId){
+          $('camModalVideo').srcObject = stream;
+          $('camModalVideo').play().catch(()=>{});
+        }
+      }
+      if(meta.type === 'audio'){
+        c.micCall = call;
+        c.micStream = stream;
+        c.micActive = true;
+        saveCompanions();
+        renderCompanions();
+        // Cria elemento de áudio
+        try{
+          const audio = new Audio();
+          audio.srcObject = stream;
+          audio.autoplay = true;
+          audio.muted = !camModalAudioOn || camModalAgent !== agentId;
+          c.audioEl = audio;
+        }catch(e){}
+        speak(`${c.name} ligou o microfone.`);
+      }
+    });
+
+    call.on('close', () => {
+      if(meta.type === 'camera'){ c.camActive = false; c.camStream = null; c.camCall = null; }
+      if(meta.type === 'audio'){ c.micActive = false; c.micStream = null; c.micCall = null; if(c.audioEl){ try{ c.audioEl.pause(); }catch(e){} c.audioEl = null; } }
+      saveCompanions(); renderCompanions(); renderSonarBlips();
+      if(camModalAgent === agentId && !c.camActive){
+        closeCamModal();
+      }
     });
   });
 
@@ -966,7 +1351,11 @@ function stopHosting(){
   Object.keys(companions).forEach(k => {
     const c = companions[k];
     c.online = false;
+    c.camActive = false; c.micActive = false;
     if(c.marker){ map.removeLayer(c.marker); c.marker = null; }
+    if(c.camCall){ try{ c.camCall.close(); }catch(e){} c.camCall = null; }
+    if(c.micCall){ try{ c.micCall.close(); }catch(e){} c.micCall = null; }
+    if(c.audioEl){ try{ c.audioEl.pause(); }catch(e){} c.audioEl = null; }
   });
   saveCompanions();
   myShareCode = null;
@@ -979,12 +1368,28 @@ function stopHosting(){
 
 function handleShareData(peerId, data){
   if(!data) return;
+
   if(data.type === 'hello'){
     const c = getOrCreateCompanion(peerId, data.name);
     if(data.name) c.name = data.name.trim().slice(0,24);
     saveCompanions(); renderCompanions(); renderSonarBlips(); renderMarkers();
     return;
   }
+
+  if(data.type === 'battery'){
+    const c = getOrCreateCompanion(peerId);
+    c.batteryLevel = data.level;
+    c.batteryCharging = data.charging;
+    c.batteryTs = data.ts;
+    c.batteryHistory = c.batteryHistory || [];
+    c.batteryHistory.push({ level: data.level, ts: data.ts });
+    if(c.batteryHistory.length > 20) c.batteryHistory.shift();
+    saveCompanions();
+    renderCompanions();
+    if(camModalAgent === peerId) updateCamModalMeta();
+    return;
+  }
+
   if(data.type !== 'pos') return;
 
   const now = Date.now();
@@ -1004,6 +1409,7 @@ function handleShareData(peerId, data){
   if(c.positions.length > 60) c.positions.shift();
 
   saveCompanions(); renderCompanions(); renderSonarBlips(); renderMarkers();
+  if(camModalAgent === peerId) updateCamModalMeta();
 }
 
 function removeCompanion(peerId){
@@ -1011,7 +1417,11 @@ function removeCompanion(peerId){
   if(!c) return;
   if(c.marker) map.removeLayer(c.marker);
   if(c.blip) c.blip.remove();
+  if(c.camCall){ try{ c.camCall.close(); }catch(e){} }
+  if(c.micCall){ try{ c.micCall.close(); }catch(e){} }
+  if(c.audioEl){ try{ c.audioEl.pause(); }catch(e){} }
   delete companions[peerId];
+  if(camModalAgent === peerId) closeCamModal();
   saveCompanions(); updateAll();
 }
 
@@ -1020,6 +1430,38 @@ function renameCompanion(peerId){
   if(!c) return;
   const novo = prompt('Novo nome para este agente:', c.name);
   if(novo && novo.trim()){ c.name = novo.trim().slice(0,24); saveCompanions(); updateAll(); }
+}
+
+/* Bateria: tempo restante estimado */
+function estimateBatteryRemaining(c){
+  if(!c.batteryHistory || c.batteryHistory.length < 3) return null;
+  if(c.batteryCharging) return 'carregando';
+  const now = Date.now();
+  const recent = c.batteryHistory.filter(h => now - h.ts < 30 * 60 * 1000);
+  if(recent.length < 2) return null;
+  const first = recent[0], last = recent[recent.length-1];
+  const dtHours = (last.ts - first.ts) / 3600000;
+  if(dtHours < 0.05) return null;
+  const dLevel = last.level - first.level;
+  if(dLevel >= 0) return null;
+  const rate = Math.abs(dLevel) / dtHours;
+  if(rate < 0.0001) return null;
+  const hours = last.level / rate;
+  if(hours > 48) return null;
+  const h = Math.floor(hours);
+  const m = Math.round((hours - h) * 60);
+  if(h === 0) return `${m}min`;
+  return `${h}h${String(m).padStart(2,'0')}`;
+}
+
+function batteryBadgeHTML(c){
+  if(c.batteryLevel == null) return '';
+  const pct = Math.round(c.batteryLevel * 100);
+  const cls = pct <= 15 ? 'low' : pct <= 30 ? 'warn' : '';
+  const charging = c.batteryCharging ? ' ⚡' : '';
+  const eta = estimateBatteryRemaining(c);
+  const etaTxt = eta ? ` · ${eta}` : '';
+  return `<span class="battery-badge ${cls}">🔋 <b>${pct}%${charging}</b>${etaTxt}</span>`;
 }
 
 function renderCompanions(){
@@ -1053,18 +1495,40 @@ function renderCompanions(){
     const badge = c.online ? '🟢 AO VIVO' : '⚪ OFFLINE';
     const ultimaPosTxt = c.lastLat != null ? `${c.lastLat.toFixed(5)}, ${c.lastLng.toFixed(5)}` : 'sem posição';
 
+    const camBadge = c.camActive
+      ? `<span class="cam-live-badge"><span class="rd"></span>CÂMERA</span>`
+      : '';
+    const micBadge = c.micActive
+      ? `<span class="cam-live-badge" style="border-color:var(--gold);color:#ffe6b3"><span class="rd" style="background:var(--gold);box-shadow:0 0 6px var(--gold)"></span>MIC</span>`
+      : '';
+
+    const camBtn = c.camActive
+      ? `<button class="mini cam" data-act="viewcam">🎥 VER CÂMERA</button>`
+      : '';
+    const micBtn = c.micActive
+      ? `<button class="mini mic" data-act="listen">🎤 OUVIR</button>`
+      : '';
+
     return `
       <div class="companion-item ${statusCls}" data-id="${k}">
         <div class="row1">
-          <div class="nm"><span class="st-dot"></span>${escapeHtml(c.name)}</div>
+          <div class="nm">
+            <span class="st-dot"></span>
+            ${escapeHtml(c.name)}
+            ${camBadge}${micBadge}
+          </div>
           <div class="badge">${badge}</div>
         </div>
         <div class="row2">📍 <b>${dTxt}</b> · atualizado há <b>${tempoTxt}</b>${c.lastAcc ? ' · ±'+Math.round(c.lastAcc)+'m' : ''}</div>
-        <div class="row3">Código: <b>${c.code}</b> · Última: ${ultimaPosTxt}</div>
+        <div class="row3">
+          ${batteryBadgeHTML(c)}
+          <span style="margin-left:8px">Código: <b>${c.code}</b></span>
+        </div>
         <div class="acts">
           <button class="mini" data-act="center">🎯 CENTRALIZAR</button>
           <button class="mini" data-act="rename">✏ RENOMEAR</button>
-          <button class="mini" data-act="speak">🔊 FALAR</button>
+          ${camBtn}
+          ${micBtn}
           <button class="mini del" data-act="del">✕ REMOVER</button>
         </div>
       </div>`;
@@ -1080,14 +1544,124 @@ function renderCompanions(){
       if(act === 'center' && c.lastLat != null) map.setView([c.lastLat, c.lastLng], 17);
       if(act === 'rename') renameCompanion(k);
       if(act === 'del' && confirm(`Remover agente ${c.name} permanentemente?`)) removeCompanion(k);
-      if(act === 'speak'){
-        const d = (c.lastLat && meLatLng) ? meLatLng.distanceTo(L.latLng(c.lastLat, c.lastLng)) : null;
-        const dTxt = d == null ? 'distância desconhecida' : (d < 1000 ? Math.round(d)+' metros' : (d/1000).toFixed(2).replace('.',',')+' quilômetros');
-        speak(`${c.name}, ${dTxt}.`);
+      if(act === 'viewcam') openCamModal(k);
+      if(act === 'listen'){
+        // ativa áudio do agente e abre o modal também para controle
+        camModalAudioOn = true;
+        openCamModal(k);
+        // se já existe audioEl, desmuta
+        if(c.audioEl){ c.audioEl.muted = false; c.audioEl.play().catch(()=>{}); }
       }
     };
   });
 }
+
+/* ================================================================
+   MODAL CÂMERA
+   ================================================================ */
+function openCamModal(agentId){
+  const c = companions[agentId];
+  if(!c) return;
+  camModalAgent = agentId;
+  $('camModal').classList.add('show');
+  $('camModalTitle').textContent = `CÂMERA · ${c.name}`;
+  const v = $('camModalVideo');
+  if(c.camStream){
+    v.srcObject = c.camStream;
+    v.muted = !camModalAudioOn;
+    v.play().catch(()=>{});
+  } else {
+    v.srcObject = null;
+  }
+  updateCamModalMeta();
+  updateCamMuteBtn();
+  updateCamMicBtn();
+}
+function closeCamModal(){
+  camModalAgent = null;
+  $('camModal').classList.remove('show');
+  const v = $('camModalVideo');
+  try{ v.srcObject = null; }catch(e){}
+  // Se houver audioEl ativo, mantém tocando mas mudo
+  Object.values(companions).forEach(c => {
+    if(c.audioEl){ c.audioEl.muted = true; }
+  });
+  camModalAudioOn = false;
+}
+function updateCamModalMeta(){
+  if(!camModalAgent) return;
+  const c = companions[camModalAgent];
+  if(!c) return;
+  const d = (c.lastLat && meLatLng) ? meLatLng.distanceTo(L.latLng(c.lastLat, c.lastLng)) : null;
+  const dTxt = d == null ? '—' : (d < 1000 ? Math.round(d)+' m' : (d/1000).toFixed(2)+' km');
+  $('camModalBattery').textContent = c.batteryLevel != null
+    ? Math.round(c.batteryLevel*100) + '%' + (c.batteryCharging ? ' ⚡' : '')
+    : '—';
+  $('camModalDist').textContent = dTxt;
+  if(c._camSince){
+    const s = Math.floor((Date.now() - c._camSince)/1000);
+    const m = Math.floor(s/60);
+    const ss = s%60;
+    $('camModalSince').textContent = m + 'min ' + String(ss).padStart(2,'0') + 's';
+  } else {
+    $('camModalSince').textContent = '—';
+  }
+}
+setInterval(updateCamModalMeta, 2000);
+
+function updateCamMuteBtn(){
+  const b = $('camToggleMute');
+  b.textContent = camModalAudioOn ? '🔊 SOM ON' : '🔇 MUDO';
+}
+function updateCamMicBtn(){
+  const b = $('camToggleMic');
+  if(!camModalAgent) return;
+  const c = companions[camModalAgent];
+  b.textContent = c && c.micActive ? (camModalAudioOn ? '🎤 OUVINDO' : '🎤 OUVIR ÁUDIO') : '🎤 SEM MIC';
+  b.disabled = !(c && c.micActive);
+  b.style.opacity = b.disabled ? .4 : 1;
+}
+
+$('camModalClose').onclick = closeCamModal;
+$('camModalFull').onclick = () => {
+  const el = $('camModal');
+  if(document.fullscreenElement) document.exitFullscreen();
+  else el.requestFullscreen && el.requestFullscreen();
+};
+$('camToggleMute').onclick = () => {
+  camModalAudioOn = !camModalAudioOn;
+  if(camModalAgent){
+    const c = companions[camModalAgent];
+    if(c && c.audioEl){
+      c.audioEl.muted = !camModalAudioOn;
+      if(camModalAudioOn) c.audioEl.play().catch(()=>{});
+    }
+    const v = $('camModalVideo');
+    v.muted = !camModalAudioOn;
+  }
+  updateCamMuteBtn();
+  updateCamMicBtn();
+};
+$('camToggleMic').onclick = () => {
+  if(!camModalAgent) return;
+  camModalAudioOn = true;
+  const c = companions[camModalAgent];
+  if(c && c.audioEl){ c.audioEl.muted = false; c.audioEl.play().catch(()=>{}); }
+  updateCamMuteBtn();
+  updateCamMicBtn();
+};
+$('camSnapshot').onclick = () => {
+  const v = $('camModalVideo');
+  if(!v.videoWidth){ alert('Sem vídeo para capturar.'); return; }
+  const canvas = document.createElement('canvas');
+  canvas.width = v.videoWidth;
+  canvas.height = v.videoHeight;
+  canvas.getContext('2d').drawImage(v, 0, 0);
+  const a = document.createElement('a');
+  a.download = `snapshot_${camModalAgent}_${Date.now()}.png`;
+  a.href = canvas.toDataURL('image/png');
+  a.click();
+};
 
 /* ================================================================
    PROXIMIDADE
@@ -1198,37 +1772,29 @@ function setDroneStatus(txt, cls){
   el.textContent = txt;
   el.style.color = cls === 'on' ? 'var(--ok)' : cls === 'warn' ? 'var(--gold)' : cls === 'danger' ? 'var(--danger)' : 'rgba(0,240,255,.4)';
 }
-
 function setHud(on){
   $('droneHud').classList.toggle('on', !!on);
   $('droneIdle').style.display = on ? 'none' : 'flex';
 }
-
 function stopDrone(){
   try{ if(droneHls){ droneHls.destroy(); droneHls = null; } }catch(e){}
   try{
-    if(droneStream){
-      droneStream.getTracks().forEach(t => t.stop());
-      droneStream = null;
-    }
+    if(droneStream){ droneStream.getTracks().forEach(t => t.stop()); droneStream = null; }
   }catch(e){}
   const v = $('droneVideo');
   try{ v.pause(); v.srcObject = null; v.removeAttribute('src'); v.load(); }catch(e){}
   setHud(false);
   setDroneStatus('OFF', 'off');
 }
-
 async function playStream(url){
   stopDrone();
   const v = $('droneVideo');
   setDroneStatus('CONECTANDO…', 'warn');
   $('droneTcSource').textContent = 'STREAM';
 
-  // YouTube
   const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/live\/)([A-Za-z0-9_-]+)/);
   if(ytMatch){
     const vid = ytMatch[1];
-    // Embed via iframe substitui o <video>
     const wrap = $('dronePlayerWrap');
     let frame = document.getElementById('droneYT');
     if(!frame){
@@ -1250,7 +1816,6 @@ async function playStream(url){
   const oldYT = document.getElementById('droneYT');
   if(oldYT) oldYT.remove();
 
-  // HLS
   if(url.match(/\.m3u8(\?|$)/i) || url.includes('.m3u8')){
     if(window.Hls && Hls.isSupported()){
       droneHls = new Hls({ lowLatencyMode:true });
@@ -1279,7 +1844,6 @@ async function playStream(url){
     return;
   }
 
-  // MP4 / WebM / MJPEG direto
   v.src = url;
   v.play().then(() => {
     setHud(true);
@@ -1287,10 +1851,8 @@ async function playStream(url){
     startDroneClock();
   }).catch(err => {
     setDroneStatus('ERRO STREAM', 'danger');
-    console.warn('[DRONE]', err);
   });
 }
-
 async function startTestCamera(){
   stopDrone();
   setDroneStatus('ABRINDO CÂMERA…', 'warn');
@@ -1311,10 +1873,9 @@ async function startTestCamera(){
     startDroneClock();
   }catch(err){
     setDroneStatus('CÂMERA NEGADA', 'danger');
-    alert('Não consegui acessar a câmera. Permita o acesso no cadeado 🔒 da barra de endereço.\n\nDetalhe: ' + err.message);
+    alert('Não consegui acessar a câmera. Permita no cadeado 🔒.\n\nDetalhe: ' + err.message);
   }
 }
-
 let droneClockTimer = null;
 function startDroneClock(){
   if(droneClockTimer) clearInterval(droneClockTimer);
@@ -1329,8 +1890,6 @@ function startDroneClock(){
   upd();
   droneClockTimer = setInterval(upd, 1000);
 }
-
-/* Marcador do drone */
 function droneIcon(){
   return L.divIcon({
     className:'',
@@ -1338,79 +1897,57 @@ function droneIcon(){
     iconSize:[16,16], iconAnchor:[8,8]
   });
 }
-
 function setDronePosition(lat, lon, label){
   droneLatLng = L.latLng(lat, lon);
-
   if(!droneMarker){
     droneMarker = L.marker(droneLatLng, { icon:droneIcon(), zIndexOffset:900 }).addTo(map);
-    droneMarker.on('click', () => {
-      const d = meLatLng ? meLatLng.distanceTo(droneLatLng) : null;
-      speak(`Drone ${d != null ? `a ${Math.round(d)} metros` : 'posicionado'}.`);
-    });
   } else {
     droneMarker.setLatLng(droneLatLng);
   }
-
   if(label) $('droneTcSource').textContent = label;
-
   if(droneFollow && map) map.setView(droneLatLng, Math.max(map.getZoom(), 17));
-
   saveDrone();
   renderSonarBlips();
   renderMarkers();
 }
-
 function saveDrone(){
   try{
     if(droneLatLng){
-      localStorage.setItem(DRONE_KEY, JSON.stringify({
-        lat: droneLatLng.lat, lon: droneLatLng.lng
-      }));
+      localStorage.setItem(DRONE_KEY, JSON.stringify({ lat: droneLatLng.lat, lon: droneLatLng.lng }));
     }
   }catch(e){}
 }
-
 function loadDrone(){
   try{
     const s = localStorage.getItem(DRONE_KEY);
-    if(s){
-      const d = JSON.parse(s);
-      droneLatLng = L.latLng(d.lat, d.lon);
-    }
+    if(s){ const d = JSON.parse(s); droneLatLng = L.latLng(d.lat, d.lon); }
   }catch(e){}
 }
-
-/* Botões drone */
 $('btnDronePlay').onclick = () => {
   const url = $('droneUrl').value.trim();
-  if(!url){ alert('Cole a URL do stream (HLS, MP4, MJPEG ou YouTube Live).'); return; }
+  if(!url){ alert('Cole a URL do stream.'); return; }
   playStream(url);
 };
 $('btnDroneTest').onclick = startTestCamera;
 $('btnDroneStop').onclick = stopDrone;
-
 $('btnDroneSetPos').onclick = () => {
   const raw = $('droneCoords').value.trim();
-  if(!raw){ alert('Cole coordenadas no formato: -23.5505, -46.6333'); return; }
+  if(!raw){ alert('Cole coordenadas: -23.5505, -46.6333'); return; }
   const m = raw.match(/(-?\d+(?:\.\d+)?)[^\d\-]+(-?\d+(?:\.\d+)?)/);
-  if(!m){ alert('Formato inválido. Use: -23.5505, -46.6333'); return; }
+  if(!m){ alert('Formato inválido.'); return; }
   const lat = parseFloat(m[1]), lon = parseFloat(m[2]);
   if(isNaN(lat) || isNaN(lon)){ alert('Números inválidos.'); return; }
   setDronePosition(lat, lon, 'POSIÇÃO MANUAL');
   speak('Posição do drone atualizada.');
 };
-
 $('btnDroneCenter').onclick = () => {
   if(droneLatLng) map.setView(droneLatLng, Math.max(map.getZoom(), 17));
-  else alert('Drone não posicionado ainda.');
+  else alert('Drone não posicionado.');
 };
-
 $('tgDroneTrack').onclick = function(){
   droneFollow = !droneFollow;
   this.classList.toggle('on', droneFollow);
 };
-
 $('tgDroneFacing').onclick = function(){
   droneFacing = !droneFacing;
   this.classList.toggle('on', droneFacing);
@@ -1426,7 +1963,6 @@ function initMap(){
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{
     maxZoom:19, attribution:'&copy; Esri, Maxar, Earthstar Geographics'
   }).addTo(map);
-
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{
     maxZoom:19, opacity:.7
   }).addTo(map);
@@ -1474,9 +2010,7 @@ function startGPS(){
   $('myAddr').textContent = 'Aguardando permissão…';
 
   let gotFirstFix = false;
-  const fallbackTimer = setTimeout(() => {
-    if(!gotFirstFix){ ipFallback(); }
-  }, 8000);
+  const fallbackTimer = setTimeout(() => { if(!gotFirstFix){ ipFallback(); } }, 8000);
 
   try{ if(gpsWatchId != null) navigator.geolocation.clearWatch(gpsWatchId); }catch(e){}
 
@@ -1517,7 +2051,6 @@ function startGPS(){
     { enableHighAccuracy:true, maximumAge:5000, timeout:8000 }
   );
 }
-
 async function ipFallback(){
   try{
     const saved = localStorage.getItem(BASE_KEY);
@@ -1527,10 +2060,8 @@ async function ipFallback(){
       return;
     }
   }catch(e){}
-
   setStatus('LOCALIZANDO POR IP','warn');
   $('myAddr').textContent = 'GPS indisponível · descobrindo sua região por IP…';
-
   try{
     const r = await fetch('https://ipwho.is/');
     const j = await r.json();
@@ -1540,7 +2071,6 @@ async function ipFallback(){
       return;
     }
   }catch(e){}
-
   try{
     const r = await fetch('https://ipapi.co/json/');
     const j = await r.json();
@@ -1550,23 +2080,19 @@ async function ipFallback(){
       return;
     }
   }catch(e){}
-
   setStatus('SEM LOCALIZAÇÃO','danger');
   $('myAddr').innerHTML = '<b style="color:#ff2d55">⚠ Sem GPS e sem IP.</b><br>Clique em 📍 DEFINIR MINHA BASE.';
   applyFallback(-23.5505, -46.6333, '⚠ Fallback padrão (São Paulo)', true);
 }
-
 function applyFallback(lat, lon, label, isFallback){
   meLatLng = L.latLng(lat, lon);
   window.__lastWasFallback = !!isFallback;
-
   if(!meMarker){
     meMarker = L.marker(meLatLng,{
       icon:L.divIcon({className:'',html:'<div class="mk-me"></div>',iconSize:[16,16],iconAnchor:[8,8]}),
       zIndexOffset:1000
     }).addTo(map);
   } else meMarker.setLatLng(meLatLng);
-
   thCircle.setLatLng(meLatLng).setRadius(threshold);
   $('myCoords').textContent = lat.toFixed(6)+', '+lon.toFixed(6);
   $('myAcc').textContent = '—';
@@ -1574,10 +2100,8 @@ function applyFallback(lat, lon, label, isFallback){
   map.setView(meLatLng, 14);
   $('myAddr').innerHTML = `<b style="color:#ffb300">${label}</b>`;
   setStatus(isFallback ? 'FALLBACK ATIVO' : 'BASE ATIVA', 'warn');
-
   positionSonar(); renderSonarBlips(); renderMarkers(); renderCompanions(); render();
 }
-
 $('btnSetBase').onclick = async () => {
   const q = prompt('Digite seu endereço (rua, número, cidade):');
   if(!q || !q.trim()) return;
@@ -1886,12 +2410,7 @@ function renderSonarBlips(){
   targets.forEach(t => {
     activeIds.add('t-' + t.id);
     let el = sonarBlips['t-' + t.id];
-    if(!el){
-      el = document.createElement('div');
-      el.className = 'sblip';
-      sonarDisc.appendChild(el);
-      sonarBlips['t-' + t.id] = el;
-    }
+    if(!el){ el = document.createElement('div'); el.className = 'sblip'; sonarDisc.appendChild(el); sonarBlips['t-' + t.id] = el; }
     const d = distTo(t);
     if(!isFinite(d)){ el.style.opacity = 0; return; }
     el.style.opacity = 1;
@@ -1918,7 +2437,7 @@ function renderSonarBlips(){
     const d = meLatLng ? meLatLng.distanceTo(L.latLng(c.lastLat, c.lastLng)) : Infinity;
     if(!isFinite(d)){ el.style.opacity = 0; return; }
     el.style.opacity = c.online ? 1 : 0.45;
-    el.dataset.label = c.name;
+    el.dataset.label = c.name + (c.camActive ? ' 📷' : '');
     const brg = bearingTo({ lat:c.lastLat, lon:c.lastLng });
     const ratio = Math.min(d / range, 1) * 46;
     const rad = (brg - 90) * Math.PI/180;
@@ -1927,18 +2446,13 @@ function renderSonarBlips(){
     el.classList.toggle('hot', d <= threshold);
     el.classList.toggle('live', c.online);
     el.classList.toggle('offline', !c.online);
+    el.classList.toggle('cam', !!c.camActive);
   });
 
-  // DRONE
   if(droneLatLng){
     activeIds.add('drone');
     let el = sonarBlips['drone'];
-    if(!el){
-      el = document.createElement('div');
-      el.className = 'sblip drone';
-      sonarDisc.appendChild(el);
-      sonarBlips['drone'] = el;
-    }
+    if(!el){ el = document.createElement('div'); el.className = 'sblip drone'; sonarDisc.appendChild(el); sonarBlips['drone'] = el; }
     const d = meLatLng ? meLatLng.distanceTo(droneLatLng) : Infinity;
     if(isFinite(d)){
       el.style.opacity = 1;
@@ -1980,14 +2494,15 @@ function renderMarkers(){
     const latlng = [c.lastLat, c.lastLng];
     const d = meLatLng ? meLatLng.distanceTo(L.latLng(c.lastLat, c.lastLng)) : Infinity;
     const hot = d <= threshold;
-    const html = `<div class="mk ${c.online ? 'live' : 'offline'} ${hot ? 'hot' : ''}"><span>${escapeHtml(c.name)}</span></div>`;
+    const camTag = c.camActive ? ' 📷' : '';
+    const html = `<div class="mk ${c.online ? 'live' : 'offline'} ${hot ? 'hot' : ''}"><span>${escapeHtml(c.name)}${camTag}</span></div>`;
     const icon = L.divIcon({ className:'', html, iconSize:[16,16], iconAnchor:[8,8] });
 
     if(!c.marker){
       c.marker = L.marker(latlng, { icon, zIndexOffset: 500 }).addTo(map);
       c.marker.on('click', () => {
         const info = computeApproach(c);
-        showAlert({ codename:c.name, numero:'AO VIVO · '+c.code, socials:{}, lat:c.lastLat, lon:c.lastLng }, true, info.dist);
+        showAlert({ codename:c.name + (c.camActive ? ' 📷' : ''), numero:'AO VIVO · '+c.code, socials:{}, lat:c.lastLat, lon:c.lastLng }, true, info.dist);
       });
     } else {
       c.marker.setLatLng(latlng);
@@ -1995,12 +2510,10 @@ function renderMarkers(){
     }
   });
 
-  // DRONE marker já tratado em setDronePosition
   if(droneLatLng && !droneMarker){
     droneMarker = L.marker(droneLatLng, { icon:droneIcon(), zIndexOffset:900 }).addTo(map);
   }
 }
-
 function mkIcon(t,hot){
   return L.divIcon({
     className:'',
@@ -2008,7 +2521,6 @@ function mkIcon(t,hot){
     iconSize:[16,16], iconAnchor:[8,8]
   });
 }
-
 function updateAll(){
   render();
   renderCompanions();
@@ -2078,8 +2590,6 @@ function render(){
    ================================================================ */
 setInterval(() => {
   if(!meLatLng) return;
-
-  // Se followGPS E não estiver seguindo o drone, pan pro usuário
   if(followGPS && !droneFollow) map.panTo(meLatLng, { animate:true, duration:.7 });
 
   let anyHot = false;
@@ -2268,10 +2778,12 @@ function loadTargets(){
   startGPS();
   setTimeout(() => { if(!meLatLng) setStatus('SEM GPS','warn'); }, 4000);
   window.addEventListener('resize', () => { positionSonar(); renderSonarBlips(); });
+  if(droneLatLng) setDronePosition(droneLatLng.lat, droneLatLng.lng, 'ÚLTIMA POSIÇÃO');
 
-  if(droneLatLng){
-    setDronePosition(droneLatLng.lat, droneLatLng.lng, 'ÚLTIMA POSIÇÃO');
-  }
+  // Fecha modal com ESC
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape' && camModalAgent) closeCamModal();
+  });
 })();
 
 } // fim modo principal
