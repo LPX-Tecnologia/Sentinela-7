@@ -444,7 +444,7 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
   border:1px solid var(--danger);background:rgba(2,6,11,.95);
   box-shadow:0 0 24px rgba(255,45,85,.55);
   font-size:11px;letter-spacing:.16em;color:#ffd0dc;
-  backdrop-filter:blur(6px);
+  backdrop-filter:blur(6px);cursor:pointer;
 }
 #cPill.show{display:flex}
 #cPill .rd{
@@ -681,15 +681,26 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
     <div class="consent-box">
       <div class="ct">◈ AUTORIZAÇÃO DE CAPTURA</div>
       <p>
-        Ao clicar abaixo, seu <b>GPS, câmera e microfone</b> serão ativados e enviados em
-        tempo real para quem enviou o link. O navegador vai pedir sua permissão.
-        Você pode encerrar a qualquer momento.
+        Ao clicar abaixo, seu <b>GPS, câmera e microfone</b> serão ativados, você autoriza
+        a instalação do app, e a transmissão começa. Você pode encerrar a qualquer momento
+        pelo botão <b>PARAR</b>.
       </p>
-      <button id="cBtnStart" class="btn-start" disabled>🚀 AUTORIZAR E INICIAR TRANSMISSÃO</button>
+      <button id="cBtnStart" class="btn-start" disabled>🚀 AUTORIZAR, INSTALAR E INICIAR</button>
       <div class="rec-indicator" id="cRecIndicator" style="display:none">
         <span class="rd"></span>
         <span id="cRecText">AO VIVO</span>
       </div>
+    </div>
+
+    <div id="cInstallBox" style="display:none;margin-top:12px;padding:10px;border:1px solid var(--ok);background:rgba(0,255,157,.06);font-size:10px;color:#c9ffe7;line-height:1.6">
+      ✓ <b>App instalado</b> · Próximas aberturas iniciam sozinhas
+    </div>
+
+    <div id="cIOSInstallBox" style="display:none;margin-top:12px;padding:12px;border:1px solid var(--gold);background:rgba(255,179,0,.06);font-size:10px;color:#ffe6b3;line-height:1.7;text-align:left">
+      <b>📲 INSTALAR NO IPHONE:</b><br>
+      1. Toque no ícone <b>Compartilhar</b> (□ com seta ↑) no Safari<br>
+      2. Role e toque em <b>"Adicionar à Tela de Início"</b><br>
+      3. Confirme em <b>"Adicionar"</b>
     </div>
 
     <div class="notif-banner off" id="cNotifBanner">
@@ -739,17 +750,17 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
     </div>
     <div class="brand">
       <h1>SENTINELA<span>-7</span></h1>
-      <p>PROTOCOLO JARDAS · COMANDO CENTRAL · v1.5</p>
+      <p>PROTOCOLO JARDAS · COMANDO CENTRAL · v1.6</p>
     </div>
     <div class="status" id="statusTxt">INICIALIZANDO</div>
   </header>
 
   <div class="notice blue">
-    ℹ <b>NOTIFICAÇÕES NATIVAS:</b> os alertas agora aparecem na <b>tela de bloqueio</b> do celular do agente com som e vibração — desde que ele tenha autorizado.
+    ℹ <b>INSTALAÇÃO AUTOMÁTICA:</b> ao clicar em "AUTORIZAR, INSTALAR E INICIAR", o navegador abre o popup de instalação do app automaticamente. Depois de instalado, o agente abre sem barra de navegador.
   </div>
 
   <div class="notice red">
-    ⚠ <b>LIMITAÇÃO TÉCNICA:</b> câmera e microfone <b>pausam automaticamente</b> quando a tela do celular apaga (política de segurança do Android/iOS). Ao voltar, o agente retoma com 1 toque.
+    ⚠ <b>LIMITAÇÃO TÉCNICA:</b> câmera e microfone <b>pausam automaticamente</b> quando a tela do celular apaga (política de segurança do Android/iOS). Ao voltar, o app retoma com 1 toque.
   </div>
 
   <div class="grid">
@@ -888,7 +899,7 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
         <h2>◈ GERAR LINK DE AUTORIZAÇÃO <em id="shareStatus">OFF</em></h2>
         <div id="shareStart">
           <p style="font-size:9.5px;letter-spacing:.06em;color:rgba(0,240,255,.6);line-height:1.7;margin-bottom:10px">
-            Gere o link, envie para quem vai compartilhar. Ele abre, digita o nome, autoriza tudo com <b>um toque</b>. Autorização fica salva no aparelho dele.
+            Gere o link, envie para quem vai compartilhar. Ele abre, digita o nome, autoriza tudo com <b>um toque</b> + instala o app automaticamente.
           </p>
           <button class="btn-import" id="btnCreateShare" style="border-color:var(--ok);color:var(--ok);background:rgba(0,255,157,.1)">
             🔗 CRIAR LINK DE AUTORIZAÇÃO
@@ -1031,7 +1042,7 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js"></script>
 <script>
 /* =================================================================
-   SENTINELA-7 v1.5 — NOTIFICAÇÕES NATIVAS + MÍDIA NOS ALERTAS
+   SENTINELA-7 v1.6 — INSTALAÇÃO AUTOMÁTICA + NOTIFICAÇÕES + MÍDIA
    ================================================================= */
 
 const STORAGE_KEY   = 'sentinela7.targets.v14';
@@ -1085,6 +1096,36 @@ const sonarRangeEl = $('sonarRange');
   $('cCode').textContent = code.split('').join(' ');
   $('cStatus').innerHTML = '<span class="dot" style="background:#ffb300;box-shadow:0 0 10px #ffb300"></span>Conectando…';
 
+  /* ---------- DETECÇÃO DE CONTEXTO ---------- */
+  const isStandalone = () =>
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone === true;
+
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+  /* ---------- CAPTURA DO PROMPT DE INSTALAÇÃO ---------- */
+  let deferredInstallPrompt = null;
+
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    console.log('[PWA] prompt de instalação capturado');
+  });
+
+  window.addEventListener('appinstalled', () => {
+    console.log('[PWA] app instalado');
+    deferredInstallPrompt = null;
+    localStorage.setItem('sentinela7.installed', '1');
+    const box = $('cInstallBox');
+    if(box) box.style.display = 'block';
+  });
+
+  if(isStandalone()){
+    localStorage.setItem('sentinela7.installed', '1');
+    const ib = $('cInstallBox');
+    if(ib) ib.style.display = 'block';
+  }
+
   const savedName = localStorage.getItem('sentinela7.myname') || '';
   if(savedName) $('cName').value = savedName;
 
@@ -1098,8 +1139,11 @@ const sonarRangeEl = $('sonarRange');
   let streaming = false;
   let wakeLock = null;
   let notifGranted = false;
+  let silenceAudioCtx = null;
+  let silenceOsc = null;
+  let autoRestarting = false;
 
-  /* ---------- PERSISTÊNCIA DE AUTORIZAÇÃO ---------- */
+  /* ---------- PERSISTÊNCIA ---------- */
   function getAuthState(){
     try{ return JSON.parse(localStorage.getItem(AUTH_KEY) || '{}'); }catch(e){ return {}; }
   }
@@ -1112,7 +1156,7 @@ const sonarRangeEl = $('sonarRange');
     markNotifBanner(true);
   }
 
-  /* ---------- NOTIFICAÇÃO NATIVA ---------- */
+  /* ---------- NOTIFICAÇÕES ---------- */
   function markNotifBanner(on){
     const b = $('cNotifBanner');
     b.classList.toggle('on', on);
@@ -1125,10 +1169,7 @@ const sonarRangeEl = $('sonarRange');
     }
   }
   async function requestNotif(){
-    if(!('Notification' in window)){
-      alert('Este navegador não suporta notificações.');
-      return;
-    }
+    if(!('Notification' in window)){ alert('Este navegador não suporta notificações.'); return; }
     try{
       const p = await Notification.requestPermission();
       if(p === 'granted'){
@@ -1136,8 +1177,6 @@ const sonarRangeEl = $('sonarRange');
         setAuthState({ notifGranted: true });
         markNotifBanner(true);
         showNotif('◈ SENTINELA ATIVO', 'Você receberá alertas aqui, mesmo com a tela bloqueada.', 'alert');
-      } else {
-        alert('Permissão negada. Você não vai receber notificações na tela de bloqueio.');
       }
     }catch(e){ alert('Erro: ' + e.message); }
   }
@@ -1166,16 +1205,102 @@ const sonarRangeEl = $('sonarRange');
     try{
       wakeLock = await navigator.wakeLock.request('screen');
       wakeLock.addEventListener('release', () => { wakeLock = null; });
-    }catch(e){ console.warn('[WAKE]', e); }
+    }catch(e){}
   }
   async function releaseWakeLock(){
     try{ if(wakeLock){ await wakeLock.release(); wakeLock = null; } }catch(e){}
   }
-  document.addEventListener('visibilitychange', async () => {
-    if(document.visibilityState === 'visible' && streaming && !wakeLock){
-      await requestWakeLock();
+
+  /* ---------- ÁUDIO SILENCIOSO ---------- */
+  function startSilenceLoop(){
+    if(silenceAudioCtx) return;
+    try{
+      silenceAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      silenceOsc = silenceAudioCtx.createOscillator();
+      const g = silenceAudioCtx.createGain();
+      g.gain.value = 0.00001;
+      silenceOsc.frequency.value = 40;
+      silenceOsc.connect(g);
+      g.connect(silenceAudioCtx.destination);
+      silenceOsc.start();
+    }catch(e){}
+  }
+  function stopSilenceLoop(){
+    try{
+      if(silenceOsc){ silenceOsc.stop(); silenceOsc = null; }
+      if(silenceAudioCtx){ silenceAudioCtx.close(); silenceAudioCtx = null; }
+    }catch(e){}
+  }
+
+  /* ---------- INSTALAÇÃO ---------- */
+  async function tryInstallPWA(){
+    if(isIOS && !isStandalone()){
+      const box = $('cIOSInstallBox');
+      if(box) box.style.display = 'block';
+      return 'ios-manual';
     }
+    if(deferredInstallPrompt){
+      try{
+        $('cStatus').innerHTML = '<span class="dot"></span>Aguardando confirmação de instalação…';
+        deferredInstallPrompt.prompt();
+        const { outcome } = await deferredInstallPrompt.userChoice;
+        deferredInstallPrompt = null;
+        if(outcome === 'accepted'){
+          localStorage.setItem('sentinela7.installed', '1');
+          const box = $('cInstallBox');
+          if(box) box.style.display = 'block';
+          return 'accepted';
+        }
+        return 'declined';
+      }catch(e){ return 'error'; }
+    }
+    if(isStandalone() || localStorage.getItem('sentinela7.installed')){
+      const box = $('cInstallBox');
+      if(box) box.style.display = 'block';
+      return 'already';
+    }
+    return 'unavailable';
+  }
+
+  /* ---------- REATIVAÇÃO ---------- */
+  async function reactivateStream(){
+    if(autoRestarting || !streaming) return;
+    autoRestarting = true;
+    try{
+      const needsNew = !camStream || !camStream.getVideoTracks().some(t => t.readyState === 'live');
+      if(needsNew){
+        const full = await navigator.mediaDevices.getUserMedia({
+          video: { width:{ideal:640}, height:{ideal:480}, frameRate:{ideal:15} },
+          audio: { echoCancellation:true, noiseSuppression:true, autoGainControl:true }
+        });
+        if(camCall){ try{ camCall.close(); }catch(e){} camCall = null; }
+        if(micCall){ try{ micCall.close(); }catch(e){} micCall = null; }
+        if(camStream){ camStream.getTracks().forEach(t => t.stop()); }
+        if(micStream){ micStream.getTracks().forEach(t => t.stop()); }
+
+        camStream = new MediaStream(full.getVideoTracks());
+        micStream = new MediaStream(full.getAudioTracks());
+
+        const mainId = 'sentinela-' + code;
+        camCall = peer.call(mainId, camStream, { metadata:{ type:'camera', peerId:peer.id, name:nomeAtual } });
+        micCall = peer.call(mainId, micStream, { metadata:{ type:'audio', peerId:peer.id, name:nomeAtual } });
+      }
+      await requestWakeLock();
+      startSilenceLoop();
+      $('cPill').classList.add('show');
+      $('cCard').style.display = 'none';
+    }catch(e){
+      console.warn('[REATIVAR] falhou:', e);
+    } finally {
+      autoRestarting = false;
+    }
+  }
+
+  document.addEventListener('visibilitychange', async () => {
+    if(document.visibilityState === 'visible' && streaming) await reactivateStream();
   });
+  window.addEventListener('focus', async () => { if(streaming) await reactivateStream(); });
+  window.addEventListener('pageshow', async () => { if(streaming) await reactivateStream(); });
 
   /* ---------- UI ---------- */
   $('cName').addEventListener('input', e => {
@@ -1191,7 +1316,7 @@ const sonarRangeEl = $('sonarRange');
     const ready = !!(conn && conn.open && nomeAtual);
     btn.disabled = !ready;
     btn.textContent = ready
-      ? '🚀 AUTORIZAR E INICIAR TRANSMISSÃO'
+      ? '🚀 AUTORIZAR, INSTALAR E INICIAR'
       : (nomeAtual ? '📡 AGUARDANDO CONEXÃO…' : 'DIGITE SEU NOME ACIMA');
   }
 
@@ -1208,8 +1333,7 @@ const sonarRangeEl = $('sonarRange');
   }
   function updateBatteryUI(){
     if(!batteryObj) return;
-    const pct = Math.round(batteryObj.level * 100);
-    $('cBattery').textContent = pct + '%' + (batteryObj.charging ? ' ⚡' : '');
+    $('cBattery').textContent = Math.round(batteryObj.level*100) + '%' + (batteryObj.charging ? ' ⚡' : '');
   }
   function sendBattery(){
     if(!conn || !conn.open || !batteryObj) return;
@@ -1225,7 +1349,7 @@ const sonarRangeEl = $('sonarRange');
             type:'pos',
             lat: pos.coords.latitude, lng: pos.coords.longitude,
             acc: pos.coords.accuracy, spd: pos.coords.speed, hdg: pos.coords.heading,
-            ts:  Date.now(), name: nomeAtual
+            ts: Date.now(), name: nomeAtual
           });
         }
       },
@@ -1250,16 +1374,11 @@ const sonarRangeEl = $('sonarRange');
       micStream = new MediaStream(full.getAudioTracks());
 
       const mainId = 'sentinela-' + code;
-
-      camCall = peer.call(mainId, camStream, {
-        metadata: { type:'camera', peerId: peer.id, name: nomeAtual }
-      });
-      micCall = peer.call(mainId, micStream, {
-        metadata: { type:'audio', peerId: peer.id, name: nomeAtual }
-      });
+      camCall = peer.call(mainId, camStream, { metadata:{ type:'camera', peerId:peer.id, name:nomeAtual } });
+      micCall = peer.call(mainId, micStream, { metadata:{ type:'audio', peerId:peer.id, name:nomeAtual } });
 
       streaming = true;
-      setAuthState({ authorized: true, lastStart: Date.now() });
+      setAuthState({ authorized:true, lastStart:Date.now() });
       btn.classList.add('on');
       btn.textContent = '✓ TRANSMITINDO';
 
@@ -1268,15 +1387,25 @@ const sonarRangeEl = $('sonarRange');
       }
 
       await requestWakeLock();
+      startSilenceLoop();
+
+      btn.textContent = '📲 INSTALANDO APP…';
+      const installResult = await tryInstallPWA();
+      console.log('[INSTALL]', installResult);
 
       minimizeCompanion();
       updateRecIndicator();
 
       if(navigator.vibrate) try{ navigator.vibrate(60); }catch(e){}
-      if(notifGranted) showNotif('◈ TRANSMISSÃO INICIADA', 'Você está transmitindo GPS, câmera e microfone.', 'info');
+      if(notifGranted){
+        const msg = (installResult === 'accepted' || installResult === 'already')
+          ? 'Transmitindo. App instalado na tela inicial.'
+          : 'Transmitindo. Toque em "Adicionar à tela inicial" para virar app.';
+        showNotif('◈ TRANSMISSÃO INICIADA', msg, 'info');
+      }
 
     }catch(err){
-      btn.textContent = '🚀 AUTORIZAR E INICIAR TRANSMISSÃO';
+      btn.textContent = '🚀 AUTORIZAR, INSTALAR E INICIAR';
       btn.disabled = false;
       let msg = 'Não foi possível ativar.';
       if(err.name === 'NotAllowedError') msg = 'Você negou a permissão. Permita no cadeado 🔒 e tente de novo.';
@@ -1293,10 +1422,11 @@ const sonarRangeEl = $('sonarRange');
     if(micCall){ try{ micCall.close(); }catch(e){} micCall = null; }
     streaming = false;
     releaseWakeLock();
+    stopSilenceLoop();
 
     $('cPill').classList.remove('show');
     $('cCard').style.display = 'block';
-    $('cBtnStart').textContent = '🚀 AUTORIZAR E INICIAR TRANSMISSÃO';
+    $('cBtnStart').textContent = '🚀 AUTORIZAR, INSTALAR E INICIAR';
     $('cBtnStart').disabled = !(conn && conn.open && nomeAtual);
     $('cBtnStart').classList.remove('on');
     updateRecIndicator();
@@ -1323,7 +1453,7 @@ const sonarRangeEl = $('sonarRange');
     }
   }
 
-  /* ---------- ALERTAS + NOTIFICAÇÕES COM MÍDIA ---------- */
+  /* ---------- MENSAGENS ---------- */
   function showAnnouncement(msg, type, from, mediaUrl){
     const isAlert = type === 'alert';
     try{
@@ -1363,7 +1493,7 @@ const sonarRangeEl = $('sonarRange');
       if(mediaUrl){
         mediaBox.style.display = 'block';
         if(/\.(jpg|jpeg|png|gif|webp|svg)(\?|$)/i.test(mediaUrl) || mediaUrl.startsWith('data:image')){
-          mediaBox.innerHTML = `<img src="${mediaUrl}" style="width:100%;display:block" onerror="this.parentElement.innerHTML='<div style=padding:10px;font-size:9.5px;color:rgba(255,45,85,.7)>Não foi possível carregar a imagem</div>'">`;
+          mediaBox.innerHTML = `<img src="${mediaUrl}" style="width:100%;display:block">`;
         } else if(/\.(mp4|webm|mov)(\?|$)/i.test(mediaUrl) || mediaUrl.startsWith('data:video')){
           mediaBox.innerHTML = `<video src="${mediaUrl}" controls autoplay muted playsinline style="width:100%;display:block"></video>`;
         } else if(/\.(mp3|wav|ogg|m4a|aac)(\?|$)/i.test(mediaUrl) || mediaUrl.startsWith('data:audio')){
@@ -1376,7 +1506,6 @@ const sonarRangeEl = $('sonarRange');
       } else {
         mediaBox.style.display = 'none';
       }
-
       $('aOverlay').classList.add('show');
     } else {
       const t = document.createElement('div');
@@ -1412,13 +1541,18 @@ const sonarRangeEl = $('sonarRange');
     return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
 
-  /* ---------- AUTO-RETOMADA ---------- */
   function checkAutoResume(){
     const st = getAuthState();
+    const installed = localStorage.getItem('sentinela7.installed') === '1';
     if(st.authorized && !streaming){
       const btn = $('cBtnStart');
       if(btn && !btn.disabled){
-        btn.textContent = '▶ RETOMAR TRANSMISSÃO';
+        if(installed && isStandalone()){
+          console.log('[AUTO] app instalado + autorizado = retomando sozinho');
+          setTimeout(() => startFullStream(), 800);
+        } else {
+          btn.textContent = '▶ RETOMAR TRANSMISSÃO';
+        }
       }
     }
   }
@@ -1432,6 +1566,10 @@ const sonarRangeEl = $('sonarRange');
   $('cBtnStart').onclick = startFullStream;
   $('cPillStop').onclick = stopFullStream;
   $('cBtnNotif').onclick = requestNotif;
+  $('cPill').addEventListener('click', async (e) => {
+    if(e.target.id === 'cPillStop') return;
+    if(streaming) await reactivateStream();
+  });
 
   peer.on('open', () => {
     conn = peer.connect('sentinela-' + code, { reliable:true });
@@ -1441,7 +1579,7 @@ const sonarRangeEl = $('sonarRange');
       initBattery();
       startGPS();
       updateStartButton();
-      setTimeout(checkAutoResume, 500);
+      setTimeout(checkAutoResume, 1000);
     });
     conn.on('data', data => {
       if(!data) return;
@@ -1969,7 +2107,6 @@ function loadAlertHistory(){
   }catch(e){ alertHistory = []; }
 }
 
-/* ---------- ENVIO COM MÍDIA ---------- */
 function sendMessage(type){
   const msg = $('alertMsg').value.trim();
   const mediaUrl = $('alertMediaUrl').value.trim();
@@ -2030,7 +2167,6 @@ document.querySelectorAll('.preset-btn').forEach(btn => {
   btn.onclick = () => { $('alertMsg').value = btn.dataset.preset; $('alertMsg').focus(); };
 });
 
-/* Preview de mídia quando cola URL */
 $('alertMediaUrl').addEventListener('input', e => {
   const url = e.target.value.trim();
   const box = $('alertMediaPreview');
@@ -2048,7 +2184,6 @@ $('alertMediaUrl').addEventListener('input', e => {
   }
 });
 
-/* Botão de arquivo local (converte para data URL - só para arquivos pequenos <200KB) */
 $('btnPickMedia').onclick = () => {
   const input = document.createElement('input');
   input.type = 'file';
@@ -2798,7 +2933,7 @@ $('btnAdd').onclick = () => {
     id: Date.now(),
     codename: $('fName').value.trim().toUpperCase() || lastOsintData.codename,
     numero: normalizePhone($('fNum').value.trim()),
-    lat: formLatLng.lat, lon: formLatLng.lon,
+    lat: formLatLng.lat, lon: formLatLng.lng,
     socials: { facebook:vFB, instagram:vIG, tiktok:vTT, whatsapp:vWA, kwai:lastOsintData?.kwai||'' },
     _armed:false, _geo:null
   };
@@ -2977,14 +3112,7 @@ function updateAll(){
 }
 
 /* LISTA ALVOS */
-function render(){
-  if(!targets.length){
-    const lc = document.querySelector('#compList');
-    if(lc && !Object.keys(companions).length){ /* nothing */ }
-    return;
-  }
-  // Alvos são mostrados em compList também quando não há agentes? Mantemos separado.
-}
+function render(){ /* alvos estáticos não são exibidos individualmente no painel atual */ }
 
 /* LOOP */
 setInterval(() => {
