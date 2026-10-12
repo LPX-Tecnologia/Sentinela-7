@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SENTINELA-7 · AGENTES + DRONE + CÂMERA AO VIVO</title>
+<title>SENTINELA-7 · AGENTES + DRONE + CÂMERA + ALERTAS</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
 :root{
@@ -183,12 +183,13 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border:0;border-radiu
 
 .form-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
 .form-row > *{flex:1;min-width:120px}
-input[type=text],input[type=tel],textarea{
+input[type=text],input[type=tel],textarea,select{
   width:100%;background:rgba(0,240,255,.05);border:1px solid var(--line);color:#dffcff;
   padding:9px 10px;font-family:inherit;font-size:11px;letter-spacing:.05em;border-radius:2px;outline:none;transition:.2s}
 input[type=text]::placeholder,input[type=tel]::placeholder,textarea::placeholder{color:rgba(0,240,255,.3);letter-spacing:.1em}
-input[type=text]:focus,input[type=tel]:focus,textarea:focus{border-color:var(--neon);box-shadow:0 0 14px rgba(0,240,255,.25);background:rgba(0,240,255,.08)}
+input[type=text]:focus,input[type=tel]:focus,textarea:focus,select:focus{border-color:var(--neon);box-shadow:0 0 14px rgba(0,240,255,.25);background:rgba(0,240,255,.08)}
 textarea{resize:vertical;min-height:80px;line-height:1.6}
+select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--neon) 50%),linear-gradient(135deg,var(--neon) 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:34px}
 
 .share-link{
   border:1px dashed rgba(0,255,157,.4);background:rgba(0,255,157,.05);
@@ -324,6 +325,8 @@ textarea{resize:vertical;min-height:80px;line-height:1.6}
 .mini.cam:hover{background:rgba(255,45,85,.2)}
 .mini.mic{border-color:var(--gold);color:var(--gold);background:rgba(255,179,0,.06)}
 .mini.mic:hover{background:rgba(255,179,0,.2)}
+.mini.alert{border-color:var(--gold);color:var(--gold);background:rgba(255,179,0,.06)}
+.mini.alert:hover{background:rgba(255,179,0,.2)}
 
 .empty{text-align:center;padding:22px 10px;font-size:9.5px;letter-spacing:.18em;
   color:rgba(0,240,255,.35);border:1px dashed rgba(0,240,255,.2);border-radius:2px}
@@ -410,14 +413,6 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
   text-align:left;font-size:9.5px;letter-spacing:.06em;color:rgba(255,220,150,.95);line-height:1.6;
 }
 .consent-box .ct{font-size:9px;letter-spacing:.24em;color:var(--gold);margin-bottom:8px;font-weight:700;text-shadow:0 0 8px rgba(255,179,0,.5)}
-.consent-btns{display:flex;gap:8px;margin-top:10px}
-.consent-btns button{
-  flex:1;padding:10px 8px;font-family:inherit;font-size:9.5px;letter-spacing:.12em;
-  border-radius:2px;cursor:pointer;transition:.2s;border:1px solid var(--line);
-  background:rgba(0,240,255,.03);color:rgba(0,240,255,.7);
-}
-.consent-btns button.on{color:var(--ok);border-color:var(--ok);background:rgba(0,255,157,.12);box-shadow:0 0 14px rgba(0,255,157,.3)}
-.consent-btns button.red.on{color:var(--danger);border-color:var(--danger);background:rgba(255,45,85,.12);box-shadow:0 0 14px rgba(255,45,85,.35)}
 
 .rec-indicator{
   display:flex;align-items:center;justify-content:center;gap:8px;
@@ -429,6 +424,121 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
   width:9px;height:9px;border-radius:50%;background:var(--danger);
   box-shadow:0 0 10px var(--danger);animation:blink .9s infinite;
 }
+
+/* botão grande de iniciar */
+.btn-start{
+  width:100%;padding:14px;margin-top:10px;
+  border:1px solid var(--ok);background:rgba(0,255,157,.12);color:var(--ok);
+  font-family:inherit;font-size:11px;letter-spacing:.2em;cursor:pointer;border-radius:2px;
+  transition:.25s;text-align:center;font-weight:700;
+  box-shadow:0 0 20px rgba(0,255,157,.35);
+}
+.btn-start:hover:not(:disabled){background:rgba(0,255,157,.25);box-shadow:0 0 30px rgba(0,255,157,.55)}
+.btn-start:disabled{opacity:.4;cursor:not-allowed;box-shadow:none;background:transparent}
+.btn-start.on{border-color:var(--danger);color:var(--danger);background:rgba(255,45,85,.1)}
+
+/* pill flutuante */
+#cPill{
+  position:fixed;top:14px;left:50%;transform:translateX(-50%);
+  z-index:9995;display:none;align-items:center;gap:10px;
+  padding:10px 16px;border-radius:30px;
+  border:1px solid var(--danger);background:rgba(2,6,11,.95);
+  box-shadow:0 0 24px rgba(255,45,85,.55);
+  font-size:11px;letter-spacing:.16em;color:#ffd0dc;
+  backdrop-filter:blur(6px);
+}
+#cPill.show{display:flex}
+#cPill .rd{
+  width:10px;height:10px;border-radius:50%;background:var(--danger);
+  box-shadow:0 0 10px var(--danger);animation:blink 1s infinite;
+}
+#cPill button{
+  padding:6px 12px;font-family:inherit;font-size:9px;letter-spacing:.16em;
+  border:1px solid var(--danger);background:rgba(255,45,85,.15);color:#ffd0dc;
+  cursor:pointer;border-radius:20px;transition:.2s;
+}
+#cPill button:hover{background:rgba(255,45,85,.35)}
+
+/* ============ ANÚNCIO / ALERTA ============ */
+.alert-presets{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px}
+.preset-btn{
+  padding:8px 6px;font-family:inherit;font-size:9px;letter-spacing:.1em;
+  border:1px solid var(--line);background:rgba(0,240,255,.03);color:rgba(0,240,255,.7);
+  cursor:pointer;border-radius:2px;transition:.2s;text-align:center;
+}
+.preset-btn:hover{border-color:var(--neon);color:var(--neon);box-shadow:0 0 12px rgba(0,240,255,.25)}
+.preset-btn.red{border-color:var(--danger);color:var(--danger);background:rgba(255,45,85,.05)}
+.preset-btn.red:hover{background:rgba(255,45,85,.15);box-shadow:0 0 12px rgba(255,45,85,.35)}
+.preset-btn.gold{border-color:var(--gold);color:var(--gold);background:rgba(255,179,0,.05)}
+.preset-btn.gold:hover{background:rgba(255,179,0,.15);box-shadow:0 0 12px rgba(255,179,0,.35)}
+
+.alert-history{
+  margin-top:12px;border:1px dashed rgba(0,240,255,.25);
+  border-radius:2px;padding:8px 10px;max-height:140px;overflow-y:auto;
+  background:rgba(0,240,255,.02);font-size:9px;letter-spacing:.05em;line-height:1.7;
+  color:rgba(0,240,255,.55);
+}
+.alert-history .row{padding:5px 0;border-bottom:1px solid rgba(0,240,255,.08);display:flex;gap:8px;justify-content:space-between}
+.alert-history .row:last-child{border-bottom:0}
+.alert-history .row b{color:var(--gold);flex:0 0 auto}
+.alert-history .row span{flex:1;color:#cdf9ff;word-break:break-word}
+.alert-history .row em{color:rgba(0,240,255,.4);font-style:normal;font-size:8px;flex:0 0 auto}
+
+/* popup de anúncio no AGENTE */
+#aOverlay{
+  position:fixed;inset:0;z-index:9999;display:none;
+  background:radial-gradient(circle at 50% 40%,rgba(255,45,85,.32),rgba(2,6,11,.97) 55%);
+  backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;
+  animation:fadein .2s;
+}
+#aOverlay.show{display:flex}
+.a-card{
+  width:min(420px,100%);
+  border:2px solid var(--danger);border-radius:4px;
+  background:linear-gradient(180deg,rgba(255,45,85,.15),rgba(2,6,11,.98));
+  box-shadow:0 0 60px rgba(255,45,85,.6);
+  padding:24px 22px;text-align:center;
+  animation:aPop .35s cubic-bezier(.2,1.4,.5,1);
+}
+@keyframes aPop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+.a-card .ttl{
+  font-size:11px;letter-spacing:.34em;color:var(--danger);
+  text-shadow:0 0 14px var(--danger);animation:blink 1s infinite;
+  margin-bottom:14px;
+}
+.a-card .ico{font-size:44px;margin-bottom:10px;filter:drop-shadow(0 0 14px var(--danger))}
+.a-card .msg{
+  font-size:14px;letter-spacing:.06em;color:#fff;line-height:1.6;
+  padding:14px 12px;border-radius:2px;
+  border:1px solid rgba(255,45,85,.35);background:rgba(255,45,85,.06);
+  margin-bottom:16px;word-break:break-word;font-weight:600;
+}
+.a-card .from{
+  font-size:9px;letter-spacing:.18em;color:rgba(0,240,255,.6);margin-bottom:16px;
+}
+.a-card button{
+  width:100%;padding:12px;font-family:inherit;font-size:10px;letter-spacing:.2em;
+  border:1px solid var(--ok);background:rgba(0,255,157,.1);color:var(--ok);
+  cursor:pointer;border-radius:2px;transition:.2s;
+}
+.a-card button:hover{background:rgba(0,255,157,.25);box-shadow:0 0 20px rgba(0,255,157,.4)}
+
+/* toast histórico no agente */
+#toastWrap{
+  position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+  z-index:9994;display:flex;flex-direction:column;gap:8px;align-items:center;
+  pointer-events:none;width:min(92vw,420px);
+}
+.toast{
+  width:100%;padding:10px 14px;border-radius:2px;
+  border:1px solid var(--gold);background:rgba(2,6,11,.96);
+  box-shadow:0 0 20px rgba(255,179,0,.4);
+  font-size:10.5px;letter-spacing:.05em;color:#ffe6b3;
+  animation:tPop .3s cubic-bezier(.2,1.4,.5,1);
+  backdrop-filter:blur(6px);
+}
+.toast.red{border-color:var(--danger);color:#ffd0dc;box-shadow:0 0 20px rgba(255,45,85,.5)}
+@keyframes tPop{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
 
 /* ============ MODAL CÂMERA ============ */
 #camModal{
@@ -466,31 +576,20 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 
 .cam-video-wrap{position:relative;flex:1;background:#000;aspect-ratio:16/9;min-height:200px}
 .cam-video-wrap video{width:100%;height:100%;object-fit:contain;display:block;background:#000}
-.cam-hud{
-  position:absolute;inset:0;pointer-events:none;z-index:5;
-}
-.cam-hud .corner{
-  position:absolute;width:20px;height:20px;
-  border:2px solid var(--danger);filter:drop-shadow(0 0 6px var(--danger));
-}
+.cam-hud{position:absolute;inset:0;pointer-events:none;z-index:5}
+.cam-hud .corner{position:absolute;width:20px;height:20px;
+  border:2px solid var(--danger);filter:drop-shadow(0 0 6px var(--danger))}
 .cam-hud .corner.tl{top:8px;left:8px;border-right:0;border-bottom:0}
 .cam-hud .corner.tr{top:8px;right:8px;border-left:0;border-bottom:0}
 .cam-hud .corner.bl{bottom:8px;left:8px;border-right:0;border-top:0}
 .cam-hud .corner.br{bottom:8px;right:8px;border-left:0;border-top:0}
-.cam-hud .crosshair{
-  position:absolute;left:50%;top:50%;width:50px;height:50px;
-  transform:translate(-50%,-50%);
-}
-.cam-hud .crosshair::before,.cam-hud .crosshair::after{
-  content:"";position:absolute;background:var(--danger);box-shadow:0 0 6px var(--danger);
-}
+.cam-hud .crosshair{position:absolute;left:50%;top:50%;width:50px;height:50px;transform:translate(-50%,-50%)}
+.cam-hud .crosshair::before,.cam-hud .crosshair::after{content:"";position:absolute;background:var(--danger);box-shadow:0 0 6px var(--danger)}
 .cam-hud .crosshair::before{left:50%;top:0;bottom:0;width:1px;transform:translateX(-.5px)}
 .cam-hud .crosshair::after{top:50%;left:0;right:0;height:1px;transform:translateY(-.5px)}
-.cam-hud .info{
-  position:absolute;top:10px;left:50%;transform:translateX(-50%);
+.cam-hud .info{position:absolute;top:10px;left:50%;transform:translateX(-50%);
   font-size:9px;letter-spacing:.24em;color:var(--danger);
-  text-shadow:0 0 8px var(--danger);display:flex;align-items:center;gap:6px;
-}
+  text-shadow:0 0 8px var(--danger);display:flex;align-items:center;gap:6px}
 
 .cam-modal-ftr{
   display:flex;gap:8px;padding:12px 16px;
@@ -527,60 +626,36 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
   font-size:9.5px;letter-spacing:.22em;
 }
 .drone-player .idle .ico{font-size:44px;opacity:.35;filter:drop-shadow(0 0 10px rgba(0,240,255,.5))}
-.drone-hud{
-  position:absolute;inset:0;pointer-events:none;z-index:5;display:none;
-}
+.drone-hud{position:absolute;inset:0;pointer-events:none;z-index:5;display:none}
 .drone-hud.on{display:block}
-.drone-hud .corner{
-  position:absolute;width:22px;height:22px;
-  border:2px solid var(--neon);filter:drop-shadow(0 0 6px var(--neon));
-}
+.drone-hud .corner{position:absolute;width:22px;height:22px;
+  border:2px solid var(--neon);filter:drop-shadow(0 0 6px var(--neon))}
 .drone-hud .corner.tl{top:8px;left:8px;border-right:0;border-bottom:0}
 .drone-hud .corner.tr{top:8px;right:8px;border-left:0;border-bottom:0}
 .drone-hud .corner.bl{bottom:8px;left:8px;border-right:0;border-top:0}
 .drone-hud .corner.br{bottom:8px;right:8px;border-left:0;border-top:0}
-.drone-hud .crosshair{
-  position:absolute;left:50%;top:50%;width:60px;height:60px;
-  transform:translate(-50%,-50%);
-}
-.drone-hud .crosshair::before,.drone-hud .crosshair::after{
-  content:"";position:absolute;background:var(--neon);box-shadow:0 0 6px var(--neon);
-}
+.drone-hud .crosshair{position:absolute;left:50%;top:50%;width:60px;height:60px;transform:translate(-50%,-50%)}
+.drone-hud .crosshair::before,.drone-hud .crosshair::after{content:"";position:absolute;background:var(--neon);box-shadow:0 0 6px var(--neon)}
 .drone-hud .crosshair::before{left:50%;top:0;bottom:0;width:1px;transform:translateX(-.5px)}
 .drone-hud .crosshair::after{top:50%;left:0;right:0;height:1px;transform:translateY(-.5px)}
-.drone-hud .rec{
-  position:absolute;top:12px;left:50%;transform:translateX(-50%);
+.drone-hud .rec{position:absolute;top:12px;left:50%;transform:translateX(-50%);
   font-size:9px;letter-spacing:.24em;color:var(--danger);
-  text-shadow:0 0 8px var(--danger);display:flex;align-items:center;gap:6px;
-}
-.drone-hud .rec .dot{
-  width:8px;height:8px;border-radius:50%;background:var(--danger);
-  box-shadow:0 0 8px var(--danger);animation:blink 1s infinite;
-}
-.drone-hud .tcinfo{
-  position:absolute;bottom:12px;left:12px;right:12px;
+  text-shadow:0 0 8px var(--danger);display:flex;align-items:center;gap:6px}
+.drone-hud .rec .dot{width:8px;height:8px;border-radius:50%;background:var(--danger);
+  box-shadow:0 0 8px var(--danger);animation:blink 1s infinite}
+.drone-hud .tcinfo{position:absolute;bottom:12px;left:12px;right:12px;
   font-size:9px;letter-spacing:.14em;color:#dffcff;
-  text-shadow:0 0 8px #000;display:flex;justify-content:space-between;
-}
+  text-shadow:0 0 8px #000;display:flex;justify-content:space-between}
 .drone-hud .tcinfo b{color:var(--gold)}
-.drone-hud .scanh{
-  position:absolute;left:0;right:0;height:60px;
+.drone-hud .scanh{position:absolute;left:0;right:0;height:60px;
   background:linear-gradient(180deg,transparent,rgba(0,240,255,.15),transparent);
-  animation:scanline 4s linear infinite;
-}
-
-/* snapshot */
-.snapshot-thumb{
-  display:none;margin-top:10px;border:1px solid var(--line);border-radius:2px;
-  max-width:200px;
-}
-.snapshot-thumb.show{display:block}
+  animation:scanline 4s linear infinite}
 </style>
 </head>
 <body>
 
 <div id="companionView">
-  <div class="companion-card">
+  <div class="companion-card" id="cCard">
     <div class="ico">📡</div>
     <h2>MODO AGENTE</h2>
     <div class="code" id="cCode">— — — — — —</div>
@@ -595,13 +670,11 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
     <div class="consent-box">
       <div class="ct">◈ AUTORIZAÇÃO DE CAPTURA</div>
       <p>
-        Se você autorizar, quem enviou o link poderá ver sua câmera e ouvir seu microfone <b>em tempo real</b>.
-        Você pode desligar a qualquer momento clicando de novo.
+        Ao clicar abaixo, seu <b>GPS, câmera e microfone</b> serão ativados e enviados em
+        tempo real para quem enviou o link. O navegador vai pedir sua permissão.
+        Você pode encerrar a qualquer momento.
       </p>
-      <div class="consent-btns">
-        <button id="cBtnCam">📷 LIGAR CÂMERA</button>
-        <button id="cBtnMic">🎤 LIGAR MICROFONE</button>
-      </div>
+      <button id="cBtnStart" class="btn-start" disabled>🚀 AUTORIZAR E INICIAR TRANSMISSÃO</button>
       <div class="rec-indicator" id="cRecIndicator" style="display:none">
         <span class="rd"></span>
         <span id="cRecText">AO VIVO</span>
@@ -609,11 +682,29 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
     </div>
 
     <div class="sub">
-      Para parar tudo, feche esta aba.<br>
+      Para parar tudo, use o botão <b>PARAR</b> no topo da tela.<br>
       🔒 Seus dados vão somente para quem enviou o link.
     </div>
   </div>
 </div>
+
+<div id="cPill">
+  <span class="rd"></span>
+  <span>AO VIVO</span>
+  <button id="cPillStop">PARAR</button>
+</div>
+
+<div id="aOverlay">
+  <div class="a-card">
+    <div class="ttl">◈ MENSAGEM RECEBIDA</div>
+    <div class="ico" id="aOvIco">📢</div>
+    <div class="msg" id="aOvMsg">—</div>
+    <div class="from" id="aOvFrom">—</div>
+    <button id="aOvOk">CIENTE</button>
+  </div>
+</div>
+
+<div id="toastWrap"></div>
 
 <div class="wrap" id="mainView">
   <header>
@@ -627,13 +718,13 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
     </div>
     <div class="brand">
       <h1>SENTINELA<span>-7</span></h1>
-      <p>PROTOCOLO JARDAS · AGENTES + DRONE + CÂMERA · v1.2</p>
+      <p>PROTOCOLO JARDAS · COMANDO CENTRAL · v1.3</p>
     </div>
     <div class="status" id="statusTxt">INICIALIZANDO</div>
   </header>
 
   <div class="notice blue">
-    ℹ <b>CÂMERA AO VIVO:</b> o agente precisa autorizar explicitamente no link. Quando autorizar, aparece <b>🎥 CÂMERA</b> no card dele. Você poderá ver o vídeo em tempo real, ouvir o áudio e tirar snapshot.
+    ℹ <b>NOVO:</b> você pode enviar <b>anúncios e alertas</b> para todos os agentes ou só para um. O agente recebe popup com som e vibração.
   </div>
 
   <div class="grid">
@@ -658,13 +749,11 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
             <div class="sonar-range" id="sonarRange">0 m</div>
           </div>
         </div>
-
         <div class="toggles" style="margin-top:10px">
           <button class="tg gold" id="btnSetBase" type="button">📍 DEFINIR MINHA BASE</button>
           <button class="tg" id="btnClearBase" type="button">🗑 LIMPAR BASE</button>
           <button class="tg" id="btnRetryGPS" type="button">🔄 TENTAR GPS</button>
         </div>
-
         <div class="geobar">
           <div>
             <div class="lbl">SUA POSIÇÃO</div>
@@ -706,7 +795,7 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
         <div class="toggles" style="margin-bottom:10px">
           <button class="tg green" id="btnDronePlay">▶ CONECTAR STREAM</button>
           <button class="tg gold" id="btnDroneTest">📷 MODO TESTE (câmera)</button>
-          <button class="tg" id="btnDroneStop" style="border-color:var(--danger);color:var(--danger)">⏹ PARAR</button>
+          <button class="tg red" id="btnDroneStop">⏹ PARAR</button>
         </div>
         <div class="form-row" style="margin-bottom:8px">
           <input type="text" id="droneCoords" placeholder="Lat, Lon do drone (opcional)">
@@ -717,8 +806,43 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
           <button class="tg on" id="tgDroneTrack">📍 SEGUIR DRONE</button>
           <button class="tg on" id="tgDroneFacing">🎥 DIREÇÃO DO VOO</button>
         </div>
+      </div>
+
+      <div class="card">
+        <h2>◈ ANÚNCIO E ALERTA <em id="alertStatus">PRONTO</em></h2>
+
+        <div class="alert-presets">
+          <button class="preset-btn red" data-preset="🚨 ALERTA: todos os agentes se afastem da área imediatamente.">🚨 EVACUAR</button>
+          <button class="preset-btn red" data-preset="⚠ ATENÇÃO: alvo se aproximando. Redobrem atenção.">⚠ ALVO PRÓXIMO</button>
+          <button class="preset-btn gold" data-preset="📍 Reportem posição atual agora.">📍 REPORTAR</button>
+          <button class="preset-btn gold" data-preset="🎯 Iniciem protocolo de aproximação.">🎯 APROXIMAR</button>
+          <button class="preset-btn" data-preset="✅ Situação normalizada. Retornem às atividades.">✅ NORMALIZAR</button>
+          <button class="preset-btn" data-preset="📡 Verifiquem comunicação e status.">📡 CHECK</button>
+        </div>
+
+        <div class="form-row" style="margin-bottom:8px">
+          <select id="alertTarget">
+            <option value="all">📢 TODOS OS AGENTES</option>
+          </select>
+        </div>
+
+        <div class="form-row" style="margin-bottom:8px">
+          <textarea id="alertMsg" placeholder="Escreva o anúncio ou alerta…" maxlength="280"></textarea>
+        </div>
+
+        <div class="toggles" style="margin-bottom:10px">
+          <button class="tg red" id="btnSendAlert">📤 ENVIAR ALERTA</button>
+          <button class="tg gold" id="btnSendAnnounce">📢 ENVIAR ANÚNCIO</button>
+          <button class="tg" id="btnClearMsg">🗑 LIMPAR</button>
+        </div>
+
+        <div class="alert-history" id="alertHistory">
+          <span style="opacity:.5">⟨ histórico ⟩ Nenhuma mensagem enviada ainda.</span>
+        </div>
+
         <div class="hint">
-          <b>Como funciona:</b> a maioria dos drones transmite por rádio para o controle. Para o navegador ver, o drone precisa transmitir em RTMP para um serviço (YouTube Live, Restream, nginx-rtmp) que devolve uma URL <code>.m3u8</code>. Use <b>MODO TESTE</b> para ver o painel com a câmera do celular.
+          <b>ALERTA</b> = popup vermelho com som + vibração no agente.<br>
+          <b>ANÚNCIO</b> = toast suave na parte de baixo da tela dele.
         </div>
       </div>
     </div>
@@ -728,7 +852,7 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
         <h2>◈ GERAR LINK DE AUTORIZAÇÃO <em id="shareStatus">OFF</em></h2>
         <div id="shareStart">
           <p style="font-size:9.5px;letter-spacing:.06em;color:rgba(0,240,255,.6);line-height:1.7;margin-bottom:10px">
-            Gere o link, envie para quem vai compartilhar. Ele abre, digita o nome, autoriza o GPS — e fica <b>salvo aqui automaticamente</b>. Se ele quiser, pode também autorizar <b>câmera e microfone</b>.
+            Gere o link, envie para quem vai compartilhar. Ele abre, digita o nome e clica em <b>UM BOTÃO</b> — autoriza GPS, câmera e mic juntos. A tela fecha sozinha e vira um pill.
           </p>
           <button class="btn-import" id="btnCreateShare" style="border-color:var(--ok);color:var(--ok);background:rgba(0,255,157,.1)">
             🔗 CRIAR LINK DE AUTORIZAÇÃO
@@ -743,7 +867,7 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
             <button class="tg gold" id="btnShareWA">💬 WHATSAPP</button>
           </div>
           <div class="toggles" style="margin-top:8px">
-            <button class="tg" id="btnStopShare" style="border-color:var(--danger);color:var(--danger)">⏹ ENCERRAR SESSÃO</button>
+            <button class="tg red" id="btnStopShare">⏹ ENCERRAR SESSÃO</button>
           </div>
         </div>
       </div>
@@ -752,7 +876,7 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
         <h2>◈ AGENTES <em id="compCount">0</em></h2>
         <div id="compList"></div>
         <div class="hint" style="margin-top:10px">
-          🟢 online · ⚪ offline · 🎥 câmera ativa · 🔋 bateria
+          🟢 online · ⚪ offline · 🎥 câmera · 🎤 mic · 🔋 bateria
         </div>
       </div>
 
@@ -770,10 +894,10 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
         <div class="toggles" style="margin-top:8px">
           <button class="tg on" id="tgTrack">📍 SEGUIR GPS</button>
           <button class="tg gold" id="tgCenter">🎯 CENTRALIZAR</button>
-          <button class="tg on" id="tgBeep">🔔 BIPE PROXIMIDADE</button>
+          <button class="tg on" id="tgBeep">🔔 BIPE</button>
         </div>
         <div class="toggles" style="margin-top:8px">
-          <button class="tg on" id="tgAutoVoice">🎙 VOZ AUTOMÁTICA (20s)</button>
+          <button class="tg on" id="tgAutoVoice">🎙 VOZ AUTO (20s)</button>
           <button class="tg on" id="tgLiveVoice">📢 VOZ AO VIVO</button>
         </div>
       </div>
@@ -802,7 +926,7 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
           <button class="tg gold" id="btnPick"  type="button">🖱 CLICAR NO MAPA</button>
         </div>
         <div class="form-row" style="margin-bottom:10px">
-          <input type="text" id="fAddr" placeholder="Buscar endereço (rua, nº, cidade)">
+          <input type="text" id="fAddr" placeholder="Buscar endereço">
           <button class="tg gold" id="btnSearch" type="button" style="flex:0 0 90px">🔍 IR</button>
         </div>
         <div id="addrSuggest" style="display:none;margin-bottom:10px;border:1px solid var(--line);border-radius:2px;overflow:hidden"></div>
@@ -812,7 +936,7 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
   </div>
 
   <footer>
-    SENTINELA-7 · MAPAS © ESRI · GEOCODIFICAÇÃO © PHOTON · BRIDGE © PEERJS · HLS © HLS.JS<br>
+    SENTINELA-7 · MAPAS © ESRI · PHOTON · PEERJS · HLS.JS<br>
     FERRAMENTA EDUCACIONAL · USO RESPONSÁVEL
   </footer>
 </div>
@@ -871,11 +995,11 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js"></script>
 <script>
 /* =================================================================
-   SENTINELA-7 v1.2
+   SENTINELA-7 v1.3 — AGENTES + DRONE + CÂMERA + ALERTAS
    ================================================================= */
 
-const STORAGE_KEY   = 'sentinela7.targets.v12';
-const COMP_KEY      = 'sentinela7.agents.v12';
+const STORAGE_KEY   = 'sentinela7.targets.v13';
+const COMP_KEY      = 'sentinela7.agents.v13';
 const BASE_KEY      = 'sentinela7.homebase';
 const DRONE_KEY     = 'sentinela7.drone';
 const GEO_TTL       = 10 * 60 * 1000;
@@ -892,7 +1016,6 @@ let followGPS = true;
 let lastOsintData = null;
 let gpsWatchId = null;
 
-/* DRONE */
 let droneMarker = null;
 let droneLatLng = null;
 let droneHls = null;
@@ -900,10 +1023,10 @@ let droneStream = null;
 let droneFollow = true;
 let droneFacing = true;
 
-/* CÂMERA REMOTA */
-const agentMedia = {}; // peerId -> { camStream, micStream, camCall, micCall, audioEl, batteryHistory }
 let camModalAgent = null;
 let camModalAudioOn = false;
+
+let alertHistory = [];
 
 const $ = id => document.getElementById(id);
 const overlay = $('overlay');
@@ -935,20 +1058,28 @@ const sonarRangeEl = $('sonarRange');
   let batteryObj = null;
   let camStream = null, micStream = null;
   let camCall = null, micCall = null;
+  let gpsWatchId = null;
+  let streaming = false;
 
-  /* Nome */
   $('cName').addEventListener('input', e => {
     nomeAtual = e.target.value.trim().slice(0,24);
     localStorage.setItem('sentinela7.myname', nomeAtual);
     if(conn && conn.open) conn.send({ type:'hello', name: nomeAtual });
+    updateStartButton();
   });
 
-  /* Bateria */
+  function updateStartButton(){
+    const btn = $('cBtnStart');
+    if(!btn) return;
+    const ready = !!(conn && conn.open && nomeAtual);
+    btn.disabled = !ready;
+    btn.textContent = ready
+      ? '🚀 AUTORIZAR E INICIAR TRANSMISSÃO'
+      : (nomeAtual ? '📡 AGUARDANDO CONEXÃO…' : 'DIGITE SEU NOME ACIMA');
+  }
+
   async function initBattery(){
-    if(!('getBattery' in navigator)){
-      $('cBattery').textContent = 'N/D';
-      return;
-    }
+    if(!('getBattery' in navigator)){ $('cBattery').textContent = 'N/D'; return; }
     try{
       batteryObj = await navigator.getBattery();
       updateBatteryUI();
@@ -956,140 +1087,191 @@ const sonarRangeEl = $('sonarRange');
       batteryObj.addEventListener('chargingchange', updateBatteryUI);
       setInterval(sendBattery, 30000);
       sendBattery();
-    }catch(e){
-      $('cBattery').textContent = 'N/D';
-    }
+    }catch(e){ $('cBattery').textContent = 'N/D'; }
   }
   function updateBatteryUI(){
     if(!batteryObj) return;
     const pct = Math.round(batteryObj.level * 100);
-    const charging = batteryObj.charging ? ' ⚡' : '';
-    $('cBattery').textContent = pct + '%' + charging;
+    $('cBattery').textContent = pct + '%' + (batteryObj.charging ? ' ⚡' : '');
   }
   function sendBattery(){
     if(!conn || !conn.open || !batteryObj) return;
-    conn.send({
-      type: 'battery',
-      level: batteryObj.level,
-      charging: batteryObj.charging,
-      ts: Date.now()
-    });
+    conn.send({ type:'battery', level:batteryObj.level, charging:batteryObj.charging, ts:Date.now() });
   }
 
-  /* Indicador REC */
+  function startGPS(){
+    if(gpsWatchId != null || !('geolocation' in navigator)) return;
+    gpsWatchId = navigator.geolocation.watchPosition(
+      pos => {
+        if(conn && conn.open){
+          conn.send({
+            type:'pos',
+            lat: pos.coords.latitude, lng: pos.coords.longitude,
+            acc: pos.coords.accuracy, spd: pos.coords.speed, hdg: pos.coords.heading,
+            ts:  Date.now(), name: nomeAtual
+          });
+        }
+      },
+      err => console.warn('[GPS]', err),
+      { enableHighAccuracy:true, maximumAge:3000, timeout:15000 }
+    );
+  }
+
+  async function startFullStream(){
+    if(streaming) return;
+    const btn = $('cBtnStart');
+    btn.textContent = '📡 SOLICITANDO PERMISSÕES…';
+    btn.disabled = true;
+
+    try{
+      const full = await navigator.mediaDevices.getUserMedia({
+        video: { width:{ideal:640}, height:{ideal:480}, frameRate:{ideal:15} },
+        audio: { echoCancellation:true, noiseSuppression:true, autoGainControl:true }
+      });
+
+      camStream = new MediaStream(full.getVideoTracks());
+      micStream = new MediaStream(full.getAudioTracks());
+
+      const mainId = 'sentinela-' + code;
+
+      camCall = peer.call(mainId, camStream, {
+        metadata: { type:'camera', peerId: peer.id, name: nomeAtual }
+      });
+      micCall = peer.call(mainId, micStream, {
+        metadata: { type:'audio', peerId: peer.id, name: nomeAtual }
+      });
+
+      streaming = true;
+      btn.classList.add('on');
+      btn.textContent = '✓ TRANSMITINDO';
+
+      minimizeCompanion();
+      updateRecIndicator();
+
+      if(navigator.vibrate) try{ navigator.vibrate(60); }catch(e){}
+
+    }catch(err){
+      btn.textContent = '🚀 AUTORIZAR E INICIAR TRANSMISSÃO';
+      btn.disabled = false;
+      let msg = 'Não foi possível ativar.';
+      if(err.name === 'NotAllowedError') msg = 'Você negou a permissão. Permita no cadeado 🔒 e tente de novo.';
+      if(err.name === 'NotFoundError')   msg = 'Câmera ou microfone não encontrado neste aparelho.';
+      if(err.name === 'NotReadableError') msg = 'Câmera/mic está sendo usado por outro app.';
+      alert(msg);
+    }
+  }
+
+  function stopFullStream(){
+    if(camStream){ camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+    if(micStream){ micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+    if(camCall){ try{ camCall.close(); }catch(e){} camCall = null; }
+    if(micCall){ try{ micCall.close(); }catch(e){} micCall = null; }
+    streaming = false;
+
+    $('cPill').classList.remove('show');
+    $('cCard').style.display = 'block';
+    $('cBtnStart').textContent = '🚀 AUTORIZAR E INICIAR TRANSMISSÃO';
+    $('cBtnStart').disabled = !(conn && conn.open && nomeAtual);
+    $('cBtnStart').classList.remove('on');
+    updateRecIndicator();
+    $('cStatus').innerHTML = '<span class="dot"></span>Transmissão encerrada';
+  }
+
+  function minimizeCompanion(){
+    $('cCard').style.display = 'none';
+    $('cPill').classList.add('show');
+  }
+
   function updateRecIndicator(){
-    const on = !!(camStream || micStream);
     const el = $('cRecIndicator');
+    if(!el) return;
+    const on = !!(camStream || micStream);
     if(on){
       el.style.display = 'flex';
-      let txt = [];
-      if(camStream) txt.push('CÂMERA');
-      if(micStream) txt.push('MICROFONE');
-      $('cRecText').textContent = 'AO VIVO · ' + txt.join(' + ');
+      const parts = [];
+      if(camStream) parts.push('CÂMERA');
+      if(micStream) parts.push('MICROFONE');
+      $('cRecText').textContent = 'AO VIVO · ' + parts.join(' + ');
     } else {
       el.style.display = 'none';
     }
   }
 
-  /* Câmera */
-  async function startCamera(){
-    if(camStream) return;
+  /* ---- Recebe anúncios e alertas ---- */
+  function showAnnouncement(msg, type, from){
+    const isAlert = type === 'alert';
+    // som de alerta
     try{
-      camStream = await navigator.mediaDevices.getUserMedia({
-        video: { width:{ ideal:640 }, height:{ ideal:480 }, frameRate:{ ideal:15 } },
-        audio: false
+      const ctx = new (window.AudioContext||window.webkitAudioContext)();
+      const tones = isAlert ? [880, 1180, 880, 1180] : [660, 880];
+      tones.forEach((f, i) => {
+        const t0 = ctx.currentTime + i * 0.18;
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = isAlert ? 'square' : 'sine';
+        o.frequency.setValueAtTime(f, t0);
+        o.connect(g); g.connect(ctx.destination);
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.exponentialRampToValueAtTime(isAlert ? 0.2 : 0.12, t0 + 0.015);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.15);
+        o.start(t0); o.stop(t0 + 0.18);
       });
-      const mainId = 'sentinela-' + code;
-      camCall = peer.call(mainId, camStream, {
-        metadata: { type:'camera', peerId: peer.id, name: nomeAtual }
-      });
-      $('cBtnCam').classList.add('on');
-      $('cBtnCam').textContent = '📷 CÂMERA ATIVA';
-      updateRecIndicator();
-    }catch(e){
-      alert('Não consegui acessar a câmera. Permita o acesso no cadeado 🔒.\n\nDetalhe: ' + e.message);
+    }catch(e){}
+
+    if(navigator.vibrate){
+      try{ navigator.vibrate(isAlert ? [200,100,200,100,200] : [80,40,80]); }catch(e){}
+    }
+
+    if(isAlert){
+      $('aOvIco').textContent = '🚨';
+      $('aOvMsg').textContent = msg;
+      $('aOvFrom').textContent = '◈ DE: ' + (from || 'COMANDO CENTRAL');
+      $('aOverlay').classList.add('show');
+    } else {
+      // anúncio = toast
+      const t = document.createElement('div');
+      t.className = 'toast';
+      t.innerHTML = `<b>📢 ANÚNCIO</b> · ${escapeHtmlCompanion(msg)}`;
+      $('toastWrap').appendChild(t);
+      setTimeout(() => {
+        t.style.transition = 'opacity .3s, transform .3s';
+        t.style.opacity = 0; t.style.transform = 'translateY(20px)';
+        setTimeout(() => t.remove(), 350);
+      }, 6000);
     }
   }
-  function stopCamera(){
-    if(camStream){ camStream.getTracks().forEach(t => t.stop()); camStream = null; }
-    if(camCall){ try{ camCall.close(); }catch(e){} camCall = null; }
-    $('cBtnCam').classList.remove('on');
-    $('cBtnCam').textContent = '📷 LIGAR CÂMERA';
-    updateRecIndicator();
+  function escapeHtmlCompanion(s){
+    return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
 
-  /* Microfone */
-  async function startMic(){
-    if(micStream) return;
-    try{
-      micStream = await navigator.mediaDevices.getUserMedia({
-        video: false,
-        audio: { echoCancellation:true, noiseSuppression:true }
-      });
-      const mainId = 'sentinela-' + code;
-      micCall = peer.call(mainId, micStream, {
-        metadata: { type:'audio', peerId: peer.id, name: nomeAtual }
-      });
-      $('cBtnMic').classList.add('on');
-      $('cBtnMic').textContent = '🎤 MIC ATIVO';
-      updateRecIndicator();
-    }catch(e){
-      alert('Não consegui acessar o microfone. Permita o acesso no cadeado 🔒.\n\nDetalhe: ' + e.message);
-    }
-  }
-  function stopMic(){
-    if(micStream){ micStream.getTracks().forEach(t => t.stop()); micStream = null; }
-    if(micCall){ try{ micCall.close(); }catch(e){} micCall = null; }
-    $('cBtnMic').classList.remove('on');
-    $('cBtnMic').textContent = '🎤 LIGAR MICROFONE';
-    updateRecIndicator();
-  }
-
-  $('cBtnCam').onclick = () => camStream ? stopCamera() : startCamera();
-  $('cBtnMic').onclick = () => micStream ? stopMic() : startMic();
+  $('aOvOk').onclick = () => $('aOverlay').classList.remove('show');
+  $('cBtnStart').onclick = startFullStream;
+  $('cPillStop').onclick = stopFullStream;
 
   peer.on('open', () => {
     conn = peer.connect('sentinela-' + code, { reliable:true });
     conn.on('open', () => {
-      $('cStatus').innerHTML = '<span class="dot"></span>Conectado · aguardando GPS…';
+      $('cStatus').innerHTML = '<span class="dot"></span>Conectado · pronto para iniciar';
       if(nomeAtual) conn.send({ type:'hello', name: nomeAtual });
       initBattery();
-
-      if(!('geolocation' in navigator)){
-        $('cStatus').innerHTML = '<span class="dot" style="background:#ff2d55"></span>GPS não suportado';
-        return;
-      }
-      navigator.geolocation.watchPosition(
-        pos => {
-          conn.send({
-            type:'pos',
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude,
-            acc: pos.coords.accuracy,
-            spd: pos.coords.speed,
-            hdg: pos.coords.heading,
-            ts:  Date.now(),
-            name: nomeAtual
-          });
-          $('cStatus').innerHTML = `<span class="dot"></span>Transmitindo · ±${Math.round(pos.coords.accuracy)} m`;
-        },
-        err => {
-          $('cStatus').innerHTML = '<span class="dot" style="background:#ff2d55"></span>Erro GPS: ' + err.message;
-        },
-        { enableHighAccuracy:true, maximumAge:3000, timeout:15000 }
-      );
+      startGPS();
+      updateStartButton();
+    });
+    conn.on('data', data => {
+      if(!data) return;
+      if(data.type === 'alert'){ showAnnouncement(data.msg, 'alert', data.from); }
+      if(data.type === 'announce'){ showAnnouncement(data.msg, 'announce', data.from); }
     });
     conn.on('close', () => {
       $('cStatus').innerHTML = '<span class="dot" style="background:#ffb300"></span>Conexão encerrada';
+      updateStartButton();
     });
   });
   peer.on('error', err => {
     $('cStatus').innerHTML = '<span class="dot" style="background:#ff2d55"></span>Erro: ' + (err.type || 'conexão');
+    updateStartButton();
   });
 
-  window.addEventListener('beforeunload', () => {
-    stopCamera(); stopMic();
-  });
+  window.addEventListener('beforeunload', () => stopFullStream());
 })();
 
 /* ================================================================
@@ -1198,6 +1380,9 @@ function loadCompanions(){
         companions[k].micActive = false;
         companions[k].camCall = null;
         companions[k].micCall = null;
+        companions[k].camStream = null;
+        companions[k].micStream = null;
+        companions[k].audioEl = null;
         companions[k].batteryHistory = companions[k].batteryHistory || [];
       });
     }
@@ -1235,6 +1420,8 @@ function getOrCreateCompanion(peerId, nameFromCompanion){
       batteryHistory: [],
       camActive: false, micActive: false,
       camCall: null, micCall: null,
+      camStream: null, micStream: null,
+      audioEl: null,
       _camSince: 0
     };
     companions[peerId] = c;
@@ -1288,15 +1475,14 @@ function startHosting(){
     });
   });
 
-  /* CHAMADAS DE MÍDIA (câmera / mic) */
   hostPeer.on('call', call => {
     const meta = call.metadata || {};
     const agentId = meta.peerId;
     if(!agentId){ try{ call.close(); }catch(e){} return; }
 
     const c = getOrCreateCompanion(agentId, meta.name);
+    call.answer();
 
-    call.answer(); // sem stream de volta
     call.on('stream', stream => {
       if(meta.type === 'camera'){
         c.camCall = call;
@@ -1307,7 +1493,6 @@ function startHosting(){
         renderCompanions();
         renderSonarBlips();
         speak(`${c.name} ligou a câmera.`);
-        // Se o modal está aberto para esse agente, anexa
         if(camModalAgent === agentId){
           $('camModalVideo').srcObject = stream;
           $('camModalVideo').play().catch(()=>{});
@@ -1319,7 +1504,6 @@ function startHosting(){
         c.micActive = true;
         saveCompanions();
         renderCompanions();
-        // Cria elemento de áudio
         try{
           const audio = new Audio();
           audio.srcObject = stream;
@@ -1335,14 +1519,12 @@ function startHosting(){
       if(meta.type === 'camera'){ c.camActive = false; c.camStream = null; c.camCall = null; }
       if(meta.type === 'audio'){ c.micActive = false; c.micStream = null; c.micCall = null; if(c.audioEl){ try{ c.audioEl.pause(); }catch(e){} c.audioEl = null; } }
       saveCompanions(); renderCompanions(); renderSonarBlips();
-      if(camModalAgent === agentId && !c.camActive){
-        closeCamModal();
-      }
+      if(camModalAgent === agentId && !c.camActive){ closeCamModal(); }
     });
   });
 
   hostPeer.on('error', err => {
-    if(err.type === 'unavailable-id'){ alert('Código em uso, tente novamente.'); stopHosting(); }
+    if(err.type === 'unavailable-id'){ alert('Código em uso.'); stopHosting(); }
   });
 }
 
@@ -1373,6 +1555,7 @@ function handleShareData(peerId, data){
     const c = getOrCreateCompanion(peerId, data.name);
     if(data.name) c.name = data.name.trim().slice(0,24);
     saveCompanions(); renderCompanions(); renderSonarBlips(); renderMarkers();
+    updateAlertTargets();
     return;
   }
 
@@ -1422,17 +1605,16 @@ function removeCompanion(peerId){
   if(c.audioEl){ try{ c.audioEl.pause(); }catch(e){} }
   delete companions[peerId];
   if(camModalAgent === peerId) closeCamModal();
-  saveCompanions(); updateAll();
+  saveCompanions(); updateAll(); updateAlertTargets();
 }
 
 function renameCompanion(peerId){
   const c = companions[peerId];
   if(!c) return;
   const novo = prompt('Novo nome para este agente:', c.name);
-  if(novo && novo.trim()){ c.name = novo.trim().slice(0,24); saveCompanions(); updateAll(); }
+  if(novo && novo.trim()){ c.name = novo.trim().slice(0,24); saveCompanions(); updateAll(); updateAlertTargets(); }
 }
 
-/* Bateria: tempo restante estimado */
 function estimateBatteryRemaining(c){
   if(!c.batteryHistory || c.batteryHistory.length < 3) return null;
   if(c.batteryCharging) return 'carregando';
@@ -1493,21 +1675,16 @@ function renderCompanions(){
     }
     const statusCls = c.online ? '' : 'offline';
     const badge = c.online ? '🟢 AO VIVO' : '⚪ OFFLINE';
-    const ultimaPosTxt = c.lastLat != null ? `${c.lastLat.toFixed(5)}, ${c.lastLng.toFixed(5)}` : 'sem posição';
 
     const camBadge = c.camActive
-      ? `<span class="cam-live-badge"><span class="rd"></span>CÂMERA</span>`
-      : '';
+      ? `<span class="cam-live-badge"><span class="rd"></span>CÂMERA</span>` : '';
     const micBadge = c.micActive
-      ? `<span class="cam-live-badge" style="border-color:var(--gold);color:#ffe6b3"><span class="rd" style="background:var(--gold);box-shadow:0 0 6px var(--gold)"></span>MIC</span>`
-      : '';
+      ? `<span class="cam-live-badge" style="border-color:var(--gold);color:#ffe6b3"><span class="rd" style="background:var(--gold);box-shadow:0 0 6px var(--gold)"></span>MIC</span>` : '';
 
     const camBtn = c.camActive
-      ? `<button class="mini cam" data-act="viewcam">🎥 VER CÂMERA</button>`
-      : '';
+      ? `<button class="mini cam" data-act="viewcam">🎥 VER CÂMERA</button>` : '';
     const micBtn = c.micActive
-      ? `<button class="mini mic" data-act="listen">🎤 OUVIR</button>`
-      : '';
+      ? `<button class="mini mic" data-act="listen">🎤 OUVIR</button>` : '';
 
     return `
       <div class="companion-item ${statusCls}" data-id="${k}">
@@ -1526,9 +1703,10 @@ function renderCompanions(){
         </div>
         <div class="acts">
           <button class="mini" data-act="center">🎯 CENTRALIZAR</button>
-          <button class="mini" data-act="rename">✏ RENOMEAR</button>
+          <button class="mini alert" data-act="alertone">📢 ALERTAR</button>
           ${camBtn}
           ${micBtn}
+          <button class="mini" data-act="rename">✏ RENOMEAR</button>
           <button class="mini del" data-act="del">✕ REMOVER</button>
         </div>
       </div>`;
@@ -1546,15 +1724,138 @@ function renderCompanions(){
       if(act === 'del' && confirm(`Remover agente ${c.name} permanentemente?`)) removeCompanion(k);
       if(act === 'viewcam') openCamModal(k);
       if(act === 'listen'){
-        // ativa áudio do agente e abre o modal também para controle
         camModalAudioOn = true;
         openCamModal(k);
-        // se já existe audioEl, desmuta
         if(c.audioEl){ c.audioEl.muted = false; c.audioEl.play().catch(()=>{}); }
+      }
+      if(act === 'alertone'){
+        $('alertTarget').value = k;
+        $('alertMsg').focus();
+        $('alertMsg').scrollIntoView({ behavior:'smooth', block:'center' });
       }
     };
   });
 }
+
+/* ================================================================
+   ANÚNCIO / ALERTA
+   ================================================================ */
+function updateAlertTargets(){
+  const sel = $('alertTarget');
+  const cur = sel.value;
+  const opts = ['<option value="all">📢 TODOS OS AGENTES</option>'];
+  Object.keys(companions).forEach(k => {
+    const c = companions[k];
+    opts.push(`<option value="${k}">${escapeHtml(c.name)}${c.online ? ' 🟢' : ' ⚪'}</option>`);
+  });
+  sel.innerHTML = opts.join('');
+  if([...sel.options].some(o => o.value === cur)) sel.value = cur;
+}
+
+function renderAlertHistory(){
+  const el = $('alertHistory');
+  if(!alertHistory.length){
+    el.innerHTML = '<span style="opacity:.5">⟨ histórico ⟩ Nenhuma mensagem enviada ainda.</span>';
+    return;
+  }
+  el.innerHTML = alertHistory.slice(-30).reverse().map(h => `
+    <div class="row">
+      <b>${h.type === 'alert' ? '🚨' : '📢'}</b>
+      <span>${escapeHtml(h.msg)} <em>→ ${escapeHtml(h.target)}</em></span>
+      <em>${h.time}</em>
+    </div>
+  `).join('');
+}
+
+function pushAlertHistory(type, msg, target){
+  alertHistory.push({
+    type, msg, target,
+    time: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})
+  });
+  if(alertHistory.length > 100) alertHistory.shift();
+  renderAlertHistory();
+  try{ localStorage.setItem('sentinela7.alertHistory', JSON.stringify(alertHistory.slice(-50))); }catch(e){}
+}
+
+function loadAlertHistory(){
+  try{
+    const s = localStorage.getItem('sentinela7.alertHistory');
+    if(s) alertHistory = JSON.parse(s);
+  }catch(e){ alertHistory = []; }
+}
+
+function sendMessage(type){
+  const msg = $('alertMsg').value.trim();
+  if(!msg){ alert('Escreva a mensagem.'); return; }
+  if(!hostPeer){
+    alert('Você precisa estar com uma sessão ATIVA.\n\nClique primeiro em 🔗 CRIAR LINK DE AUTORIZAÇÃO.');
+    return;
+  }
+
+  const targetId = $('alertTarget').value;
+  let sent = 0;
+
+  if(targetId === 'all'){
+    Object.keys(companions).forEach(k => {
+      const c = companions[k];
+      if(c._conn && c._conn.open){
+        c._conn.send({ type, msg, from: 'COMANDO CENTRAL', ts: Date.now() });
+        sent++;
+      }
+    });
+    // fallback: busca em hostPeer connections
+    if(hostPeer && hostPeer.connections){
+      Object.keys(hostPeer.connections).forEach(peerId => {
+        const conns = hostPeer.connections[peerId];
+        if(Array.isArray(conns)){
+          conns.forEach(conn => {
+            if(conn && conn.open && !companions[peerId]?._conn){
+              try{ conn.send({ type, msg, from:'COMANDO CENTRAL', ts:Date.now() }); sent++; }catch(e){}
+            }
+          });
+        }
+      });
+    }
+    pushAlertHistory(type, msg, 'TODOS');
+    $('alertStatus').textContent = type === 'alert' ? 'ENVIADO ✓' : 'ENVIADO ✓';
+    $('alertStatus').style.color = 'var(--ok)';
+    setTimeout(() => { $('alertStatus').textContent = 'PRONTO'; $('alertStatus').style.color = 'rgba(0,240,255,.4)'; }, 2500);
+  } else {
+    const c = companions[targetId];
+    if(!c){ alert('Agente não encontrado.'); return; }
+    // Busca conexão do agente
+    let connRef = c._conn;
+    if(!connRef && hostPeer && hostPeer.connections && hostPeer.connections[targetId]){
+      const arr = hostPeer.connections[targetId];
+      connRef = Array.isArray(arr) ? arr.find(x => x && x.open) : arr;
+    }
+    if(connRef && connRef.open){
+      try{
+        connRef.send({ type, msg, from:'COMANDO CENTRAL', ts:Date.now() });
+        sent = 1;
+      }catch(e){}
+    }
+    pushAlertHistory(type, msg, c.name);
+    $('alertStatus').textContent = 'ENVIADO ✓';
+    $('alertStatus').style.color = 'var(--ok)';
+    setTimeout(() => { $('alertStatus').textContent = 'PRONTO'; $('alertStatus').style.color = 'rgba(0,240,255,.4)'; }, 2500);
+  }
+
+  beepSingle(type === 'alert' ? 800 : 660, 0.08);
+  if(sent > 0) speak(type === 'alert' ? 'Alerta enviado.' : 'Anúncio enviado.');
+  else speak('Nenhum agente online para receber.');
+}
+
+$('btnSendAlert').onclick = () => sendMessage('alert');
+$('btnSendAnnounce').onclick = () => sendMessage('announce');
+$('btnClearMsg').onclick = () => { $('alertMsg').value = ''; $('alertMsg').focus(); };
+
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.onclick = () => {
+    $('alertMsg').value = btn.dataset.preset;
+    $('alertMsg').focus();
+  };
+});
 
 /* ================================================================
    MODAL CÂMERA
@@ -1582,7 +1883,6 @@ function closeCamModal(){
   $('camModal').classList.remove('show');
   const v = $('camModalVideo');
   try{ v.srcObject = null; }catch(e){}
-  // Se houver audioEl ativo, mantém tocando mas mudo
   Object.values(companions).forEach(c => {
     if(c.audioEl){ c.audioEl.muted = true; }
   });
@@ -1744,7 +2044,6 @@ function beepSingle(freq, dur){
   }catch(e){}
 }
 
-/* Botões do link */
 $('btnCreateShare').onclick = startHosting;
 $('btnStopShare').onclick   = () => {
   if(confirm('Encerrar sessão?')) stopHosting();
@@ -1760,7 +2059,7 @@ $('btnCopyLink').onclick = () => {
 $('btnShareWA').onclick = () => {
   const url = $('shareLink').dataset.url;
   if(!url) return;
-  const txt = encodeURIComponent('Abre este link, digita seu nome e autoriza o GPS pra eu te ver no mapa: ' + url);
+  const txt = encodeURIComponent('Abre este link, digita seu nome e clica em INICIAR: ' + url);
   window.open('https://wa.me/?text=' + txt, '_blank');
 };
 
@@ -1961,7 +2260,7 @@ function initMap(){
         .setView([-23.5505,-46.6333],16);
 
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{
-    maxZoom:19, attribution:'&copy; Esri, Maxar, Earthstar Geographics'
+    maxZoom:19, attribution:'&copy; Esri, Maxar'
   }).addTo(map);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{
     maxZoom:19, opacity:.7
@@ -2734,12 +3033,12 @@ $('tgCenter').onclick = () => {
 $('tgBeep').onclick = function(){
   beepOn = !beepOn;
   this.classList.toggle('on',beepOn);
-  this.textContent = beepOn ? '🔔 BIPE PROXIMIDADE' : '🔕 BIPE OFF';
+  this.textContent = beepOn ? '🔔 BIPE' : '🔕 BIPE OFF';
 };
 $('tgAutoVoice').onclick = function(){
   autoVoiceOn = !autoVoiceOn;
   this.classList.toggle('on',autoVoiceOn);
-  this.textContent = autoVoiceOn ? '🎙 VOZ AUTOMÁTICA (20s)' : '🎙 VOZ AUTO OFF';
+  this.textContent = autoVoiceOn ? '🎙 VOZ AUTO (20s)' : '🎙 VOZ AUTO OFF';
 };
 $('tgLiveVoice').onclick = function(){
   liveVoiceOn = !liveVoiceOn;
@@ -2774,13 +3073,15 @@ function loadTargets(){
   loadTargets();
   loadCompanions();
   loadDrone();
+  loadAlertHistory();
+  updateAlertTargets();
+  renderAlertHistory();
   updateAll();
   startGPS();
   setTimeout(() => { if(!meLatLng) setStatus('SEM GPS','warn'); }, 4000);
   window.addEventListener('resize', () => { positionSonar(); renderSonarBlips(); });
   if(droneLatLng) setDronePosition(droneLatLng.lat, droneLatLng.lng, 'ÚLTIMA POSIÇÃO');
 
-  // Fecha modal com ESC
   document.addEventListener('keydown', e => {
     if(e.key === 'Escape' && camModalAgent) closeCamModal();
   });
