@@ -765,13 +765,13 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
     </div>
     <div class="brand">
       <h1>SENTINELA<span>-7</span></h1>
-      <p>PROTOCOLO JARDAS · COMANDO CENTRAL · v1.8</p>
+      <p>PROTOCOLO JARDAS · COMANDO CENTRAL · v1.9</p>
     </div>
     <div class="status" id="statusTxt">INICIALIZANDO</div>
   </header>
 
   <div class="notice blue">
-    ℹ <b>SESSÃO PERSISTENTE:</b> o código da sessão fica salvo. Se você fechar e reabrir o painel, ele religa sozinho. Há também o botão <b>▶ REATIVAR ÚLTIMA SESSÃO</b> no card do link.
+    ℹ <b>SESSÃO PERSISTENTE:</b> o código da sessão fica salvo. Se você fechar e reabrir o painel, ele religa sozinho. Há também o botão <b>🔄 RECONECTAR AGENTES</b> para verificar quem está online.
   </div>
 
   <div class="notice red">
@@ -940,6 +940,9 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 
       <div class="card">
         <h2>◈ AGENTES <em id="compCount">0</em></h2>
+        <button class="btn-import" id="btnReconnectAgents" style="border-color:var(--neon);color:var(--neon);background:rgba(0,240,255,.08);margin-bottom:10px">
+          🔄 RECONECTAR AGENTES
+        </button>
         <div id="compList"></div>
         <div class="hint" style="margin-top:10px">
           🟢 online · ⚪ offline · 🎥 câmera · 🎤 mic · 🔋 bateria · 🔔 notif
@@ -1061,7 +1064,7 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js"></script>
 <script>
 /* =================================================================
-   SENTINELA-7 v1.8 — CORREÇÃO DO "LINK INVÁLIDO"
+   SENTINELA-7 v1.9 — BOTÃO RECONECTAR + PING/PONG
    ================================================================= */
 
 const STORAGE_KEY   = 'sentinela7.targets.v14';
@@ -1101,7 +1104,7 @@ const sonarDisc = $('sonarDisc');
 const sonarRangeEl = $('sonarRange');
 
 /* ================================================================
-   MODO AGENTE — só entra se tiver #share= na URL OU for app instalado
+   MODO AGENTE
    ================================================================ */
 (function checkCompanion(){
   const hash = window.location.hash || '';
@@ -1112,7 +1115,6 @@ const sonarRangeEl = $('sonarRange');
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
                        window.navigator.standalone === true;
 
-  /* Forçar modo painel com #admin */
   if(hash === '#admin'){
     localStorage.removeItem('sentinela7.agentCode');
     const comp = document.getElementById('companionView');
@@ -1123,7 +1125,6 @@ const sonarRangeEl = $('sonarRange');
     return;
   }
 
-  /* Decide se entra em modo agente */
   let code = null;
   if(urlCode){
     code = urlCode;
@@ -1134,7 +1135,6 @@ const sonarRangeEl = $('sonarRange');
     console.log('[AGENTE] código salvo (app instalado):', savedCode);
   }
 
-  /* Se não tem código → modo painel normal */
   if(!code){
     const comp = document.getElementById('companionView');
     if(comp) comp.classList.remove('show');
@@ -1151,10 +1151,8 @@ const sonarRangeEl = $('sonarRange');
   $('cCode').textContent = code.split('').join(' ');
   $('cStatus').innerHTML = '<span class="dot" style="background:#ffb300;box-shadow:0 0 10px #ffb300"></span>Conectando…';
 
-  /* ---------- DETECÇÃO DE iOS ---------- */
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-  /* ---------- CAPTURA DO PROMPT DE INSTALAÇÃO ---------- */
   let deferredInstallPrompt = null;
 
   window.addEventListener('beforeinstallprompt', e => {
@@ -1195,7 +1193,6 @@ const sonarRangeEl = $('sonarRange');
   let autoRestarting = false;
   let reconnectTimer = null;
 
-  /* ---------- PERSISTÊNCIA ---------- */
   function getAuthState(){
     try{ return JSON.parse(localStorage.getItem(AUTH_KEY) || '{}'); }catch(e){ return {}; }
   }
@@ -1208,7 +1205,6 @@ const sonarRangeEl = $('sonarRange');
     markNotifBanner(true);
   }
 
-  /* ---------- NOTIFICAÇÕES ---------- */
   function markNotifBanner(on){
     const b = $('cNotifBanner');
     b.classList.toggle('on', on);
@@ -1251,7 +1247,6 @@ const sonarRangeEl = $('sonarRange');
     }catch(e){ console.warn('[NOTIF]', e); }
   }
 
-  /* ---------- WAKE LOCK ---------- */
   async function requestWakeLock(){
     if(!('wakeLock' in navigator)) return;
     try{
@@ -1263,7 +1258,6 @@ const sonarRangeEl = $('sonarRange');
     try{ if(wakeLock){ await wakeLock.release(); wakeLock = null; } }catch(e){}
   }
 
-  /* ---------- ÁUDIO SILENCIOSO ---------- */
   function startSilenceLoop(){
     if(silenceAudioCtx) return;
     try{
@@ -1284,7 +1278,6 @@ const sonarRangeEl = $('sonarRange');
     }catch(e){}
   }
 
-  /* ---------- INSTALAÇÃO ---------- */
   async function tryInstallPWA(){
     if(isIOS && !isStandalone){
       const box = $('cIOSInstallBox');
@@ -1314,7 +1307,6 @@ const sonarRangeEl = $('sonarRange');
     return 'unavailable';
   }
 
-  /* ---------- REATIVAÇÃO ---------- */
   async function reactivateStream(){
     if(autoRestarting || !streaming) return;
     autoRestarting = true;
@@ -1354,7 +1346,6 @@ const sonarRangeEl = $('sonarRange');
   window.addEventListener('focus', async () => { if(streaming) await reactivateStream(); });
   window.addEventListener('pageshow', async () => { if(streaming) await reactivateStream(); });
 
-  /* ---------- UI ---------- */
   $('cName').addEventListener('input', e => {
     nomeAtual = e.target.value.trim().slice(0,24);
     localStorage.setItem('sentinela7.myname', nomeAtual);
@@ -1505,7 +1496,6 @@ const sonarRangeEl = $('sonarRange');
     }
   }
 
-  /* ---------- MENSAGENS ---------- */
   function showAnnouncement(msg, type, from, mediaUrl){
     const isAlert = type === 'alert';
     try{
@@ -1609,7 +1599,6 @@ const sonarRangeEl = $('sonarRange');
     }
   }
 
-  /* ---------- RECONEXÃO AUTOMÁTICA AO PEER ---------- */
   function scheduleReconnect(){
     if(reconnectTimer) return;
     reconnectTimer = setTimeout(() => {
@@ -1626,6 +1615,10 @@ const sonarRangeEl = $('sonarRange');
           });
           conn.on('data', data => {
             if(!data) return;
+            if(data.type === 'ping'){
+              try{ conn.send({ type:'pong', ts: Date.now() }); }catch(e){}
+              return;
+            }
             if(data.type === 'alert'){ showAnnouncement(data.msg, 'alert', data.from, data.mediaUrl); }
             if(data.type === 'announce'){ showAnnouncement(data.msg, 'announce', data.from, data.mediaUrl); }
           });
@@ -1641,7 +1634,6 @@ const sonarRangeEl = $('sonarRange');
     }, 3000);
   }
 
-  /* ---------- BIND ---------- */
   $('aOvOk').onclick = () => {
     $('aOverlay').classList.remove('show');
     const m = document.getElementById('aOvMedia');
@@ -1667,6 +1659,10 @@ const sonarRangeEl = $('sonarRange');
     });
     conn.on('data', data => {
       if(!data) return;
+      if(data.type === 'ping'){
+        try{ conn.send({ type:'pong', ts: Date.now() }); }catch(e){}
+        return;
+      }
       if(data.type === 'alert'){ showAnnouncement(data.msg, 'alert', data.from, data.mediaUrl); }
       if(data.type === 'announce'){ showAnnouncement(data.msg, 'announce', data.from, data.mediaUrl); }
     });
@@ -1780,7 +1776,6 @@ async function enrichNumber(numero){
   return resultados;
 }
 
-/* AGENTES */
 function loadCompanions(){
   try{
     const s = localStorage.getItem(COMP_KEY);
@@ -2000,6 +1995,21 @@ function stopHosting(){
 function handleShareData(peerId, data){
   if(!data) return;
 
+  if(data.type === 'pong'){
+    const c = companions[peerId];
+    if(c){
+      c.online = true;
+      c.lastTs = Date.now();
+      c._awaitingPong = 0;
+      saveCompanions();
+      renderCompanions();
+      renderSonarBlips();
+      renderMarkers();
+      updateAlertTargets();
+    }
+    return;
+  }
+
   if(data.type === 'hello'){
     const c = getOrCreateCompanion(peerId, data.name);
     if(data.name) c.name = data.name.trim().slice(0,24);
@@ -2186,7 +2196,6 @@ function renderCompanions(){
   });
 }
 
-/* ANÚNCIO / ALERTA */
 function updateAlertTargets(){
   const sel = $('alertTarget');
   const cur = sel.value;
@@ -2326,6 +2335,72 @@ $('btnPickMedia').onclick = () => {
   };
   input.click();
 };
+
+/* RECONECTAR AGENTES (ping/pong) */
+function reconnectAllAgents(){
+  if(!hostPeer){
+    alert('Ative a sessão primeiro (botão CRIAR LINK DE AUTORIZAÇÃO).');
+    return;
+  }
+
+  const keys = Object.keys(companions);
+  if(!keys.length){
+    alert('Nenhum agente cadastrado ainda.');
+    return;
+  }
+
+  const btn = document.getElementById('btnReconnectAgents');
+  const orig = btn.textContent;
+  btn.textContent = '🔄 VERIFICANDO…';
+  btn.disabled = true;
+
+  let totalPings = 0;
+  const pendentes = new Set();
+
+  keys.forEach(k => {
+    const c = companions[k];
+    if(c._conn && c._conn.open){
+      try{
+        c._awaitingPong = Date.now();
+        c._conn.send({ type:'ping', ts: Date.now() });
+        pendentes.add(k);
+        totalPings++;
+      }catch(e){
+        c.online = false;
+        c._conn = null;
+      }
+    } else {
+      c.online = false;
+      c._conn = null;
+    }
+  });
+
+  console.log('[RECONECTAR] pings enviados:', totalPings);
+
+  setTimeout(() => {
+    pendentes.forEach(k => {
+      const c = companions[k];
+      if(c && (Date.now() - (c._awaitingPong || 0)) >= 500){
+        c.online = false;
+      }
+    });
+
+    saveCompanions();
+    renderCompanions();
+    renderSonarBlips();
+    renderMarkers();
+    updateAlertTargets();
+
+    const online = Object.values(companions).filter(x => x.online).length;
+    btn.textContent = `✓ ${online} ONLINE / ${keys.length}`;
+    setTimeout(() => {
+      btn.textContent = orig;
+      btn.disabled = false;
+    }, 2000);
+  }, 3500);
+}
+
+$('btnReconnectAgents').onclick = reconnectAllAgents;
 
 /* MODAL CÂMERA */
 function openCamModal(agentId){
@@ -3233,7 +3308,6 @@ function updateAll(){
   renderSonarBlips();
 }
 
-/* LISTA ALVOS */
 function render(){ /* alvos estáticos não são exibidos no painel atual */ }
 
 /* LOOP */
@@ -3421,7 +3495,6 @@ function loadTargets(){
     if(e.key === 'Escape' && camModalAgent) closeCamModal();
   });
 
-  /* ---------- REATIVAÇÃO AUTOMÁTICA DA SESSÃO ---------- */
   const savedHostCode = localStorage.getItem('sentinela7.hostCode');
   const wasActive = localStorage.getItem('sentinela7.hostActive') === '1';
 
