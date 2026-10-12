@@ -486,7 +486,7 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
   position:fixed;inset:0;z-index:9999;display:none;
   background:radial-gradient(circle at 50% 40%,rgba(255,45,85,.32),rgba(2,6,11,.97) 55%);
   backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;
-  animation:fadein .2s;
+  animation:fadein .2s;overflow-y:auto;
 }
 #aOverlay.show{display:flex}
 .a-card{
@@ -496,6 +496,7 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
   box-shadow:0 0 60px rgba(255,45,85,.6);
   padding:24px 22px;text-align:center;
   animation:aPop .35s cubic-bezier(.2,1.4,.5,1);
+  max-height:92vh;overflow-y:auto;
 }
 @keyframes aPop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
 .a-card .ttl{
@@ -645,7 +646,6 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
   background:linear-gradient(180deg,transparent,rgba(0,240,255,.15),transparent);
   animation:scanline 4s linear infinite}
 
-/* Notificação de permissão */
 .notif-banner{
   margin-top:12px;padding:10px 12px;border-radius:2px;
   border:1px solid rgba(0,240,255,.4);background:rgba(0,240,255,.06);
@@ -719,6 +719,7 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
     <div class="ttl">◈ MENSAGEM RECEBIDA</div>
     <div class="ico" id="aOvIco">📢</div>
     <div class="msg" id="aOvMsg">—</div>
+    <div id="aOvMedia" style="margin:12px 0;display:none;border-radius:2px;overflow:hidden;max-height:50vh"></div>
     <div class="from" id="aOvFrom">—</div>
     <button id="aOvOk">CIENTE</button>
   </div>
@@ -738,7 +739,7 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
     </div>
     <div class="brand">
       <h1>SENTINELA<span>-7</span></h1>
-      <p>PROTOCOLO JARDAS · COMANDO CENTRAL · v1.4</p>
+      <p>PROTOCOLO JARDAS · COMANDO CENTRAL · v1.5</p>
     </div>
     <div class="status" id="statusTxt">INICIALIZANDO</div>
   </header>
@@ -854,6 +855,16 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
           <textarea id="alertMsg" placeholder="Escreva o anúncio ou alerta…" maxlength="280"></textarea>
         </div>
 
+        <div class="form-row" style="margin-bottom:8px">
+          <input type="text" id="alertMediaUrl" placeholder="URL de mídia (imagem/vídeo/áudio) — opcional">
+        </div>
+
+        <div class="toggles" style="margin-bottom:10px">
+          <button class="tg" id="btnPickMedia" type="button">📎 ESCOLHER ARQUIVO LOCAL</button>
+        </div>
+
+        <div id="alertMediaPreview" style="display:none;margin-bottom:10px;border:1px solid var(--line);border-radius:2px;overflow:hidden;max-height:180px"></div>
+
         <div class="toggles" style="margin-bottom:10px">
           <button class="tg red" id="btnSendAlert">📤 ENVIAR ALERTA</button>
           <button class="tg gold" id="btnSendAnnounce">📢 ENVIAR ANÚNCIO</button>
@@ -866,7 +877,8 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 
         <div class="hint">
           <b>ALERTA</b> = popup vermelho + notificação nativa na tela de bloqueio.<br>
-          <b>ANÚNCIO</b> = toast + notificação nativa silenciosa.
+          <b>ANÚNCIO</b> = toast + notificação nativa silenciosa.<br>
+          <b>MÍDIA</b> = cole URL ou escolha arquivo local (até 200KB).
         </div>
       </div>
     </div>
@@ -1019,7 +1031,7 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js"></script>
 <script>
 /* =================================================================
-   SENTINELA-7 v1.4 — NOTIFICAÇÕES NATIVAS + PERSISTÊNCIA
+   SENTINELA-7 v1.5 — NOTIFICAÇÕES NATIVAS + MÍDIA NOS ALERTAS
    ================================================================= */
 
 const STORAGE_KEY   = 'sentinela7.targets.v14';
@@ -1123,7 +1135,6 @@ const sonarRangeEl = $('sonarRange');
         notifGranted = true;
         setAuthState({ notifGranted: true });
         markNotifBanner(true);
-        // Notificação de teste
         showNotif('◈ SENTINELA ATIVO', 'Você receberá alertas aqui, mesmo com a tela bloqueada.', 'alert');
       } else {
         alert('Permissão negada. Você não vai receber notificações na tela de bloqueio.');
@@ -1137,7 +1148,7 @@ const sonarRangeEl = $('sonarRange');
         body,
         icon: 'data:image/svg+xml;base64,' + btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#02060b" stroke="${type === 'alert' ? '#ff2d55' : '#ffb300'}" stroke-width="4"/><circle cx="35" cy="45" r="10" fill="${type === 'alert' ? '#ff2d55' : '#ffb300'}"/><circle cx="65" cy="45" r="10" fill="${type === 'alert' ? '#ff2d55' : '#ffb300'}"/></svg>`),
         badge: 'data:image/svg+xml;base64,' + btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="${type === 'alert' ? '#ff2d55' : '#ffb300'}"/></svg>`),
-        tag: 'sentinela-' + type,
+        tag: 'sentinela-' + type + '-' + Date.now(),
         renotify: true,
         requireInteraction: type === 'alert',
         vibrate: type === 'alert' ? [300,100,300,100,300] : [100,50,100],
@@ -1252,12 +1263,10 @@ const sonarRangeEl = $('sonarRange');
       btn.classList.add('on');
       btn.textContent = '✓ TRANSMITINDO';
 
-      // Notificação solicitada automaticamente após primeira autorização
       if(!notifGranted && 'Notification' in window && Notification.permission === 'default'){
         await requestNotif();
       }
 
-      // Wake Lock: mantém tela acesa
       await requestWakeLock();
 
       minimizeCompanion();
@@ -1314,8 +1323,8 @@ const sonarRangeEl = $('sonarRange');
     }
   }
 
-  /* ---------- ALERTAS + NOTIFICAÇÕES ---------- */
-  function showAnnouncement(msg, type, from){
+  /* ---------- ALERTAS + NOTIFICAÇÕES COM MÍDIA ---------- */
+  function showAnnouncement(msg, type, from, mediaUrl){
     const isAlert = type === 'alert';
     try{
       const ctx = new (window.AudioContext||window.webkitAudioContext)();
@@ -1337,24 +1346,61 @@ const sonarRangeEl = $('sonarRange');
       try{ navigator.vibrate(isAlert ? [200,100,200,100,200] : [80,40,80]); }catch(e){}
     }
 
-    // NOTIFICAÇÃO NATIVA (aparece travado)
+    const notifBody = msg + (mediaUrl ? '\n📎 Toque para ver mídia' : '') + '\n— ' + (from || 'COMANDO CENTRAL');
     showNotif(
       isAlert ? '🚨 ALERTA · SENTINELA' : '📢 ANÚNCIO · SENTINELA',
-      msg + '\n— ' + (from || 'COMANDO CENTRAL'),
+      notifBody,
       isAlert ? 'alert' : 'info'
     );
 
-    // Popup na tela (se estiver aberta)
     if(isAlert){
       $('aOvIco').textContent = '🚨';
       $('aOvMsg').textContent = msg;
       $('aOvFrom').textContent = '◈ DE: ' + (from || 'COMANDO CENTRAL');
+
+      const mediaBox = $('aOvMedia');
+      mediaBox.innerHTML = '';
+      if(mediaUrl){
+        mediaBox.style.display = 'block';
+        if(/\.(jpg|jpeg|png|gif|webp|svg)(\?|$)/i.test(mediaUrl) || mediaUrl.startsWith('data:image')){
+          mediaBox.innerHTML = `<img src="${mediaUrl}" style="width:100%;display:block" onerror="this.parentElement.innerHTML='<div style=padding:10px;font-size:9.5px;color:rgba(255,45,85,.7)>Não foi possível carregar a imagem</div>'">`;
+        } else if(/\.(mp4|webm|mov)(\?|$)/i.test(mediaUrl) || mediaUrl.startsWith('data:video')){
+          mediaBox.innerHTML = `<video src="${mediaUrl}" controls autoplay muted playsinline style="width:100%;display:block"></video>`;
+        } else if(/\.(mp3|wav|ogg|m4a|aac)(\?|$)/i.test(mediaUrl) || mediaUrl.startsWith('data:audio')){
+          mediaBox.innerHTML = `<audio src="${mediaUrl}" controls autoplay style="width:100%"></audio>`;
+        } else if(/\.m3u8(\?|$)/i.test(mediaUrl)){
+          mediaBox.innerHTML = `<video src="${mediaUrl}" controls autoplay muted playsinline style="width:100%;display:block"></video>`;
+        } else {
+          mediaBox.innerHTML = `<a href="${mediaUrl}" target="_blank" style="display:block;padding:10px;color:var(--neon);text-decoration:none;font-size:10px">📎 Abrir mídia externa →</a>`;
+        }
+      } else {
+        mediaBox.style.display = 'none';
+      }
+
       $('aOverlay').classList.add('show');
     } else {
       const t = document.createElement('div');
       t.className = 'toast';
-      t.innerHTML = `<b>📢 ANÚNCIO</b> · ${escapeHtmlCompanion(msg)}`;
+      t.innerHTML = `<b>📢 ANÚNCIO</b> · ${escapeHtmlCompanion(msg)}${mediaUrl ? ' 📎' : ''}`;
       $('toastWrap').appendChild(t);
+
+      if(mediaUrl){
+        $('aOvIco').textContent = '📢';
+        $('aOvMsg').textContent = msg;
+        $('aOvFrom').textContent = '◈ DE: ' + (from || 'COMANDO CENTRAL');
+        const mediaBox = $('aOvMedia');
+        mediaBox.innerHTML = '';
+        mediaBox.style.display = 'block';
+        if(/\.(jpg|jpeg|png|gif|webp|svg)(\?|$)/i.test(mediaUrl) || mediaUrl.startsWith('data:image')){
+          mediaBox.innerHTML = `<img src="${mediaUrl}" style="width:100%;display:block">`;
+        } else if(/\.(mp4|webm|mov)(\?|$)/i.test(mediaUrl) || mediaUrl.startsWith('data:video')){
+          mediaBox.innerHTML = `<video src="${mediaUrl}" controls autoplay muted playsinline style="width:100%;display:block"></video>`;
+        } else if(/\.(mp3|wav|ogg|m4a|aac)(\?|$)/i.test(mediaUrl) || mediaUrl.startsWith('data:audio')){
+          mediaBox.innerHTML = `<audio src="${mediaUrl}" controls autoplay style="width:100%"></audio>`;
+        }
+        $('aOverlay').classList.add('show');
+      }
+
       setTimeout(() => {
         t.style.transition = 'opacity .3s, transform .3s';
         t.style.opacity = 0; t.style.transform = 'translateY(20px)';
@@ -1370,7 +1416,6 @@ const sonarRangeEl = $('sonarRange');
   function checkAutoResume(){
     const st = getAuthState();
     if(st.authorized && !streaming){
-      // Mostra botão com label diferente
       const btn = $('cBtnStart');
       if(btn && !btn.disabled){
         btn.textContent = '▶ RETOMAR TRANSMISSÃO';
@@ -1379,7 +1424,11 @@ const sonarRangeEl = $('sonarRange');
   }
 
   /* ---------- BIND ---------- */
-  $('aOvOk').onclick = () => $('aOverlay').classList.remove('show');
+  $('aOvOk').onclick = () => {
+    $('aOverlay').classList.remove('show');
+    const m = document.getElementById('aOvMedia');
+    if(m){ m.innerHTML = ''; m.style.display = 'none'; }
+  };
   $('cBtnStart').onclick = startFullStream;
   $('cPillStop').onclick = stopFullStream;
   $('cBtnNotif').onclick = requestNotif;
@@ -1396,8 +1445,8 @@ const sonarRangeEl = $('sonarRange');
     });
     conn.on('data', data => {
       if(!data) return;
-      if(data.type === 'alert'){ showAnnouncement(data.msg, 'alert', data.from); }
-      if(data.type === 'announce'){ showAnnouncement(data.msg, 'announce', data.from); }
+      if(data.type === 'alert'){ showAnnouncement(data.msg, 'alert', data.from, data.mediaUrl); }
+      if(data.type === 'announce'){ showAnnouncement(data.msg, 'announce', data.from, data.mediaUrl); }
     });
     conn.on('close', () => {
       $('cStatus').innerHTML = '<span class="dot" style="background:#ffb300"></span>Conexão encerrada';
@@ -1920,30 +1969,44 @@ function loadAlertHistory(){
   }catch(e){ alertHistory = []; }
 }
 
+/* ---------- ENVIO COM MÍDIA ---------- */
 function sendMessage(type){
   const msg = $('alertMsg').value.trim();
-  if(!msg){ alert('Escreva a mensagem.'); return; }
+  const mediaUrl = $('alertMediaUrl').value.trim();
+  if(!msg && !mediaUrl){ alert('Escreva uma mensagem ou cole uma URL de mídia.'); return; }
   if(!hostPeer){ alert('Sessão não está ativa.'); return; }
 
   const targetId = $('alertTarget').value;
   let sent = 0;
+  const payload = {
+    type,
+    msg: msg || (type === 'alert' ? '🚨 Alerta com mídia' : '📢 Anúncio com mídia'),
+    mediaUrl: mediaUrl || null,
+    from: 'COMANDO CENTRAL',
+    ts: Date.now()
+  };
 
   if(targetId === 'all'){
     Object.keys(companions).forEach(k => {
       const c = companions[k];
       if(c._conn && c._conn.open){
-        try{ c._conn.send({ type, msg, from:'COMANDO CENTRAL', ts:Date.now() }); sent++; }catch(e){}
+        try{ c._conn.send(payload); sent++; }catch(e){}
       }
     });
-    pushAlertHistory(type, msg, 'TODOS');
+    pushAlertHistory(type, (msg || '[mídia]') + (mediaUrl ? ' [📎]' : ''), 'TODOS');
   } else {
     const c = companions[targetId];
     if(!c){ alert('Agente não encontrado.'); return; }
     if(c._conn && c._conn.open){
-      try{ c._conn.send({ type, msg, from:'COMANDO CENTRAL', ts:Date.now() }); sent = 1; }catch(e){}
+      try{ c._conn.send(payload); sent = 1; }catch(e){}
     }
-    pushAlertHistory(type, msg, c.name);
+    pushAlertHistory(type, (msg || '[mídia]') + (mediaUrl ? ' [📎]' : ''), c.name);
   }
+
+  $('alertMsg').value = '';
+  $('alertMediaUrl').value = '';
+  $('alertMediaPreview').style.display = 'none';
+  $('alertMediaPreview').innerHTML = '';
 
   $('alertStatus').textContent = sent ? 'ENVIADO ✓' : 'SEM AGENTES';
   $('alertStatus').style.color = sent ? 'var(--ok)' : 'var(--danger)';
@@ -1956,10 +2019,56 @@ function sendMessage(type){
 
 $('btnSendAlert').onclick = () => sendMessage('alert');
 $('btnSendAnnounce').onclick = () => sendMessage('announce');
-$('btnClearMsg').onclick = () => { $('alertMsg').value = ''; $('alertMsg').focus(); };
+$('btnClearMsg').onclick = () => {
+  $('alertMsg').value = '';
+  $('alertMediaUrl').value = '';
+  $('alertMediaPreview').style.display = 'none';
+  $('alertMediaPreview').innerHTML = '';
+  $('alertMsg').focus();
+};
 document.querySelectorAll('.preset-btn').forEach(btn => {
   btn.onclick = () => { $('alertMsg').value = btn.dataset.preset; $('alertMsg').focus(); };
 });
+
+/* Preview de mídia quando cola URL */
+$('alertMediaUrl').addEventListener('input', e => {
+  const url = e.target.value.trim();
+  const box = $('alertMediaPreview');
+  if(!url){ box.style.display = 'none'; box.innerHTML = ''; return; }
+  box.innerHTML = '';
+  box.style.display = 'block';
+  if(/\.(jpg|jpeg|png|gif|webp|svg)(\?|$)/i.test(url) || url.startsWith('data:image')){
+    box.innerHTML = `<img src="${url}" style="width:100%;display:block" onerror="this.parentElement.style.display='none'">`;
+  } else if(/\.(mp4|webm|mov|m3u8)(\?|$)/i.test(url) || url.startsWith('data:video')){
+    box.innerHTML = `<video src="${url}" controls muted style="width:100%;display:block"></video>`;
+  } else if(/\.(mp3|wav|ogg|m4a|aac)(\?|$)/i.test(url) || url.startsWith('data:audio')){
+    box.innerHTML = `<audio src="${url}" controls style="width:100%"></audio>`;
+  } else {
+    box.innerHTML = '<div style="padding:10px;font-size:9.5px;color:rgba(0,240,255,.5)">URL colada (tipo não detectado)</div>';
+  }
+});
+
+/* Botão de arquivo local (converte para data URL - só para arquivos pequenos <200KB) */
+$('btnPickMedia').onclick = () => {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*,video/*,audio/*';
+  input.onchange = () => {
+    const f = input.files[0];
+    if(!f) return;
+    if(f.size > 200 * 1024){
+      alert('Arquivo muito grande (max 200KB). Suba em um serviço como imgur.com e cole a URL no campo.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      $('alertMediaUrl').value = reader.result;
+      $('alertMediaUrl').dispatchEvent(new Event('input'));
+    };
+    reader.readAsDataURL(f);
+  };
+  input.click();
+};
 
 /* MODAL CÂMERA */
 function openCamModal(agentId){
@@ -2870,54 +2979,11 @@ function updateAll(){
 /* LISTA ALVOS */
 function render(){
   if(!targets.length){
-    listEl.innerHTML = '<div class="empty">NENHUM ALVO<br>IMPORTE OU CADASTRE ACIMA</div>';
+    const lc = document.querySelector('#compList');
+    if(lc && !Object.keys(companions).length){ /* nothing */ }
     return;
   }
-  const sorted = [...targets].sort((a,b) => distTo(a) - distTo(b));
-  listEl.innerHTML = sorted.map(t => {
-    const d = distTo(t);
-    const hot = d <= threshold;
-    const dTxt = isFinite(d) ? (d < 1000 ? Math.round(d)+' m' : (d/1000).toFixed(2)+' km') : '—';
-    const barW = isFinite(d) ? Math.min(d/(threshold*2.2)*100, 100) : 100;
-    const geo = t._geo && t._geo.road ? `${t._geo.road}${t._geo.ref ? ' · '+t._geo.ref : ''}` : 'Endereço não consultado';
-    return `
-      <div class="target ${hot?'hot':''}" data-id="${t.id}">
-        <div class="top">
-          <span class="name">${escapeHtml(t.codename)}</span>
-          <span class="dist">${dTxt}</span>
-        </div>
-        <div class="num">${escapeHtml(t.numero)}</div>
-        <div class="addr">📍 ${escapeHtml(geo)}</div>
-        <div class="bar"><i style="width:${barW}%"></i></div>
-        <div class="acts">
-          <button class="mini" data-act="loc">🔊 FALAR</button>
-          <button class="mini" data-act="go">🗺 IR</button>
-          <button class="mini" data-act="move">📌 MOVER AQUI</button>
-          <button class="mini del" data-act="del">✕ REMOVER</button>
-        </div>
-      </div>`;
-  }).join('');
-  listEl.querySelectorAll('.mini').forEach(btn => {
-    btn.onclick = e => {
-      e.stopPropagation();
-      const id = +btn.closest('.target').dataset.id;
-      const t = targets.find(x => x.id===id); if(!t) return;
-      if(btn.dataset.act==='del'){
-        targets = targets.filter(x => x.id!==id);
-        if(t._marker) map.removeLayer(t._marker);
-        if(sonarBlips['t-'+id]){ sonarBlips['t-'+id].remove(); delete sonarBlips['t-'+id]; }
-        saveTargets(); updateAll();
-      }
-      if(btn.dataset.act==='go') map.setView([t.lat,t.lon],17);
-      if(btn.dataset.act==='move'){
-        if(!meLatLng) return alert('GPS indisponível.');
-        t.lat = meLatLng.lat; t.lon = meLatLng.lng; t._geo = null;
-        saveTargets(); updateAll(); getTargetGeo(t).then(render);
-        speak(`Alvo ${t.codename} reposicionado.`);
-      }
-      if(btn.dataset.act==='loc') speakTargetLocation(t);
-    };
-  });
+  // Alvos são mostrados em compList também quando não há agentes? Mantemos separado.
 }
 
 /* LOOP */
