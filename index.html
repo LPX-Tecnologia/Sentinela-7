@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SENTINELA-7 · AGENTES + DRONE + CÂMERA + ALERTAS</title>
+<title>SENTINELA-7 · AGENTES + DRONE + CÂMERA + ALERTAS NATIVOS</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
 :root{
@@ -62,6 +62,7 @@ header{
   padding:9px 14px;color:rgba(255,179,0,.9);border-radius:2px}
 .notice b{color:#ffd166}
 .notice.blue{border-left-color:var(--neon);background:rgba(0,240,255,.05);color:rgba(0,240,255,.85)}
+.notice.red{border-left-color:var(--danger);background:rgba(255,45,85,.06);color:rgba(255,190,205,.9)}
 
 .grid{display:grid;grid-template-columns:1.25fr .95fr;gap:16px;margin-top:16px}
 @media(max-width:960px){.grid{grid-template-columns:1fr}}
@@ -425,7 +426,6 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
   box-shadow:0 0 10px var(--danger);animation:blink .9s infinite;
 }
 
-/* botão grande de iniciar */
 .btn-start{
   width:100%;padding:14px;margin-top:10px;
   border:1px solid var(--ok);background:rgba(0,255,157,.12);color:var(--ok);
@@ -437,7 +437,6 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 .btn-start:disabled{opacity:.4;cursor:not-allowed;box-shadow:none;background:transparent}
 .btn-start.on{border-color:var(--danger);color:var(--danger);background:rgba(255,45,85,.1)}
 
-/* pill flutuante */
 #cPill{
   position:fixed;top:14px;left:50%;transform:translateX(-50%);
   z-index:9995;display:none;align-items:center;gap:10px;
@@ -459,7 +458,6 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 }
 #cPill button:hover{background:rgba(255,45,85,.35)}
 
-/* ============ ANÚNCIO / ALERTA ============ */
 .alert-presets{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px}
 .preset-btn{
   padding:8px 6px;font-family:inherit;font-size:9px;letter-spacing:.1em;
@@ -484,7 +482,6 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 .alert-history .row span{flex:1;color:#cdf9ff;word-break:break-word}
 .alert-history .row em{color:rgba(0,240,255,.4);font-style:normal;font-size:8px;flex:0 0 auto}
 
-/* popup de anúncio no AGENTE */
 #aOverlay{
   position:fixed;inset:0;z-index:9999;display:none;
   background:radial-gradient(circle at 50% 40%,rgba(255,45,85,.32),rgba(2,6,11,.97) 55%);
@@ -523,7 +520,6 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 }
 .a-card button:hover{background:rgba(0,255,157,.25);box-shadow:0 0 20px rgba(0,255,157,.4)}
 
-/* toast histórico no agente */
 #toastWrap{
   position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
   z-index:9994;display:flex;flex-direction:column;gap:8px;align-items:center;
@@ -540,7 +536,6 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 .toast.red{border-color:var(--danger);color:#ffd0dc;box-shadow:0 0 20px rgba(255,45,85,.5)}
 @keyframes tPop{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
 
-/* ============ MODAL CÂMERA ============ */
 #camModal{
   position:fixed;inset:0;z-index:9995;display:none;
   background:rgba(2,6,11,.94);backdrop-filter:blur(6px);
@@ -613,7 +608,6 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 }
 .cam-meta b{color:var(--gold)}
 
-/* ============ DRONE ============ */
 .drone-player{
   position:relative;width:100%;aspect-ratio:16/9;
   background:#000;border:1px solid var(--line);border-radius:2px;overflow:hidden;
@@ -650,6 +644,23 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 .drone-hud .scanh{position:absolute;left:0;right:0;height:60px;
   background:linear-gradient(180deg,transparent,rgba(0,240,255,.15),transparent);
   animation:scanline 4s linear infinite}
+
+/* Notificação de permissão */
+.notif-banner{
+  margin-top:12px;padding:10px 12px;border-radius:2px;
+  border:1px solid rgba(0,240,255,.4);background:rgba(0,240,255,.06);
+  font-size:9.5px;letter-spacing:.06em;color:#cdf9ff;line-height:1.7;
+  display:flex;align-items:center;gap:10px;text-align:left;
+}
+.notif-banner .ico{font-size:22px;flex:0 0 auto}
+.notif-banner button{
+  flex:0 0 auto;padding:7px 12px;font-family:inherit;font-size:9px;letter-spacing:.14em;
+  border:1px solid var(--ok);background:rgba(0,255,157,.12);color:var(--ok);
+  cursor:pointer;border-radius:2px;transition:.2s;
+}
+.notif-banner button:hover{background:rgba(0,255,157,.25);box-shadow:0 0 12px rgba(0,255,157,.4)}
+.notif-banner.on{border-color:var(--ok);background:rgba(0,255,157,.06)}
+.notif-banner.off{border-color:var(--gold);background:rgba(255,179,0,.06);color:#ffe6b3}
 </style>
 </head>
 <body>
@@ -681,6 +692,15 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
       </div>
     </div>
 
+    <div class="notif-banner off" id="cNotifBanner">
+      <div class="ico">🔔</div>
+      <div style="flex:1">
+        <b>Ativar notificações nativas?</b><br>
+        Você recebe alertas na <b>tela de bloqueio</b>, com som e vibração.
+      </div>
+      <button id="cBtnNotif">ATIVAR</button>
+    </div>
+
     <div class="sub">
       Para parar tudo, use o botão <b>PARAR</b> no topo da tela.<br>
       🔒 Seus dados vão somente para quem enviou o link.
@@ -690,7 +710,7 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 
 <div id="cPill">
   <span class="rd"></span>
-  <span>AO VIVO</span>
+  <span id="cPillTxt">AO VIVO</span>
   <button id="cPillStop">PARAR</button>
 </div>
 
@@ -718,13 +738,17 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
     </div>
     <div class="brand">
       <h1>SENTINELA<span>-7</span></h1>
-      <p>PROTOCOLO JARDAS · COMANDO CENTRAL · v1.3</p>
+      <p>PROTOCOLO JARDAS · COMANDO CENTRAL · v1.4</p>
     </div>
     <div class="status" id="statusTxt">INICIALIZANDO</div>
   </header>
 
   <div class="notice blue">
-    ℹ <b>NOVO:</b> você pode enviar <b>anúncios e alertas</b> para todos os agentes ou só para um. O agente recebe popup com som e vibração.
+    ℹ <b>NOTIFICAÇÕES NATIVAS:</b> os alertas agora aparecem na <b>tela de bloqueio</b> do celular do agente com som e vibração — desde que ele tenha autorizado.
+  </div>
+
+  <div class="notice red">
+    ⚠ <b>LIMITAÇÃO TÉCNICA:</b> câmera e microfone <b>pausam automaticamente</b> quando a tela do celular apaga (política de segurança do Android/iOS). Ao voltar, o agente retoma com 1 toque.
   </div>
 
   <div class="grid">
@@ -841,8 +865,8 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
         </div>
 
         <div class="hint">
-          <b>ALERTA</b> = popup vermelho com som + vibração no agente.<br>
-          <b>ANÚNCIO</b> = toast suave na parte de baixo da tela dele.
+          <b>ALERTA</b> = popup vermelho + notificação nativa na tela de bloqueio.<br>
+          <b>ANÚNCIO</b> = toast + notificação nativa silenciosa.
         </div>
       </div>
     </div>
@@ -852,7 +876,7 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
         <h2>◈ GERAR LINK DE AUTORIZAÇÃO <em id="shareStatus">OFF</em></h2>
         <div id="shareStart">
           <p style="font-size:9.5px;letter-spacing:.06em;color:rgba(0,240,255,.6);line-height:1.7;margin-bottom:10px">
-            Gere o link, envie para quem vai compartilhar. Ele abre, digita o nome e clica em <b>UM BOTÃO</b> — autoriza GPS, câmera e mic juntos. A tela fecha sozinha e vira um pill.
+            Gere o link, envie para quem vai compartilhar. Ele abre, digita o nome, autoriza tudo com <b>um toque</b>. Autorização fica salva no aparelho dele.
           </p>
           <button class="btn-import" id="btnCreateShare" style="border-color:var(--ok);color:var(--ok);background:rgba(0,255,157,.1)">
             🔗 CRIAR LINK DE AUTORIZAÇÃO
@@ -876,7 +900,7 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
         <h2>◈ AGENTES <em id="compCount">0</em></h2>
         <div id="compList"></div>
         <div class="hint" style="margin-top:10px">
-          🟢 online · ⚪ offline · 🎥 câmera · 🎤 mic · 🔋 bateria
+          🟢 online · ⚪ offline · 🎥 câmera · 🎤 mic · 🔋 bateria · 🔔 notif
         </div>
       </div>
 
@@ -995,14 +1019,15 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js"></script>
 <script>
 /* =================================================================
-   SENTINELA-7 v1.3 — AGENTES + DRONE + CÂMERA + ALERTAS
+   SENTINELA-7 v1.4 — NOTIFICAÇÕES NATIVAS + PERSISTÊNCIA
    ================================================================= */
 
-const STORAGE_KEY   = 'sentinela7.targets.v13';
-const COMP_KEY      = 'sentinela7.agents.v13';
+const STORAGE_KEY   = 'sentinela7.targets.v14';
+const COMP_KEY      = 'sentinela7.agents.v14';
 const BASE_KEY      = 'sentinela7.homebase';
 const DRONE_KEY     = 'sentinela7.drone';
 const GEO_TTL       = 10 * 60 * 1000;
+const AUTH_KEY      = 'sentinela7.authState';
 
 let map, meMarker, thCircle, meLatLng = null;
 let targets = [];
@@ -1025,7 +1050,6 @@ let droneFacing = true;
 
 let camModalAgent = null;
 let camModalAudioOn = false;
-
 let alertHistory = [];
 
 const $ = id => document.getElementById(id);
@@ -1060,7 +1084,89 @@ const sonarRangeEl = $('sonarRange');
   let camCall = null, micCall = null;
   let gpsWatchId = null;
   let streaming = false;
+  let wakeLock = null;
+  let notifGranted = false;
 
+  /* ---------- PERSISTÊNCIA DE AUTORIZAÇÃO ---------- */
+  function getAuthState(){
+    try{ return JSON.parse(localStorage.getItem(AUTH_KEY) || '{}'); }catch(e){ return {}; }
+  }
+  function setAuthState(obj){
+    try{ localStorage.setItem(AUTH_KEY, JSON.stringify({ ...getAuthState(), ...obj })); }catch(e){}
+  }
+  const authState = getAuthState();
+  if(authState.notifGranted && 'Notification' in window && Notification.permission === 'granted'){
+    notifGranted = true;
+    markNotifBanner(true);
+  }
+
+  /* ---------- NOTIFICAÇÃO NATIVA ---------- */
+  function markNotifBanner(on){
+    const b = $('cNotifBanner');
+    b.classList.toggle('on', on);
+    b.classList.toggle('off', !on);
+    if(on){
+      b.querySelector('.ico').textContent = '🔔';
+      b.querySelector('div:nth-child(2)').innerHTML = '<b>Notificações ATIVAS</b><br>Alertas chegam na tela de bloqueio.';
+      b.querySelector('button').textContent = 'OK';
+      b.querySelector('button').disabled = true;
+    }
+  }
+  async function requestNotif(){
+    if(!('Notification' in window)){
+      alert('Este navegador não suporta notificações.');
+      return;
+    }
+    try{
+      const p = await Notification.requestPermission();
+      if(p === 'granted'){
+        notifGranted = true;
+        setAuthState({ notifGranted: true });
+        markNotifBanner(true);
+        // Notificação de teste
+        showNotif('◈ SENTINELA ATIVO', 'Você receberá alertas aqui, mesmo com a tela bloqueada.', 'alert');
+      } else {
+        alert('Permissão negada. Você não vai receber notificações na tela de bloqueio.');
+      }
+    }catch(e){ alert('Erro: ' + e.message); }
+  }
+  function showNotif(title, body, type){
+    if(!('Notification' in window) || Notification.permission !== 'granted') return;
+    try{
+      const opts = {
+        body,
+        icon: 'data:image/svg+xml;base64,' + btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#02060b" stroke="${type === 'alert' ? '#ff2d55' : '#ffb300'}" stroke-width="4"/><circle cx="35" cy="45" r="10" fill="${type === 'alert' ? '#ff2d55' : '#ffb300'}"/><circle cx="65" cy="45" r="10" fill="${type === 'alert' ? '#ff2d55' : '#ffb300'}"/></svg>`),
+        badge: 'data:image/svg+xml;base64,' + btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="${type === 'alert' ? '#ff2d55' : '#ffb300'}"/></svg>`),
+        tag: 'sentinela-' + type,
+        renotify: true,
+        requireInteraction: type === 'alert',
+        vibrate: type === 'alert' ? [300,100,300,100,300] : [100,50,100],
+        silent: false
+      };
+      const n = new Notification(title, opts);
+      n.onclick = () => { window.focus(); n.close(); };
+      setTimeout(() => { try{ n.close(); }catch(e){} }, type === 'alert' ? 30000 : 8000);
+    }catch(e){ console.warn('[NOTIF]', e); }
+  }
+
+  /* ---------- WAKE LOCK ---------- */
+  async function requestWakeLock(){
+    if(!('wakeLock' in navigator)) return;
+    try{
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    }catch(e){ console.warn('[WAKE]', e); }
+  }
+  async function releaseWakeLock(){
+    try{ if(wakeLock){ await wakeLock.release(); wakeLock = null; } }catch(e){}
+  }
+  document.addEventListener('visibilitychange', async () => {
+    if(document.visibilityState === 'visible' && streaming && !wakeLock){
+      await requestWakeLock();
+    }
+  });
+
+  /* ---------- UI ---------- */
   $('cName').addEventListener('input', e => {
     nomeAtual = e.target.value.trim().slice(0,24);
     localStorage.setItem('sentinela7.myname', nomeAtual);
@@ -1142,21 +1248,31 @@ const sonarRangeEl = $('sonarRange');
       });
 
       streaming = true;
+      setAuthState({ authorized: true, lastStart: Date.now() });
       btn.classList.add('on');
       btn.textContent = '✓ TRANSMITINDO';
+
+      // Notificação solicitada automaticamente após primeira autorização
+      if(!notifGranted && 'Notification' in window && Notification.permission === 'default'){
+        await requestNotif();
+      }
+
+      // Wake Lock: mantém tela acesa
+      await requestWakeLock();
 
       minimizeCompanion();
       updateRecIndicator();
 
       if(navigator.vibrate) try{ navigator.vibrate(60); }catch(e){}
+      if(notifGranted) showNotif('◈ TRANSMISSÃO INICIADA', 'Você está transmitindo GPS, câmera e microfone.', 'info');
 
     }catch(err){
       btn.textContent = '🚀 AUTORIZAR E INICIAR TRANSMISSÃO';
       btn.disabled = false;
       let msg = 'Não foi possível ativar.';
       if(err.name === 'NotAllowedError') msg = 'Você negou a permissão. Permita no cadeado 🔒 e tente de novo.';
-      if(err.name === 'NotFoundError')   msg = 'Câmera ou microfone não encontrado neste aparelho.';
-      if(err.name === 'NotReadableError') msg = 'Câmera/mic está sendo usado por outro app.';
+      if(err.name === 'NotFoundError')   msg = 'Câmera ou microfone não encontrado.';
+      if(err.name === 'NotReadableError') msg = 'Câmera/mic em uso por outro app.';
       alert(msg);
     }
   }
@@ -1167,6 +1283,7 @@ const sonarRangeEl = $('sonarRange');
     if(camCall){ try{ camCall.close(); }catch(e){} camCall = null; }
     if(micCall){ try{ micCall.close(); }catch(e){} micCall = null; }
     streaming = false;
+    releaseWakeLock();
 
     $('cPill').classList.remove('show');
     $('cCard').style.display = 'block';
@@ -1197,10 +1314,9 @@ const sonarRangeEl = $('sonarRange');
     }
   }
 
-  /* ---- Recebe anúncios e alertas ---- */
+  /* ---------- ALERTAS + NOTIFICAÇÕES ---------- */
   function showAnnouncement(msg, type, from){
     const isAlert = type === 'alert';
-    // som de alerta
     try{
       const ctx = new (window.AudioContext||window.webkitAudioContext)();
       const tones = isAlert ? [880, 1180, 880, 1180] : [660, 880];
@@ -1221,13 +1337,20 @@ const sonarRangeEl = $('sonarRange');
       try{ navigator.vibrate(isAlert ? [200,100,200,100,200] : [80,40,80]); }catch(e){}
     }
 
+    // NOTIFICAÇÃO NATIVA (aparece travado)
+    showNotif(
+      isAlert ? '🚨 ALERTA · SENTINELA' : '📢 ANÚNCIO · SENTINELA',
+      msg + '\n— ' + (from || 'COMANDO CENTRAL'),
+      isAlert ? 'alert' : 'info'
+    );
+
+    // Popup na tela (se estiver aberta)
     if(isAlert){
       $('aOvIco').textContent = '🚨';
       $('aOvMsg').textContent = msg;
       $('aOvFrom').textContent = '◈ DE: ' + (from || 'COMANDO CENTRAL');
       $('aOverlay').classList.add('show');
     } else {
-      // anúncio = toast
       const t = document.createElement('div');
       t.className = 'toast';
       t.innerHTML = `<b>📢 ANÚNCIO</b> · ${escapeHtmlCompanion(msg)}`;
@@ -1243,9 +1366,23 @@ const sonarRangeEl = $('sonarRange');
     return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
 
+  /* ---------- AUTO-RETOMADA ---------- */
+  function checkAutoResume(){
+    const st = getAuthState();
+    if(st.authorized && !streaming){
+      // Mostra botão com label diferente
+      const btn = $('cBtnStart');
+      if(btn && !btn.disabled){
+        btn.textContent = '▶ RETOMAR TRANSMISSÃO';
+      }
+    }
+  }
+
+  /* ---------- BIND ---------- */
   $('aOvOk').onclick = () => $('aOverlay').classList.remove('show');
   $('cBtnStart').onclick = startFullStream;
   $('cPillStop').onclick = stopFullStream;
+  $('cBtnNotif').onclick = requestNotif;
 
   peer.on('open', () => {
     conn = peer.connect('sentinela-' + code, { reliable:true });
@@ -1255,6 +1392,7 @@ const sonarRangeEl = $('sonarRange');
       initBattery();
       startGPS();
       updateStartButton();
+      setTimeout(checkAutoResume, 500);
     });
     conn.on('data', data => {
       if(!data) return;
@@ -1366,9 +1504,7 @@ async function enrichNumber(numero){
   return resultados;
 }
 
-/* ================================================================
-   AGENTES
-   ================================================================ */
+/* AGENTES */
 function loadCompanions(){
   try{
     const s = localStorage.getItem(COMP_KEY);
@@ -1422,7 +1558,7 @@ function getOrCreateCompanion(peerId, nameFromCompanion){
       camCall: null, micCall: null,
       camStream: null, micStream: null,
       audioEl: null,
-      _camSince: 0
+      _camSince: 0, _conn: null
     };
     companions[peerId] = c;
     saveCompanions();
@@ -1462,14 +1598,17 @@ function startHosting(){
   hostPeer.on('connection', conn => {
     const existing = companions[conn.peer];
     if(existing){ existing.online = true; existing._new = false; }
+    const c = getOrCreateCompanion(conn.peer);
+    c._conn = conn;
     conn.on('data', data => handleShareData(conn.peer, data));
     conn.on('close', () => {
-      const c = companions[conn.peer];
-      if(c){
-        c.online = false;
-        c.camActive = false; c.micActive = false;
-        if(c.camCall){ try{ c.camCall.close(); }catch(e){} c.camCall = null; }
-        if(c.micCall){ try{ c.micCall.close(); }catch(e){} c.micCall = null; }
+      const cc = companions[conn.peer];
+      if(cc){
+        cc.online = false;
+        cc.camActive = false; cc.micActive = false;
+        cc._conn = null;
+        if(cc.camCall){ try{ cc.camCall.close(); }catch(e){} cc.camCall = null; }
+        if(cc.micCall){ try{ cc.micCall.close(); }catch(e){} cc.micCall = null; }
         saveCompanions(); renderCompanions(); renderSonarBlips(); renderMarkers();
       }
     });
@@ -1534,6 +1673,7 @@ function stopHosting(){
     const c = companions[k];
     c.online = false;
     c.camActive = false; c.micActive = false;
+    c._conn = null;
     if(c.marker){ map.removeLayer(c.marker); c.marker = null; }
     if(c.camCall){ try{ c.camCall.close(); }catch(e){} c.camCall = null; }
     if(c.micCall){ try{ c.micCall.close(); }catch(e){} c.micCall = null; }
@@ -1737,9 +1877,7 @@ function renderCompanions(){
   });
 }
 
-/* ================================================================
-   ANÚNCIO / ALERTA
-   ================================================================ */
+/* ANÚNCIO / ALERTA */
 function updateAlertTargets(){
   const sel = $('alertTarget');
   const cur = sel.value;
@@ -1766,7 +1904,6 @@ function renderAlertHistory(){
     </div>
   `).join('');
 }
-
 function pushAlertHistory(type, msg, target){
   alertHistory.push({
     type, msg, target,
@@ -1776,7 +1913,6 @@ function pushAlertHistory(type, msg, target){
   renderAlertHistory();
   try{ localStorage.setItem('sentinela7.alertHistory', JSON.stringify(alertHistory.slice(-50))); }catch(e){}
 }
-
 function loadAlertHistory(){
   try{
     const s = localStorage.getItem('sentinela7.alertHistory');
@@ -1787,10 +1923,7 @@ function loadAlertHistory(){
 function sendMessage(type){
   const msg = $('alertMsg').value.trim();
   if(!msg){ alert('Escreva a mensagem.'); return; }
-  if(!hostPeer){
-    alert('Você precisa estar com uma sessão ATIVA.\n\nClique primeiro em 🔗 CRIAR LINK DE AUTORIZAÇÃO.');
-    return;
-  }
+  if(!hostPeer){ alert('Sessão não está ativa.'); return; }
 
   const targetId = $('alertTarget').value;
   let sent = 0;
@@ -1799,67 +1932,36 @@ function sendMessage(type){
     Object.keys(companions).forEach(k => {
       const c = companions[k];
       if(c._conn && c._conn.open){
-        c._conn.send({ type, msg, from: 'COMANDO CENTRAL', ts: Date.now() });
-        sent++;
+        try{ c._conn.send({ type, msg, from:'COMANDO CENTRAL', ts:Date.now() }); sent++; }catch(e){}
       }
     });
-    // fallback: busca em hostPeer connections
-    if(hostPeer && hostPeer.connections){
-      Object.keys(hostPeer.connections).forEach(peerId => {
-        const conns = hostPeer.connections[peerId];
-        if(Array.isArray(conns)){
-          conns.forEach(conn => {
-            if(conn && conn.open && !companions[peerId]?._conn){
-              try{ conn.send({ type, msg, from:'COMANDO CENTRAL', ts:Date.now() }); sent++; }catch(e){}
-            }
-          });
-        }
-      });
-    }
     pushAlertHistory(type, msg, 'TODOS');
-    $('alertStatus').textContent = type === 'alert' ? 'ENVIADO ✓' : 'ENVIADO ✓';
-    $('alertStatus').style.color = 'var(--ok)';
-    setTimeout(() => { $('alertStatus').textContent = 'PRONTO'; $('alertStatus').style.color = 'rgba(0,240,255,.4)'; }, 2500);
   } else {
     const c = companions[targetId];
     if(!c){ alert('Agente não encontrado.'); return; }
-    // Busca conexão do agente
-    let connRef = c._conn;
-    if(!connRef && hostPeer && hostPeer.connections && hostPeer.connections[targetId]){
-      const arr = hostPeer.connections[targetId];
-      connRef = Array.isArray(arr) ? arr.find(x => x && x.open) : arr;
-    }
-    if(connRef && connRef.open){
-      try{
-        connRef.send({ type, msg, from:'COMANDO CENTRAL', ts:Date.now() });
-        sent = 1;
-      }catch(e){}
+    if(c._conn && c._conn.open){
+      try{ c._conn.send({ type, msg, from:'COMANDO CENTRAL', ts:Date.now() }); sent = 1; }catch(e){}
     }
     pushAlertHistory(type, msg, c.name);
-    $('alertStatus').textContent = 'ENVIADO ✓';
-    $('alertStatus').style.color = 'var(--ok)';
-    setTimeout(() => { $('alertStatus').textContent = 'PRONTO'; $('alertStatus').style.color = 'rgba(0,240,255,.4)'; }, 2500);
   }
+
+  $('alertStatus').textContent = sent ? 'ENVIADO ✓' : 'SEM AGENTES';
+  $('alertStatus').style.color = sent ? 'var(--ok)' : 'var(--danger)';
+  setTimeout(() => { $('alertStatus').textContent = 'PRONTO'; $('alertStatus').style.color = 'rgba(0,240,255,.4)'; }, 2500);
 
   beepSingle(type === 'alert' ? 800 : 660, 0.08);
   if(sent > 0) speak(type === 'alert' ? 'Alerta enviado.' : 'Anúncio enviado.');
-  else speak('Nenhum agente online para receber.');
+  else speak('Nenhum agente online.');
 }
 
 $('btnSendAlert').onclick = () => sendMessage('alert');
 $('btnSendAnnounce').onclick = () => sendMessage('announce');
 $('btnClearMsg').onclick = () => { $('alertMsg').value = ''; $('alertMsg').focus(); };
-
 document.querySelectorAll('.preset-btn').forEach(btn => {
-  btn.onclick = () => {
-    $('alertMsg').value = btn.dataset.preset;
-    $('alertMsg').focus();
-  };
+  btn.onclick = () => { $('alertMsg').value = btn.dataset.preset; $('alertMsg').focus(); };
 });
 
-/* ================================================================
-   MODAL CÂMERA
-   ================================================================ */
+/* MODAL CÂMERA */
 function openCamModal(agentId){
   const c = companions[agentId];
   if(!c) return;
@@ -1883,9 +1985,7 @@ function closeCamModal(){
   $('camModal').classList.remove('show');
   const v = $('camModalVideo');
   try{ v.srcObject = null; }catch(e){}
-  Object.values(companions).forEach(c => {
-    if(c.audioEl){ c.audioEl.muted = true; }
-  });
+  Object.values(companions).forEach(c => { if(c.audioEl){ c.audioEl.muted = true; } });
   camModalAudioOn = false;
 }
 function updateCamModalMeta(){
@@ -1908,7 +2008,6 @@ function updateCamModalMeta(){
   }
 }
 setInterval(updateCamModalMeta, 2000);
-
 function updateCamMuteBtn(){
   const b = $('camToggleMute');
   b.textContent = camModalAudioOn ? '🔊 SOM ON' : '🔇 MUDO';
@@ -1921,7 +2020,6 @@ function updateCamMicBtn(){
   b.disabled = !(c && c.micActive);
   b.style.opacity = b.disabled ? .4 : 1;
 }
-
 $('camModalClose').onclick = closeCamModal;
 $('camModalFull').onclick = () => {
   const el = $('camModal');
@@ -1963,9 +2061,7 @@ $('camSnapshot').onclick = () => {
   a.click();
 };
 
-/* ================================================================
-   PROXIMIDADE
-   ================================================================ */
+/* PROXIMIDADE */
 function computeApproach(c){
   const now = Date.now();
   const positions = c.positions || [];
@@ -1984,7 +2080,6 @@ function computeApproach(c){
   const eta = (status === 'aproximando' && Math.abs(rate) > 0.2) ? dLast / Math.abs(rate) : null;
   return { rate, eta, status, dist: dLast };
 }
-
 setInterval(() => {
   if(!meLatLng) return;
   const now = Date.now();
@@ -2063,9 +2158,7 @@ $('btnShareWA').onclick = () => {
   window.open('https://wa.me/?text=' + txt, '_blank');
 };
 
-/* ================================================================
-   DRONE
-   ================================================================ */
+/* DRONE */
 function setDroneStatus(txt, cls){
   const el = $('droneStatus');
   el.textContent = txt;
@@ -2090,7 +2183,6 @@ async function playStream(url){
   const v = $('droneVideo');
   setDroneStatus('CONECTANDO…', 'warn');
   $('droneTcSource').textContent = 'STREAM';
-
   const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/live\/)([A-Za-z0-9_-]+)/);
   if(ytMatch){
     const vid = ytMatch[1];
@@ -2110,11 +2202,9 @@ async function playStream(url){
     startDroneClock();
     return;
   }
-
   $('droneVideo').style.display = 'block';
   const oldYT = document.getElementById('droneYT');
   if(oldYT) oldYT.remove();
-
   if(url.match(/\.m3u8(\?|$)/i) || url.includes('.m3u8')){
     if(window.Hls && Hls.isSupported()){
       droneHls = new Hls({ lowLatencyMode:true });
@@ -2142,15 +2232,12 @@ async function playStream(url){
     setDroneStatus('HLS NÃO SUPORTADO', 'danger');
     return;
   }
-
   v.src = url;
   v.play().then(() => {
     setHud(true);
     setDroneStatus('STREAM ATIVO', 'on');
     startDroneClock();
-  }).catch(err => {
-    setDroneStatus('ERRO STREAM', 'danger');
-  });
+  }).catch(err => { setDroneStatus('ERRO STREAM', 'danger'); });
 }
 async function startTestCamera(){
   stopDrone();
@@ -2172,7 +2259,7 @@ async function startTestCamera(){
     startDroneClock();
   }catch(err){
     setDroneStatus('CÂMERA NEGADA', 'danger');
-    alert('Não consegui acessar a câmera. Permita no cadeado 🔒.\n\nDetalhe: ' + err.message);
+    alert('Não consegui acessar a câmera.\n\nDetalhe: ' + err.message);
   }
 }
 let droneClockTimer = null;
@@ -2205,9 +2292,7 @@ function setDronePosition(lat, lon, label){
   }
   if(label) $('droneTcSource').textContent = label;
   if(droneFollow && map) map.setView(droneLatLng, Math.max(map.getZoom(), 17));
-  saveDrone();
-  renderSonarBlips();
-  renderMarkers();
+  saveDrone(); renderSonarBlips(); renderMarkers();
 }
 function saveDrone(){
   try{
@@ -2252,25 +2337,20 @@ $('tgDroneFacing').onclick = function(){
   this.classList.toggle('on', droneFacing);
 };
 
-/* ================================================================
-   MAPA
-   ================================================================ */
+/* MAPA */
 function initMap(){
   map = L.map('map',{ zoomControl:true, preferCanvas:true, worldCopyJump:true })
         .setView([-23.5505,-46.6333],16);
-
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{
     maxZoom:19, attribution:'&copy; Esri, Maxar'
   }).addTo(map);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{
     maxZoom:19, opacity:.7
   }).addTo(map);
-
   thCircle = L.circle([-23.5505,-46.6333],{
     radius:threshold, color:'#ffb300', weight:1, dashArray:'6 6',
     fillColor:'#ffb300', fillOpacity:.05, interactive:false
   }).addTo(map);
-
   map.on('click', e => {
     if(!picking) return;
     setFormLocation(e.latlng.lat, e.latlng.lng);
@@ -2283,19 +2363,15 @@ function initMap(){
     $('btnPick').textContent = '🖱 CLICAR NO MAPA';
     map.getContainer().style.cursor = '';
   });
-
   map.on('move zoom zoomend moveend viewreset', () => { positionSonar(); renderSonarBlips(); });
   map.on('resize', positionSonar);
 }
 
-/* ================================================================
-   GPS
-   ================================================================ */
+/* GPS */
 function startGPS(){
   const isSecure = window.isSecureContext;
   const isFile = window.location.protocol === 'file:';
   const isLocalhost = /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname);
-
   if(!isSecure && !isLocalhost){
     setStatus('CONTEXTO INSEGURO','danger');
     $('myAddr').innerHTML = isFile
@@ -2304,15 +2380,11 @@ function startGPS(){
     ipFallback(); return;
   }
   if(!('geolocation' in navigator)){ setStatus('SEM GPS','warn'); ipFallback(); return; }
-
   setStatus('BUSCANDO GPS','warn');
   $('myAddr').textContent = 'Aguardando permissão…';
-
   let gotFirstFix = false;
   const fallbackTimer = setTimeout(() => { if(!gotFirstFix){ ipFallback(); } }, 8000);
-
   try{ if(gpsWatchId != null) navigator.geolocation.clearWatch(gpsWatchId); }catch(e){}
-
   gpsWatchId = navigator.geolocation.watchPosition(
     pos => {
       gotFirstFix = true;
@@ -2321,20 +2393,17 @@ function startGPS(){
       const first = !meLatLng || window.__lastWasFallback === true;
       window.__lastWasFallback = false;
       meLatLng = L.latLng(lat,lon);
-
       if(!meMarker){
         meMarker = L.marker(meLatLng,{
           icon:L.divIcon({className:'',html:'<div class="mk-me"></div>',iconSize:[16,16],iconAnchor:[8,8]}),
           zIndexOffset:1000
         }).addTo(map);
       } else meMarker.setLatLng(meLatLng);
-
       thCircle.setLatLng(meLatLng).setRadius(threshold);
       $('myCoords').textContent = lat.toFixed(6)+', '+lon.toFixed(6);
       $('myAcc').textContent = '± '+Math.round(acc)+' m';
       $('mapInfo').textContent = 'GPS ATIVO';
       setStatus('VARRENDO','');
-
       if(first || !myGeoCache.latlng || meLatLng.distanceTo(myGeoCache.latlng) > 60){
         myGeoCache.latlng = meLatLng;
         reverseGeocode(lat,lon).then(g => {
@@ -2360,7 +2429,7 @@ async function ipFallback(){
     }
   }catch(e){}
   setStatus('LOCALIZANDO POR IP','warn');
-  $('myAddr').textContent = 'GPS indisponível · descobrindo sua região por IP…';
+  $('myAddr').textContent = 'GPS indisponível · descobrindo por IP…';
   try{
     const r = await fetch('https://ipwho.is/');
     const j = await r.json();
@@ -2428,9 +2497,7 @@ $('btnRetryGPS').onclick = () => {
   setTimeout(() => { btn.textContent = '🔄 TENTAR GPS'; btn.disabled = false; }, 9000);
 };
 
-/* ================================================================
-   GEO
-   ================================================================ */
+/* GEO */
 async function reverseGeocode(lat, lon){
   try{
     const r = await fetch(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&lang=pt`);
@@ -2472,9 +2539,7 @@ async function getTargetGeo(t){
   return t._geo;
 }
 
-/* ================================================================
-   OSINT
-   ================================================================ */
+/* OSINT */
 function hashPhone(num){
   const digits = num.replace(/\D/g,'');
   let h = 2166136261;
@@ -2502,11 +2567,8 @@ function simulateOsint(numero){
   };
 }
 
-/* ================================================================
-   FORMULÁRIO
-   ================================================================ */
+/* FORMULÁRIO */
 const osintStatus = $('osintStatus');
-
 $('btnOsint').onclick = async () => {
   const num = $('fNum').value.trim();
   if(num.replace(/\D/g,'').length < 8){
@@ -2527,8 +2589,8 @@ $('btnOsint').onclick = async () => {
   if(!$('fName').value.trim()) $('fName').value = data.codename;
   validateForm();
   osintStatus.innerHTML = SENTINELA_BRIDGE.ready
-    ? '<span class="spin"></span> Consultando Facebook, Instagram e TikTok…'
-    : '<span class="spin"></span> Bridge ausente — usando simulação…';
+    ? '<span class="spin"></span> Consultando redes…'
+    : '<span class="spin"></span> Bridge ausente — simulação…';
   const res = await enrichNumber(num);
   if(res.facebook?.handle) lastOsintData.facebook  = res.facebook.handle;
   if(res.instagram?.handle) lastOsintData.instagram = res.instagram.handle;
@@ -2545,7 +2607,6 @@ $('btnOsint').onclick = async () => {
     osintStatus.innerHTML = `⚠ Nenhuma rede · <span style="opacity:.6">${modo}</span>`;
   }
 };
-
 function setFormLocation(lat, lon, label){
   formLatLng = { lat, lon };
   $('fCoords').textContent = `📍 ${lat.toFixed(6)}, ${lon.toFixed(6)}${label?' · '+label:''}`;
@@ -2559,7 +2620,6 @@ function validateForm(){
   $('btnAdd').disabled = !ok;
 }
 ['fName','fNum'].forEach(id => $(id).addEventListener('input', validateForm));
-
 $('btnMyLoc').onclick = () => {
   if(!meLatLng) return alert('GPS ainda não disponível.');
   setFormLocation(meLatLng.lat, meLatLng.lng, 'minha posição');
@@ -2571,7 +2631,6 @@ $('btnPick').onclick = function(){
   this.textContent = picking ? '🖱 CLIQUE NO MAPA…' : '🖱 CLICAR NO MAPA';
   map.getContainer().style.cursor = picking ? 'crosshair' : '';
 };
-
 let suggestTimer = null;
 $('fAddr').addEventListener('input', e => {
   const q = e.target.value.trim();
@@ -2605,7 +2664,6 @@ $('fAddr').addEventListener('input', e => {
     });
   }, 350);
 });
-
 $('btnSearch').onclick = async function(){
   const q = $('fAddr').value.trim();
   if(!q) return;
@@ -2621,14 +2679,12 @@ $('btnSearch').onclick = async function(){
     icon:L.divIcon({className:'',html:'<div class="mk hot"></div>',iconSize:[16,16],iconAnchor:[8,8]})
   }).addTo(map);
 };
-
 $('btnAdd').onclick = () => {
   const vFB = document.querySelector('#spFB span')?.dataset.value || lastOsintData?.facebook  || '';
   const vIG = document.querySelector('#spIG span')?.dataset.value || lastOsintData?.instagram || '';
   const vTT = document.querySelector('#spTT span')?.dataset.value || lastOsintData?.tiktok    || '';
   const vWA = document.querySelector('#spWA span')?.dataset.value || lastOsintData?.whatsapp  || '';
   if(!lastOsintData) lastOsintData = simulateOsint($('fNum').value.trim());
-
   const t = {
     id: Date.now(),
     codename: $('fName').value.trim().toUpperCase() || lastOsintData.codename,
@@ -2662,7 +2718,6 @@ $('btnAdd').onclick = () => {
   map.setView([t.lat,t.lon], 17);
   speak(`Alvo ${t.codename} adicionado.`);
 };
-
 function normalizePhone(raw){
   if(!raw) return '';
   let s = String(raw).trim().replace(/[^\d+]/g,'');
@@ -2671,9 +2726,7 @@ function normalizePhone(raw){
   return s;
 }
 
-/* ================================================================
-   DISTÂNCIA
-   ================================================================ */
+/* DISTÂNCIA */
 function distTo(t){ return meLatLng ? meLatLng.distanceTo(L.latLng(t.lat,t.lon)) : Infinity; }
 function bearingTo(t){
   if(!meLatLng) return 0;
@@ -2687,9 +2740,7 @@ function escapeHtml(s){
   return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-/* ================================================================
-   SONAR
-   ================================================================ */
+/* SONAR */
 let sonarBlips = {};
 function sonarRangeMeters(){ return Math.max(threshold * 3, 500); }
 function positionSonar(){
@@ -2703,9 +2754,7 @@ function renderSonarBlips(){
   const range = sonarRangeMeters();
   sonarRangeEl.textContent = range >= 1000
     ? (range/1000).toFixed(1).replace('.',',')+' km' : range+' m';
-
   const activeIds = new Set();
-
   targets.forEach(t => {
     activeIds.add('t-' + t.id);
     let el = sonarBlips['t-' + t.id];
@@ -2721,7 +2770,6 @@ function renderSonarBlips(){
     el.style.top  = (50 + ratio * Math.sin(rad)) + '%';
     el.classList.toggle('hot', d <= threshold);
   });
-
   Object.keys(companions).forEach(k => {
     const c = companions[k];
     if(c.lastLat == null) return;
@@ -2747,7 +2795,6 @@ function renderSonarBlips(){
     el.classList.toggle('offline', !c.online);
     el.classList.toggle('cam', !!c.camActive);
   });
-
   if(droneLatLng){
     activeIds.add('drone');
     let el = sonarBlips['drone'];
@@ -2761,19 +2808,14 @@ function renderSonarBlips(){
       const rad = (brg - 90) * Math.PI/180;
       el.style.left = (50 + ratio * Math.cos(rad)) + '%';
       el.style.top  = (50 + ratio * Math.sin(rad)) + '%';
-    } else {
-      el.style.opacity = 0;
-    }
+    } else { el.style.opacity = 0; }
   }
-
   Object.keys(sonarBlips).forEach(k => {
     if(!activeIds.has(k)){ sonarBlips[k].remove(); delete sonarBlips[k]; }
   });
 }
 
-/* ================================================================
-   MARCADORES
-   ================================================================ */
+/* MARCADORES */
 function renderMarkers(){
   targets.forEach(t => {
     const hot = distTo(t) <= threshold;
@@ -2786,7 +2828,6 @@ function renderMarkers(){
       t._marker.setIcon(mkIcon(t,hot));
     }
   });
-
   Object.keys(companions).forEach(k => {
     const c = companions[k];
     if(c.lastLat == null) return;
@@ -2796,7 +2837,6 @@ function renderMarkers(){
     const camTag = c.camActive ? ' 📷' : '';
     const html = `<div class="mk ${c.online ? 'live' : 'offline'} ${hot ? 'hot' : ''}"><span>${escapeHtml(c.name)}${camTag}</span></div>`;
     const icon = L.divIcon({ className:'', html, iconSize:[16,16], iconAnchor:[8,8] });
-
     if(!c.marker){
       c.marker = L.marker(latlng, { icon, zIndexOffset: 500 }).addTo(map);
       c.marker.on('click', () => {
@@ -2808,7 +2848,6 @@ function renderMarkers(){
       c.marker.setIcon(icon);
     }
   });
-
   if(droneLatLng && !droneMarker){
     droneMarker = L.marker(droneLatLng, { icon:droneIcon(), zIndexOffset:900 }).addTo(map);
   }
@@ -2828,9 +2867,7 @@ function updateAll(){
   renderSonarBlips();
 }
 
-/* ================================================================
-   LISTA ALVOS
-   ================================================================ */
+/* LISTA ALVOS */
 function render(){
   if(!targets.length){
     listEl.innerHTML = '<div class="empty">NENHUM ALVO<br>IMPORTE OU CADASTRE ACIMA</div>';
@@ -2860,7 +2897,6 @@ function render(){
         </div>
       </div>`;
   }).join('');
-
   listEl.querySelectorAll('.mini').forEach(btn => {
     btn.onclick = e => {
       e.stopPropagation();
@@ -2884,13 +2920,10 @@ function render(){
   });
 }
 
-/* ================================================================
-   LOOP
-   ================================================================ */
+/* LOOP */
 setInterval(() => {
   if(!meLatLng) return;
   if(followGPS && !droneFollow) map.panTo(meLatLng, { animate:true, duration:.7 });
-
   let anyHot = false;
   targets.forEach(t => {
     const d = distTo(t);
@@ -2915,9 +2948,7 @@ function setStatus(txt, cls){
   el.className = 'status' + (cls ? ' '+cls : '');
 }
 
-/* ================================================================
-   VOZ
-   ================================================================ */
+/* VOZ */
 function beep(times=3){
   if(!soundOn) return;
   try{
@@ -2954,15 +2985,12 @@ async function speakTargetLocation(t){
   speak(`Alvo ${t.codename}. ${fmtDist(d)} de distância. Localizado ${rua}${ref}.`);
 }
 
-/* ================================================================
-   ALERTA
-   ================================================================ */
+/* ALERTA */
 async function showAlert(t, manual, distOverride){
   const d = distOverride ?? distTo(t);
   $('aName').textContent = t.codename;
   $('aPhone').textContent = t.numero;
   $('aDist').textContent = Math.round(d);
-
   const socs = [];
   if(t.socials?.facebook)  socs.push(['Facebook',t.socials.facebook]);
   if(t.socials?.instagram) socs.push(['Instagram',t.socials.instagram]);
@@ -2972,10 +3000,8 @@ async function showAlert(t, manual, distOverride){
   $('aSocials').innerHTML = socs.length
     ? socs.map(([k,v])=>`<span class="soc">${k}<b>${escapeHtml(v)}</b></span>`).join('')
     : '<span class="soc" style="opacity:.5">SEM REDES</span>';
-
   overlay.classList.add('show');
   beep(3);
-
   if(t.lat != null && t.lon != null){
     $('aAddr').textContent = 'Consultando…';
     const g = await reverseGeocode(t.lat, t.lon);
@@ -2996,9 +3022,7 @@ $('aMute').onclick = () => {
   closeAlert();
 };
 
-/* ================================================================
-   CONTROLES
-   ================================================================ */
+/* CONTROLES */
 $('threshold').addEventListener('input', e => {
   threshold = +e.target.value;
   $('thVal').textContent = threshold >= 1000
@@ -3046,9 +3070,7 @@ $('tgLiveVoice').onclick = function(){
   this.textContent = liveVoiceOn ? '📢 VOZ AO VIVO' : '📢 VOZ LIVE OFF';
 };
 
-/* ================================================================
-   PERSISTÊNCIA
-   ================================================================ */
+/* PERSISTÊNCIA */
 function saveTargets(){
   try{
     const clean = targets.map(t => ({
@@ -3065,9 +3087,7 @@ function loadTargets(){
   }catch(e){ targets = []; }
 }
 
-/* ================================================================
-   BOOT
-   ================================================================ */
+/* BOOT */
 (function boot(){
   initMap();
   loadTargets();
@@ -3081,7 +3101,6 @@ function loadTargets(){
   setTimeout(() => { if(!meLatLng) setStatus('SEM GPS','warn'); }, 4000);
   window.addEventListener('resize', () => { positionSonar(); renderSonarBlips(); });
   if(droneLatLng) setDronePosition(droneLatLng.lat, droneLatLng.lng, 'ÚLTIMA POSIÇÃO');
-
   document.addEventListener('keydown', e => {
     if(e.key === 'Escape' && camModalAgent) closeCamModal();
   });
