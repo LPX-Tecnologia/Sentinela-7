@@ -661,6 +661,21 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 .notif-banner button:hover{background:rgba(0,255,157,.25);box-shadow:0 0 12px rgba(0,255,157,.4)}
 .notif-banner.on{border-color:var(--ok);background:rgba(0,255,157,.06)}
 .notif-banner.off{border-color:var(--gold);background:rgba(255,179,0,.06);color:#ffe6b3}
+
+#btnResumeShare{
+  display:none;
+  border-color:var(--gold)!important;
+  color:var(--gold)!important;
+  background:rgba(255,179,0,.1)!important;
+  margin-top:8px;
+}
+#btnResumeShare:hover{background:rgba(255,179,0,.22)!important}
+#sessionBadge{
+  font-size:9px;letter-spacing:.18em;padding:5px 10px;border-radius:2px;
+  border:1px solid var(--gold);color:var(--gold);background:rgba(255,179,0,.06);
+  display:none;text-align:center;margin-bottom:8px;
+}
+#sessionBadge.show{display:block}
 </style>
 </head>
 <body>
@@ -750,13 +765,13 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
     </div>
     <div class="brand">
       <h1>SENTINELA<span>-7</span></h1>
-      <p>PROTOCOLO JARDAS · COMANDO CENTRAL · v1.6</p>
+      <p>PROTOCOLO JARDAS · COMANDO CENTRAL · v1.7</p>
     </div>
     <div class="status" id="statusTxt">INICIALIZANDO</div>
   </header>
 
   <div class="notice blue">
-    ℹ <b>INSTALAÇÃO AUTOMÁTICA:</b> ao clicar em "AUTORIZAR, INSTALAR E INICIAR", o navegador abre o popup de instalação do app automaticamente. Depois de instalado, o agente abre sem barra de navegador.
+    ℹ <b>SESSÃO PERSISTENTE:</b> o código da sessão fica salvo. Se você fechar e reabrir o painel, ele religa sozinho. Há também o botão <b>▶ REATIVAR ÚLTIMA SESSÃO</b> no card do link.
   </div>
 
   <div class="notice red">
@@ -904,6 +919,10 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
           <button class="btn-import" id="btnCreateShare" style="border-color:var(--ok);color:var(--ok);background:rgba(0,255,157,.1)">
             🔗 CRIAR LINK DE AUTORIZAÇÃO
           </button>
+          <div id="sessionBadge">SESSÃO ANTERIOR DISPONÍVEL</div>
+          <button class="btn-import" id="btnResumeShare">
+            ▶ REATIVAR ÚLTIMA SESSÃO
+          </button>
         </div>
         <div id="shareActive" style="display:none">
           <div class="share-code" id="shareCode">— — — — — —</div>
@@ -1042,7 +1061,7 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js"></script>
 <script>
 /* =================================================================
-   SENTINELA-7 v1.6 — INSTALAÇÃO AUTOMÁTICA + NOTIFICAÇÕES + MÍDIA
+   SENTINELA-7 v1.7 — SESSÃO PERSISTENTE + REATIVAÇÃO AUTOMÁTICA
    ================================================================= */
 
 const STORAGE_KEY   = 'sentinela7.targets.v14';
@@ -1086,11 +1105,26 @@ const sonarRangeEl = $('sonarRange');
    ================================================================ */
 (function checkCompanion(){
   const hash = window.location.hash || '';
-  const m = hash.match(/share=([A-Z0-9]{6})/i);
-  if(!m) return;
+  const mHash = hash.match(/share=([A-Z0-9]{6})/i);
+  const urlCode = mHash ? mHash[1].toUpperCase() : null;
+  const savedCode = localStorage.getItem('sentinela7.agentCode');
+  const code = urlCode || savedCode;
+
+  if(!code){
+    window.__companion__ = true;
+    document.body.innerHTML = '<div style="padding:24px;color:#ff2d55;font-family:monospace;text-align:center;font-size:14px;line-height:1.8">⚠ LINK INVÁLIDO<br><br>Você precisa abrir pelo link enviado pelo comandante.<br><br>Se já abriu antes, peça um novo link.</div>';
+    return;
+  }
+
+  if(urlCode){
+    localStorage.setItem('sentinela7.agentCode', urlCode);
+    console.log('[AGENTE] código salvo:', urlCode);
+  } else {
+    console.log('[AGENTE] usando código salvo:', savedCode);
+  }
+
   window.__companion__ = true;
 
-  const code = m[1].toUpperCase();
   $('mainView').style.display = 'none';
   $('companionView').classList.add('show');
   $('cCode').textContent = code.split('').join(' ');
@@ -1142,6 +1176,7 @@ const sonarRangeEl = $('sonarRange');
   let silenceAudioCtx = null;
   let silenceOsc = null;
   let autoRestarting = false;
+  let reconnectTimer = null;
 
   /* ---------- PERSISTÊNCIA ---------- */
   function getAuthState(){
@@ -1557,6 +1592,38 @@ const sonarRangeEl = $('sonarRange');
     }
   }
 
+  /* ---------- RECONEXÃO AUTOMÁTICA AO PEER ---------- */
+  function scheduleReconnect(){
+    if(reconnectTimer) return;
+    reconnectTimer = setTimeout(() => {
+      reconnectTimer = null;
+      if(!conn || !conn.open){
+        console.log('[PEER] tentando reconectar ao host');
+        try{
+          conn = peer.connect('sentinela-' + code, { reliable:true });
+          conn.on('open', () => {
+            $('cStatus').innerHTML = '<span class="dot"></span>Conectado · pronto para iniciar';
+            if(nomeAtual) conn.send({ type:'hello', name: nomeAtual });
+            updateStartButton();
+            setTimeout(checkAutoResume, 500);
+          });
+          conn.on('data', data => {
+            if(!data) return;
+            if(data.type === 'alert'){ showAnnouncement(data.msg, 'alert', data.from, data.mediaUrl); }
+            if(data.type === 'announce'){ showAnnouncement(data.msg, 'announce', data.from, data.mediaUrl); }
+          });
+          conn.on('close', () => {
+            $('cStatus').innerHTML = '<span class="dot" style="background:#ffb300"></span>Reconectando…';
+            scheduleReconnect();
+          });
+        }catch(e){
+          console.warn('[PEER] reconnect falhou:', e);
+          scheduleReconnect();
+        }
+      }
+    }, 3000);
+  }
+
   /* ---------- BIND ---------- */
   $('aOvOk').onclick = () => {
     $('aOverlay').classList.remove('show');
@@ -1587,13 +1654,18 @@ const sonarRangeEl = $('sonarRange');
       if(data.type === 'announce'){ showAnnouncement(data.msg, 'announce', data.from, data.mediaUrl); }
     });
     conn.on('close', () => {
-      $('cStatus').innerHTML = '<span class="dot" style="background:#ffb300"></span>Conexão encerrada';
+      $('cStatus').innerHTML = '<span class="dot" style="background:#ffb300"></span>Reconectando…';
       updateStartButton();
+      scheduleReconnect();
     });
   });
   peer.on('error', err => {
+    console.warn('[PEER]', err);
     $('cStatus').innerHTML = '<span class="dot" style="background:#ff2d55"></span>Erro: ' + (err.type || 'conexão');
     updateStartButton();
+    if(err.type === 'network' || err.type === 'server-error' || err.type === 'socket-error'){
+      scheduleReconnect();
+    }
   });
 
   window.addEventListener('beforeunload', () => stopFullStream());
@@ -1766,13 +1838,19 @@ function genCode(){
   return c;
 }
 
-function startHosting(){
+function startHosting(forcedCode){
   if(hostPeer){ alert('Já ativo.'); return; }
-  myShareCode = genCode();
+  myShareCode = forcedCode || genCode();
+
+  localStorage.setItem('sentinela7.hostCode', myShareCode);
+  localStorage.setItem('sentinela7.hostActive', '1');
+  console.log('[HOST] iniciando com código', myShareCode);
+
   hostPeer = new Peer('sentinela-' + myShareCode, { debug:0 });
 
   hostPeer.on('open', () => {
-    const url = window.location.origin + window.location.pathname + '#share=' + myShareCode;
+    const base = window.location.origin + window.location.pathname;
+    const url = base + '#share=' + myShareCode;
     $('shareCode').textContent = myShareCode.split('').join(' ');
     $('shareLink').textContent = url;
     $('shareLink').dataset.url = url;
@@ -1780,6 +1858,10 @@ function startHosting(){
     $('shareActive').style.display = 'block';
     $('shareStatus').textContent = 'ATIVO · ' + myShareCode;
     $('shareStatus').style.color = 'var(--ok)';
+    const badge = document.getElementById('sessionBadge');
+    if(badge) badge.classList.remove('show');
+    const rbtn = document.getElementById('btnResumeShare');
+    if(rbtn) rbtn.style.display = 'none';
   });
 
   hostPeer.on('connection', conn => {
@@ -1850,7 +1932,15 @@ function startHosting(){
   });
 
   hostPeer.on('error', err => {
-    if(err.type === 'unavailable-id'){ alert('Código em uso.'); stopHosting(); }
+    console.warn('[HOST] erro:', err);
+    if(err.type === 'unavailable-id'){
+      alert('Código em uso. Gerando um novo.');
+      localStorage.removeItem('sentinela7.hostCode');
+      localStorage.removeItem('sentinela7.hostActive');
+      hostPeer = null;
+      myShareCode = null;
+      startHosting();
+    }
   });
 }
 
@@ -1867,12 +1957,27 @@ function stopHosting(){
     if(c.audioEl){ try{ c.audioEl.pause(); }catch(e){} c.audioEl = null; }
   });
   saveCompanions();
+
+  localStorage.removeItem('sentinela7.hostActive');
+
   myShareCode = null;
   $('shareStart').style.display = 'block';
   $('shareActive').style.display = 'none';
   $('shareStatus').textContent = 'OFF';
   $('shareStatus').style.color = 'rgba(0,240,255,.4)';
   updateAll();
+
+  const savedCode = localStorage.getItem('sentinela7.hostCode');
+  const rbtn = document.getElementById('btnResumeShare');
+  const badge = document.getElementById('sessionBadge');
+  if(savedCode && rbtn){
+    rbtn.style.display = 'block';
+    rbtn.textContent = '▶ REATIVAR SESSÃO ' + savedCode;
+    if(badge){
+      badge.textContent = 'ÚLTIMA SESSÃO: ' + savedCode + ' (toque em reativar para religar)';
+      badge.classList.add('show');
+    }
+  }
 }
 
 function handleShareData(peerId, data){
@@ -2383,9 +2488,9 @@ function beepSingle(freq, dur){
   }catch(e){}
 }
 
-$('btnCreateShare').onclick = startHosting;
+$('btnCreateShare').onclick = () => startHosting();
 $('btnStopShare').onclick   = () => {
-  if(confirm('Encerrar sessão?')) stopHosting();
+  if(confirm('Encerrar sessão? O código fica salvo para reativar depois.')) stopHosting();
 };
 $('btnCopyLink').onclick = () => {
   const url = $('shareLink').dataset.url;
@@ -3112,7 +3217,7 @@ function updateAll(){
 }
 
 /* LISTA ALVOS */
-function render(){ /* alvos estáticos não são exibidos individualmente no painel atual */ }
+function render(){ /* alvos estáticos não são exibidos no painel atual */ }
 
 /* LOOP */
 setInterval(() => {
@@ -3298,6 +3403,38 @@ function loadTargets(){
   document.addEventListener('keydown', e => {
     if(e.key === 'Escape' && camModalAgent) closeCamModal();
   });
+
+  /* ---------- REATIVAÇÃO AUTOMÁTICA DA SESSÃO ---------- */
+  const savedHostCode = localStorage.getItem('sentinela7.hostCode');
+  const wasActive = localStorage.getItem('sentinela7.hostActive') === '1';
+
+  const rbtn = document.getElementById('btnResumeShare');
+  if(rbtn){
+    rbtn.onclick = () => {
+      const saved = localStorage.getItem('sentinela7.hostCode');
+      if(!saved){ alert('Nenhuma sessão anterior encontrada.'); return; }
+      startHosting(saved);
+    };
+  }
+
+  if(savedHostCode){
+    if(wasActive){
+      console.log('[BOOT] retomando sessão anterior:', savedHostCode);
+      setTimeout(() => {
+        try{ startHosting(savedHostCode); }catch(e){ console.warn(e); }
+      }, 800);
+    } else {
+      if(rbtn){
+        rbtn.style.display = 'block';
+        rbtn.textContent = '▶ REATIVAR SESSÃO ' + savedHostCode;
+      }
+      const badge = document.getElementById('sessionBadge');
+      if(badge){
+        badge.textContent = 'ÚLTIMA SESSÃO: ' + savedHostCode;
+        badge.classList.add('show');
+      }
+    }
+  }
 })();
 
 } // fim modo principal
