@@ -765,7 +765,7 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
     </div>
     <div class="brand">
       <h1>SENTINELA<span>-7</span></h1>
-      <p>PROTOCOLO JARDAS · COMANDO CENTRAL · v1.7</p>
+      <p>PROTOCOLO JARDAS · COMANDO CENTRAL · v1.8</p>
     </div>
     <div class="status" id="statusTxt">INICIALIZANDO</div>
   </header>
@@ -1061,7 +1061,7 @@ footer{text-align:center;font-size:8.5px;letter-spacing:.26em;color:rgba(0,240,2
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js"></script>
 <script>
 /* =================================================================
-   SENTINELA-7 v1.7 — SESSÃO PERSISTENTE + REATIVAÇÃO AUTOMÁTICA
+   SENTINELA-7 v1.8 — CORREÇÃO DO "LINK INVÁLIDO"
    ================================================================= */
 
 const STORAGE_KEY   = 'sentinela7.targets.v14';
@@ -1101,26 +1101,47 @@ const sonarDisc = $('sonarDisc');
 const sonarRangeEl = $('sonarRange');
 
 /* ================================================================
-   MODO AGENTE
+   MODO AGENTE — só entra se tiver #share= na URL OU for app instalado
    ================================================================ */
 (function checkCompanion(){
   const hash = window.location.hash || '';
   const mHash = hash.match(/share=([A-Z0-9]{6})/i);
   const urlCode = mHash ? mHash[1].toUpperCase() : null;
   const savedCode = localStorage.getItem('sentinela7.agentCode');
-  const code = urlCode || savedCode;
 
-  if(!code){
-    window.__companion__ = true;
-    document.body.innerHTML = '<div style="padding:24px;color:#ff2d55;font-family:monospace;text-align:center;font-size:14px;line-height:1.8">⚠ LINK INVÁLIDO<br><br>Você precisa abrir pelo link enviado pelo comandante.<br><br>Se já abriu antes, peça um novo link.</div>';
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+                       window.navigator.standalone === true;
+
+  /* Forçar modo painel com #admin */
+  if(hash === '#admin'){
+    localStorage.removeItem('sentinela7.agentCode');
+    const comp = document.getElementById('companionView');
+    if(comp) comp.classList.remove('show');
+    const main = document.getElementById('mainView');
+    if(main) main.style.display = 'block';
+    console.log('[PAINEL] modo forçado via #admin');
     return;
   }
 
+  /* Decide se entra em modo agente */
+  let code = null;
   if(urlCode){
+    code = urlCode;
     localStorage.setItem('sentinela7.agentCode', urlCode);
-    console.log('[AGENTE] código salvo:', urlCode);
-  } else {
-    console.log('[AGENTE] usando código salvo:', savedCode);
+    console.log('[AGENTE] código da URL:', urlCode);
+  } else if(isStandalone && savedCode){
+    code = savedCode;
+    console.log('[AGENTE] código salvo (app instalado):', savedCode);
+  }
+
+  /* Se não tem código → modo painel normal */
+  if(!code){
+    const comp = document.getElementById('companionView');
+    if(comp) comp.classList.remove('show');
+    const main = document.getElementById('mainView');
+    if(main) main.style.display = 'block';
+    console.log('[PAINEL] modo comando central');
+    return;
   }
 
   window.__companion__ = true;
@@ -1130,11 +1151,7 @@ const sonarRangeEl = $('sonarRange');
   $('cCode').textContent = code.split('').join(' ');
   $('cStatus').innerHTML = '<span class="dot" style="background:#ffb300;box-shadow:0 0 10px #ffb300"></span>Conectando…';
 
-  /* ---------- DETECÇÃO DE CONTEXTO ---------- */
-  const isStandalone = () =>
-    window.matchMedia('(display-mode: standalone)').matches ||
-    window.navigator.standalone === true;
-
+  /* ---------- DETECÇÃO DE iOS ---------- */
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
   /* ---------- CAPTURA DO PROMPT DE INSTALAÇÃO ---------- */
@@ -1154,7 +1171,7 @@ const sonarRangeEl = $('sonarRange');
     if(box) box.style.display = 'block';
   });
 
-  if(isStandalone()){
+  if(isStandalone){
     localStorage.setItem('sentinela7.installed', '1');
     const ib = $('cInstallBox');
     if(ib) ib.style.display = 'block';
@@ -1269,7 +1286,7 @@ const sonarRangeEl = $('sonarRange');
 
   /* ---------- INSTALAÇÃO ---------- */
   async function tryInstallPWA(){
-    if(isIOS && !isStandalone()){
+    if(isIOS && !isStandalone){
       const box = $('cIOSInstallBox');
       if(box) box.style.display = 'block';
       return 'ios-manual';
@@ -1289,7 +1306,7 @@ const sonarRangeEl = $('sonarRange');
         return 'declined';
       }catch(e){ return 'error'; }
     }
-    if(isStandalone() || localStorage.getItem('sentinela7.installed')){
+    if(isStandalone || localStorage.getItem('sentinela7.installed')){
       const box = $('cInstallBox');
       if(box) box.style.display = 'block';
       return 'already';
@@ -1582,7 +1599,7 @@ const sonarRangeEl = $('sonarRange');
     if(st.authorized && !streaming){
       const btn = $('cBtnStart');
       if(btn && !btn.disabled){
-        if(installed && isStandalone()){
+        if(installed && isStandalone){
           console.log('[AUTO] app instalado + autorizado = retomando sozinho');
           setTimeout(() => startFullStream(), 800);
         } else {
