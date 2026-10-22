@@ -3,20 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SENTINELA-7 · v2.1</title>
+<title>SENTINELA-7 · v2.2</title>
 <div id="fatalErr" style="display:none;position:fixed;top:0;left:0;right:0;background:#ff2d55;color:#fff;padding:12px;z-index:99999;font-family:monospace;font-size:12px;line-height:1.5;max-height:40vh;overflow:auto;border-bottom:3px solid #fff"></div>
 <script>
 window.addEventListener('error', function(e){
-  var d = document.getElementById('fatalErr');
-  if(!d) return;
-  d.style.display = 'block';
-  d.innerHTML += '❌ <b>ERRO:</b> ' + e.message + ' · linha ' + e.lineno + ':' + e.colno + '<br>';
+  var d = document.getElementById('fatalErr'); if(!d) return;
+  d.style.display='block';
+  d.innerHTML += '❌ <b>ERRO:</b> '+e.message+' · linha '+e.lineno+':'+e.colno+'<br>';
 });
 window.addEventListener('unhandledrejection', function(e){
-  var d = document.getElementById('fatalErr');
-  if(!d) return;
-  d.style.display = 'block';
-  d.innerHTML += '❌ <b>PROMISE:</b> ' + (e.reason && e.reason.message || e.reason) + '<br>';
+  var d = document.getElementById('fatalErr'); if(!d) return;
+  d.style.display='block';
+  d.innerHTML += '❌ <b>PROMISE:</b> '+(e.reason&&e.reason.message||e.reason)+'<br>';
 });
 </script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -26,7 +24,7 @@ window.addEventListener('unhandledrejection', function(e){
 body{background:radial-gradient(circle at 20% 0%,rgba(0,240,255,.10),transparent 45%),radial-gradient(circle at 85% 100%,rgba(255,179,0,.10),transparent 45%),var(--bg);color:var(--neon);font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;min-height:100vh;overflow-x:hidden}
 body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:9998;background:repeating-linear-gradient(180deg,rgba(0,0,0,0) 0 3px,rgba(0,0,0,.18) 3px 4px);opacity:.4}
 .wrap{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:16px}
-header{display:flex;align-items:center;gap:16px;border:1px solid var(--line);background:linear-gradient(90deg,rgba(0,240,255,.08),transparent);padding:12px 16px;box-shadow:0 0 24px rgba(0,240,255,.15)}
+header{display:flex;align-items:center;gap:16px;border:1px solid var(--line);background:linear-gradient(90deg,rgba(0,240,255,.08),transparent);padding:12px 16px}
 .logo{width:54px;height:54px;flex:0 0 54px;color:var(--neon)}
 .logo svg{width:100%;height:100%}
 .brand h1{font-size:clamp(17px,3.4vw,28px);letter-spacing:.22em;font-weight:800;text-shadow:0 0 10px var(--neon)}
@@ -37,10 +35,6 @@ header{display:flex;align-items:center;gap:16px;border:1px solid var(--line);bac
 .status.warn{border-color:var(--gold);color:var(--gold)}
 .status.danger{border-color:var(--danger);color:var(--danger)}
 @keyframes blink{50%{opacity:.15}}
-.notice{margin-top:12px;font-size:10.5px;line-height:1.65;border-left:3px solid var(--gold);background:rgba(255,179,0,.07);padding:9px 14px;color:rgba(255,179,0,.9)}
-.notice b{color:#ffd166}
-.notice.blue{border-left-color:var(--neon);background:rgba(0,240,255,.05);color:rgba(0,240,255,.85)}
-.notice.red{border-left-color:var(--danger);background:rgba(255,45,85,.06);color:rgba(255,190,205,.9)}
 .grid{display:grid;grid-template-columns:1.25fr .95fr;gap:16px;margin-top:16px}
 @media(max-width:960px){.grid{grid-template-columns:1fr}}
 .card{border:1px solid var(--line);background:var(--panel);padding:14px;position:relative;margin-bottom:16px}
@@ -53,10 +47,9 @@ header{display:flex;align-items:center;gap:16px;border:1px solid var(--line);bac
 .tint{position:absolute;inset:0;pointer-events:none;z-index:400;background:radial-gradient(circle at 50% 50%,rgba(0,240,255,.05),rgba(2,6,11,.55) 90%);mix-blend-mode:multiply}
 .leaflet-container{background:#02060b!important;font-family:inherit!important}
 .leaflet-tile-pane{filter:brightness(.78) saturate(1.05) contrast(1.05)}
-.leaflet-control-attribution{background:rgba(2,6,11,.75)!important;color:rgba(0,240,255,.5)!important;font-size:8px!important}
 .sonar-overlay{position:absolute;width:clamp(220px,46vw,360px);height:clamp(220px,46vw,360px);transform:translate(-50%,-50%);pointer-events:none;z-index:800;transition:opacity .3s}
 .sonar-overlay.off{opacity:0}
-.sonar-disc{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,rgba(0,240,255,.14),rgba(0,240,255,.03) 55%,transparent 74%);border:1.5px solid rgba(0,240,255,.75);box-shadow:0 0 26px rgba(0,240,255,.55),inset 0 0 50px rgba(0,240,255,.15);overflow:hidden}
+.sonar-disc{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,rgba(0,240,255,.14),rgba(0,240,255,.03) 55%,transparent 74%);border:1.5px solid rgba(0,240,255,.75);box-shadow:0 0 26px rgba(0,240,255,.55);overflow:hidden}
 .sonar-disc .cx{position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(0,240,255,.3)}
 .sonar-disc .cy{position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(0,240,255,.3)}
 .sonar-disc .rg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border:1px solid rgba(0,240,255,.28);border-radius:50%}
@@ -117,12 +110,8 @@ textarea{resize:vertical;min-height:80px}
 .battery-badge{font-size:9px;padding:3px 7px;border:1px solid rgba(0,255,157,.4);color:#c9ffe7}
 .battery-badge.low{border-color:var(--danger);color:#ffd0dc}
 .battery-badge.warn{border-color:var(--gold);color:#ffe6b3}
-.cam-live-badge{font-size:8.5px;padding:3px 7px;border:1px solid var(--danger);color:#ffd0dc;margin-left:6px}
 .empty-companions{text-align:center;padding:18px;font-size:9px;color:rgba(0,240,255,.35);border:1px dashed rgba(0,240,255,.2)}
 .osint-status{border:1px dashed rgba(0,240,255,.3);padding:9px 11px;font-size:9.5px;color:rgba(0,240,255,.6);margin-bottom:10px;min-height:36px;display:flex;align-items:center;gap:8px}
-.osint-status.ok{color:var(--ok);border-color:rgba(0,255,157,.4)}
-.osint-status.load{color:var(--gold)}
-.osint-status.err{color:var(--danger)}
 .social-preview{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
 .sp-item{font-size:9px;padding:7px 9px;border:1px solid var(--line);color:#cdf9ff;display:flex;align-items:center;gap:6px;min-height:32px;overflow:hidden}
 .sp-item b{color:var(--gold);flex:0 0 auto}
@@ -130,7 +119,6 @@ textarea{resize:vertical;min-height:80px}
 .sp-item.empty{opacity:.55}
 .sp-item.found{border-color:rgba(0,255,157,.5);color:#c9ffe7}
 .sp-item.loading{border-color:rgba(255,179,0,.5);color:var(--gold)}
-.sp-item.notfound{opacity:.5}
 .coords{font-size:9.5px;color:rgba(0,240,255,.65);border:1px dashed rgba(0,240,255,.25);padding:8px 10px;margin-bottom:10px;min-height:34px;display:flex;align-items:center}
 .coords.ok{color:var(--ok);border-color:rgba(0,255,157,.4)}
 .btn-add{width:100%;padding:11px;border:1px solid var(--ok);background:rgba(0,255,157,.1);color:var(--ok);font-family:inherit;font-size:10px;cursor:pointer}
@@ -214,9 +202,8 @@ footer{text-align:center;font-size:8.5px;color:rgba(0,240,255,.28);margin:26px 0
 .cam-meta b{color:var(--gold)}
 .cam-modal-ftr{display:flex;gap:8px;padding:12px 16px;border-top:1px solid rgba(255,45,85,.3)}
 .cam-modal-ftr button{flex:1;padding:10px;font-family:inherit;font-size:9.5px;border:1px solid var(--line);background:transparent;color:rgba(0,240,255,.7);cursor:pointer}
-.cam-modal-ftr button.rec{border-color:var(--danger);color:var(--danger)}
 .drone-player{position:relative;width:100%;aspect-ratio:16/9;background:#000;border:1px solid var(--line);overflow:hidden;margin-bottom:10px}
-.drone-player video{width:100%;height:100%;object-fit:cover;display:block;background:#000}
+.drone-player video{width:100%;height:100%;object-fit:cover;display:block;background:#000;transform-origin:0 0}
 .drone-player .idle{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;color:rgba(0,240,255,.35);font-size:9.5px}
 .drone-player .idle .ico{font-size:44px;opacity:.35}
 .drone-hud{position:absolute;inset:0;pointer-events:none;z-index:5;display:none}
@@ -231,7 +218,6 @@ footer{text-align:center;font-size:8.5px;color:rgba(0,240,255,.28);margin:26px 0
 .drone-hud .tcinfo{position:absolute;bottom:12px;left:12px;right:12px;font-size:9px;color:#dffcff;display:flex;justify-content:space-between}
 .drone-hud .tcinfo b{color:var(--gold)}
 .drone-hud .rec.recording{color:#ff2d55;animation:blink .8s infinite}
-.drone-hud .rec.recording .dot{box-shadow:0 0 12px #ff2d55}
 .notif-banner{margin-top:12px;padding:10px 12px;border:1px solid rgba(0,240,255,.4);font-size:9.5px;color:#cdf9ff;display:flex;align-items:center;gap:10px;text-align:left}
 .notif-banner .ico{font-size:22px;flex:0 0 auto}
 .notif-banner button{flex:0 0 auto;padding:7px 12px;font-family:inherit;font-size:9px;border:1px solid var(--ok);background:rgba(0,255,157,.12);color:var(--ok);cursor:pointer}
@@ -244,6 +230,7 @@ footer{text-align:center;font-size:8.5px;color:rgba(0,240,255,.28);margin:26px 0
 .sec-log:empty::before{content:"⟨ sem eventos ⟩";opacity:.5}
 .sec-log .ev{padding:5px 0;border-bottom:1px solid rgba(255,45,85,.1)}
 #secStatus.armed{color:var(--danger);animation:blink 1s infinite;font-weight:700}
+#camSmartStatus{font-size:9px;color:rgba(0,240,255,.6);min-height:14px;margin-bottom:10px}
 </style>
 </head>
 <body>
@@ -298,7 +285,7 @@ footer{text-align:center;font-size:8.5px;color:rgba(0,240,255,.28);margin:26px 0
     </div>
     <div class="brand">
       <h1>SENTINELA<span>-7</span></h1>
-      <p>PROTOCOLO JARDAS · COMANDO CENTRAL · v2.1</p>
+      <p>PROTOCOLO JARDAS · COMANDO CENTRAL · v2.2</p>
     </div>
     <div class="status" id="statusTxt">INICIALIZANDO</div>
   </header>
@@ -365,18 +352,18 @@ footer{text-align:center;font-size:8.5px;color:rgba(0,240,255,.28);margin:26px 0
           <button class="tg" id="tgMotion">👁 DETECÇÃO DE MOVIMENTO</button>
           <button class="tg" id="tgFaceFocus">👤 FOCO NO ROSTO</button>
         </div>
-        <div id="camSmartStatus" style="margin-bottom:10px;font-size:9px;color:rgba(0,240,255,.6);min-height:14px"></div>
+        <div id="camSmartStatus"></div>
       </div>
 
       <div class="card">
         <h2>◈ SEGURANÇA & GRAVAÇÃO <em id="secStatus">DESARMADO</em></h2>
-        <div class="notice red" style="margin-bottom:10px">
-          ⚠ <b>MODO ANTI-INTRUSO:</b> quando armado, se alguém tentar parar sem PIN, pressionar ESC ou fechar a página, o sistema captura uma foto do suspeito, salva o vídeo e abre o WhatsApp.
+        <div style="margin-bottom:10px;font-size:10px;border-left:3px solid var(--danger);background:rgba(255,45,85,.06);padding:9px 14px;line-height:1.65;color:rgba(255,190,205,.9)">
+          ⚠ <b>MODO ANTI-INTRUSO:</b> quando armado, se alguém tentar parar sem PIN, pressionar ESC ou fechar a página, o sistema captura foto do suspeito, salva o vídeo e abre o WhatsApp.
         </div>
         <div class="form-row"><input type="tel" id="secWANumber" placeholder="WhatsApp destino (+5511999999999)"></div>
         <div class="form-row"><input type="password" id="secPin" placeholder="PIN de 4 dígitos" maxlength="4" inputmode="numeric"></div>
         <div class="toggles" style="margin-bottom:10px">
-          <button class="tg gold" id="btnArmSecurity">🔒 ARMAR SISTEMA</button>
+          <button class="tg gold" id="btnArmSecurity">🔒 ARMAR</button>
           <button class="tg red" id="btnDisarmSecurity" style="display:none">🔓 DESARMAR</button>
         </div>
         <div class="hint">O PIN é exigido para parar gravação ou desarmar.</div>
@@ -432,7 +419,6 @@ footer{text-align:center;font-size:8.5px;color:rgba(0,240,255,.28);margin:26px 0
         <h2>◈ AGENTES <em id="compCount">0</em></h2>
         <button class="btn-import" id="btnReconnectAgents" style="border-color:var(--neon);color:var(--neon);margin-bottom:10px">🔄 RECONECTAR</button>
         <div id="compList"></div>
-        <div class="hint" style="margin-top:10px">🟢 online · ⚪ offline · 🎥 câmera · 🎤 mic · 🔋 bateria</div>
       </div>
 
       <div class="card">
@@ -473,7 +459,7 @@ footer{text-align:center;font-size:8.5px;color:rgba(0,240,255,.28);margin:26px 0
     </div>
   </div>
 
-  <footer>SENTINELA-7 · MAPAS © ESRI · PHOTON · PEERJS · HLS.JS · TF.JS<br>FERRAMENTA EDUCACIONAL</footer>
+  <footer>SENTINELA-7 · © ESRI · PHOTON · PEERJS · HLS.JS · TF.JS<br>FERRAMENTA EDUCACIONAL</footer>
 </div>
 
 <div class="overlay" id="overlay">
@@ -498,7 +484,7 @@ footer{text-align:center;font-size:8.5px;color:rgba(0,240,255,.28);margin:26px 0
     <div class="cam-meta"><span>◈ <b id="camModalBattery">—</b></span><span>◈ <b id="camModalDist">—</b></span><span>◈ <b id="camModalSince">—</b></span></div>
     <div class="cam-video-wrap"><video id="camModalVideo" autoplay playsinline muted></video></div>
     <div class="cam-modal-ftr">
-      <button class="rec" id="camSnapshot">📸 SNAPSHOT</button>
+      <button id="camSnapshot">📸 SNAPSHOT</button>
       <button id="camToggleMute">🔇 MUDO</button>
       <button id="camToggleMic">🎤 OUVIR</button>
     </div>
@@ -508,7 +494,7 @@ footer{text-align:center;font-size:8.5px;color:rgba(0,240,255,.28);margin:26px 0
 <div id="recModal" style="position:fixed;inset:0;z-index:9996;display:none;background:rgba(2,6,11,.95);align-items:center;justify-content:center;padding:20px">
   <div style="width:min(800px,100%);max-height:92vh;border:1px solid var(--ok);background:rgba(2,6,11,.98);overflow:hidden;display:flex;flex-direction:column">
     <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(0,255,157,.3)">
-      <div style="font-size:11px;color:var(--ok);font-weight:700;flex:1">📼 GRAVAÇÕES SALVAS <span id="recCount" style="opacity:.6">(0)</span></div>
+      <div style="font-size:11px;color:var(--ok);font-weight:700;flex:1">📼 GRAVAÇÕES E FOTOS <span id="recCount" style="opacity:.6">(0)</span></div>
       <button id="recModalClearAll" style="padding:6px 12px;font-family:inherit;font-size:9px;border:1px solid var(--danger);background:rgba(255,45,85,.1);color:var(--danger);cursor:pointer">🗑 APAGAR TUDO</button>
       <button id="recModalClose" style="padding:6px 12px;font-family:inherit;font-size:9px;border:1px solid var(--line);background:transparent;color:rgba(0,240,255,.7);cursor:pointer">✕ FECHAR</button>
     </div>
@@ -526,1840 +512,832 @@ footer{text-align:center;font-size:8.5px;color:rgba(0,240,255,.28);margin:26px 0
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js"></script>
 <script>
-/* SENTINELA-7 v2.1 — completo */
-const STORAGE_KEY = 'sentinela7.targets.v14';
-const COMP_KEY = 'sentinela7.agents.v14';
-const BASE_KEY = 'sentinela7.homebase';
-const DRONE_KEY = 'sentinela7.drone';
-const GEO_TTL = 10 * 60 * 1000;
-const AUTH_KEY = 'sentinela7.authState';
+/* SENTINELA-7 v2.2 */
+const STORAGE_KEY='sentinela7.targets.v14',COMP_KEY='sentinela7.agents.v14',BASE_KEY='sentinela7.homebase',DRONE_KEY='sentinela7.drone',GEO_TTL=600000,AUTH_KEY='sentinela7.authState';
+const LS={get(k){try{return localStorage.getItem(k);}catch(e){return null;}},set(k,v){try{localStorage.setItem(k,v);}catch(e){}},remove(k){try{localStorage.removeItem(k);}catch(e){}}};
+let _cachedVoices=[];
+function _loadVoices(){if(!('speechSynthesis'in window))return;try{_cachedVoices=window.speechSynthesis.getVoices()||[];}catch(e){}}
+if('speechSynthesis'in window){_loadVoices();window.speechSynthesis.onvoiceschanged=_loadVoices;}
+let _speechUnlocked=false;
+function _unlockSpeech(){if(_speechUnlocked)return;_speechUnlocked=true;if(!('speechSynthesis'in window))return;try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;u.lang='pt-BR';window.speechSynthesis.speak(u);setTimeout(()=>{try{window.speechSynthesis.cancel();}catch(e){}},100);}catch(e){}}
+document.addEventListener('click',_unlockSpeech,{once:true});document.addEventListener('touchstart',_unlockSpeech,{once:true});document.addEventListener('keydown',_unlockSpeech,{once:true});
+function _speakGeneric(text){if(!('speechSynthesis'in window))return;try{window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='pt-BR';u.rate=1;u.pitch=.9;u.volume=1;if(_cachedVoices.length===0)_loadVoices();const v=_cachedVoices.find(x=>x.lang&&x.lang.toLowerCase().startsWith('pt'));if(v)u.voice=v;window.speechSynthesis.speak(u);}catch(e){}}
 
-const LS = {
-  get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
-  set(k, v){ try{ localStorage.setItem(k, v); }catch(e){} },
-  remove(k){ try{ localStorage.removeItem(k); }catch(e){} }
-};
+let map,meMarker,thCircle,meLatLng=null,targets=[],companions={},threshold=150;
+let voiceOn=true,soundOn=true,sonarOn=true,beepOn=true,mutedUntil=0,audioCtx=null;
+let picking=false,pickMarker=null,formLatLng=null,myGeoCache={ts:0,latlng:null},followGPS=true,lastOsintData=null,gpsWatchId=null;
+let droneMarker=null,droneLatLng=null,droneHls=null,droneStream=null,droneFollow=true;
+let camModalAgent=null,camModalAudioOn=false,alertHistory=[];
+const $=id=>document.getElementById(id);
+const overlay=$('overlay'),sonarOverlay=$('sonarOverlay'),sonarDisc=$('sonarDisc'),sonarRangeEl=$('sonarRange');
 
-let _cachedVoices = [];
-function _loadVoices(){
-  if(!('speechSynthesis' in window)) return;
-  try{ _cachedVoices = window.speechSynthesis.getVoices() || []; }catch(e){}
-}
-if('speechSynthesis' in window){ _loadVoices(); window.speechSynthesis.onvoiceschanged = _loadVoices; }
-let _speechUnlocked = false;
-function _unlockSpeech(){
-  if(_speechUnlocked) return;
-  _speechUnlocked = true;
-  if(!('speechSynthesis' in window)) return;
-  try{
-    const u = new SpeechSynthesisUtterance(' ');
-    u.volume = 0; u.lang = 'pt-BR';
-    window.speechSynthesis.speak(u);
-    setTimeout(function(){ try{ window.speechSynthesis.cancel(); }catch(e){} }, 100);
-  }catch(e){}
-}
-document.addEventListener('click', _unlockSpeech, { once: true });
-document.addEventListener('touchstart', _unlockSpeech, { once: true });
-document.addEventListener('keydown', _unlockSpeech, { once: true });
-function _speakGeneric(text){
-  if(!('speechSynthesis' in window)) return;
-  try{
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'pt-BR'; u.rate = 1.0; u.pitch = .9; u.volume = 1;
-    if(_cachedVoices.length === 0) _loadVoices();
-    const v = _cachedVoices.find(function(x){ return x.lang && x.lang.toLowerCase().startsWith('pt'); });
-    if(v) u.voice = v;
-    window.speechSynthesis.speak(u);
-  }catch(e){}
-}
-
-let map, meMarker, thCircle, meLatLng = null;
-let targets = [];
-let companions = {};
-let threshold = 150;
-let voiceOn = true, soundOn = true, sonarOn = true, beepOn = true;
-let mutedUntil = 0, audioCtx = null;
-let picking = false, pickMarker = null, formLatLng = null;
-let myGeoCache = { ts:0, latlng:null };
-let followGPS = true, lastOsintData = null, gpsWatchId = null;
-let droneMarker = null, droneLatLng = null, droneHls = null, droneStream = null;
-let droneFollow = true;
-let camModalAgent = null, camModalAudioOn = false, alertHistory = [];
-
-const $ = function(id){ return document.getElementById(id); };
-const overlay = $('overlay');
-const sonarOverlay = $('sonarOverlay'), sonarDisc = $('sonarDisc'), sonarRangeEl = $('sonarRange');
-
-/* COMPANION MODE */
+/* COMPANION */
 (function checkCompanion(){
   try{
-    const hash = window.location.hash || '';
-    const mHash = hash.match(/share=([A-Z0-9]{6})/i);
-    const urlCode = mHash ? mHash[1].toUpperCase() : null;
-    const savedCode = LS.get('sentinela7.agentCode');
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-
-    if(hash === '#admin'){
-      LS.remove('sentinela7.agentCode');
-      const comp = document.getElementById('companionView');
-      if(comp) comp.classList.remove('show');
-      const main = document.getElementById('mainView');
-      if(main) main.style.display = 'block';
-      return;
-    }
-
-    let code = null;
-    if(urlCode){ code = urlCode; LS.set('sentinela7.agentCode', urlCode); }
-    else if(isStandalone && savedCode){ code = savedCode; }
-
-    if(!code){
-      const comp = document.getElementById('companionView');
-      if(comp) comp.classList.remove('show');
-      const main = document.getElementById('mainView');
-      if(main) main.style.display = 'block';
-      return;
-    }
-
-    window.__companion__ = true;
-    $('mainView').style.display = 'none';
+    const hash=window.location.hash||'';
+    const mHash=hash.match(/share=([A-Z0-9]{6})/i);
+    const urlCode=mHash?mHash[1].toUpperCase():null;
+    const savedCode=LS.get('sentinela7.agentCode');
+    const isStandalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;
+    if(hash==='#admin'){LS.remove('sentinela7.agentCode');document.getElementById('companionView').classList.remove('show');document.getElementById('mainView').style.display='block';return;}
+    let code=null;
+    if(urlCode){code=urlCode;LS.set('sentinela7.agentCode',urlCode);}
+    else if(isStandalone&&savedCode){code=savedCode;}
+    if(!code){document.getElementById('companionView').classList.remove('show');document.getElementById('mainView').style.display='block';return;}
+    window.__companion__=true;
+    $('mainView').style.display='none';
     $('companionView').classList.add('show');
-    $('cCode').textContent = code.split('').join(' ');
-    $('cStatus').innerHTML = '<span class="dot" style="background:#ffb300"></span>Conectando…';
-
-    const savedName = LS.get('sentinela7.myname') || '';
-    if(savedName) $('cName').value = savedName;
-
-    let peer = new Peer({ debug:0 });
-    let conn = null;
-    let nomeAtual = savedName || '';
-    let batteryObj = null, camStream = null, micStream = null;
-    let camCall = null, micCall = null;
-    let streaming = false;
-
-    $('cName').addEventListener('input', function(e){
-      nomeAtual = e.target.value.trim().slice(0,24);
-      LS.set('sentinela7.myname', nomeAtual);
-      if(conn && conn.open) conn.send({ type:'hello', name: nomeAtual });
-      updateStartButton();
-    });
-
-    function updateStartButton(){
-      const btn = $('cBtnStart');
-      if(!btn) return;
-      const ready = !!(conn && conn.open && nomeAtual);
-      btn.disabled = !ready;
-      btn.textContent = ready ? '🚀 AUTORIZAR E INICIAR'
-        : (nomeAtual ? '📡 AGUARDANDO…' : 'DIGITE SEU NOME');
-    }
-
-    async function initBattery(){
-      if(!('getBattery' in navigator)){ $('cBattery').textContent = 'N/D'; return; }
-      try{
-        batteryObj = await navigator.getBattery();
-        const upd = function(){ $('cBattery').textContent = Math.round(batteryObj.level*100) + '%' + (batteryObj.charging ? ' ⚡' : ''); };
-        upd();
-        batteryObj.addEventListener('levelchange', upd);
-        batteryObj.addEventListener('chargingchange', upd);
-        setInterval(function(){
-          if(conn && conn.open) conn.send({ type:'battery', level:batteryObj.level, charging:batteryObj.charging, ts:Date.now() });
-        }, 30000);
-      }catch(e){ $('cBattery').textContent = 'N/D'; }
-    }
-
-    function startGPSLocal(){
-      if(!('geolocation' in navigator)) return;
-      navigator.geolocation.watchPosition(
-        function(pos){
-          if(conn && conn.open){
-            conn.send({
-              type:'pos', lat:pos.coords.latitude, lng:pos.coords.longitude,
-              acc:pos.coords.accuracy, ts:Date.now(), name:nomeAtual
-            });
-          }
-        },
-        function(err){ console.warn('[GPS]', err); },
-        { enableHighAccuracy:true, maximumAge:3000, timeout:15000 }
-      );
-    }
-
-    function updateRecIndicator(){
-      const el = $('cRecIndicator');
-      if(!el) return;
-      const on = !!(camStream || micStream);
-      el.style.display = on ? 'flex' : 'none';
-      if(on){
-        const p = [];
-        if(camStream) p.push('CÂMERA');
-        if(micStream) p.push('MIC');
-        $('cRecText').textContent = 'AO VIVO · ' + p.join(' + ');
-      }
-    }
-
+    $('cCode').textContent=code.split('').join(' ');
+    $('cStatus').innerHTML='<span class="dot" style="background:#ffb300"></span>Conectando…';
+    const savedName=LS.get('sentinela7.myname')||'';
+    if(savedName)$('cName').value=savedName;
+    let peer=new Peer({debug:0}),conn=null,nomeAtual=savedName||'';
+    let batteryObj=null,camStream=null,micStream=null,camCall=null,micCall=null,streaming=false;
+    $('cName').addEventListener('input',e=>{nomeAtual=e.target.value.trim().slice(0,24);LS.set('sentinela7.myname',nomeAtual);if(conn&&conn.open)conn.send({type:'hello',name:nomeAtual});updateStartButton();});
+    function updateStartButton(){const btn=$('cBtnStart');if(!btn)return;const ready=!!(conn&&conn.open&&nomeAtual);btn.disabled=!ready;btn.textContent=ready?'🚀 AUTORIZAR E INICIAR':(nomeAtual?'📡 AGUARDANDO…':'DIGITE SEU NOME');}
+    async function initBattery(){if(!('getBattery'in navigator)){$('cBattery').textContent='N/D';return;}try{batteryObj=await navigator.getBattery();const upd=()=>{$('cBattery').textContent=Math.round(batteryObj.level*100)+'%'+(batteryObj.charging?' ⚡':'');};upd();batteryObj.addEventListener('levelchange',upd);setInterval(()=>{if(conn&&conn.open)conn.send({type:'battery',level:batteryObj.level,charging:batteryObj.charging,ts:Date.now()});},30000);}catch(e){$('cBattery').textContent='N/D';}}
+    function startGPSLocal(){if(!('geolocation'in navigator))return;navigator.geolocation.watchPosition(pos=>{if(conn&&conn.open)conn.send({type:'pos',lat:pos.coords.latitude,lng:pos.coords.longitude,acc:pos.coords.accuracy,ts:Date.now(),name:nomeAtual});},err=>{}, {enableHighAccuracy:true,maximumAge:3000,timeout:15000});}
+    function updateRecIndicator(){const el=$('cRecIndicator');if(!el)return;const on=!!(camStream||micStream);el.style.display=on?'flex':'none';if(on){const p=[];if(camStream)p.push('CÂMERA');if(micStream)p.push('MIC');$('cRecText').textContent='AO VIVO · '+p.join(' + ');}}
     async function startFullStream(){
-      if(streaming) return;
-      const btn = $('cBtnStart');
-      btn.textContent = '📡 SOLICITANDO…';
-      btn.disabled = true;
+      if(streaming)return;
+      const btn=$('cBtnStart');btn.textContent='📡 SOLICITANDO…';btn.disabled=true;
       try{
-        const full = await navigator.mediaDevices.getUserMedia({
-          video: { width:{ideal:640}, height:{ideal:480}, frameRate:{ideal:15} },
-          audio: { echoCancellation:true, noiseSuppression:true, autoGainControl:true }
-        });
-        camStream = new MediaStream(full.getVideoTracks());
-        micStream = new MediaStream(full.getAudioTracks());
-        const mainId = 'sentinela-' + code;
-        camCall = peer.call(mainId, camStream, { metadata:{ type:'camera', peerId:peer.id, name:nomeAtual } });
-        micCall = peer.call(mainId, micStream, { metadata:{ type:'audio', peerId:peer.id, name:nomeAtual } });
-        streaming = true;
-        btn.classList.add('on');
-        btn.textContent = '✓ TRANSMITINDO';
-        $('cCard').style.display = 'none';
-        $('cPill').classList.add('show');
+        const full=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:640},height:{ideal:480},frameRate:{ideal:15}},audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+        camStream=new MediaStream(full.getVideoTracks());
+        micStream=new MediaStream(full.getAudioTracks());
+        const mainId='sentinela-'+code;
+        camCall=peer.call(mainId,camStream,{metadata:{type:'camera',peerId:peer.id,name:nomeAtual}});
+        micCall=peer.call(mainId,micStream,{metadata:{type:'audio',peerId:peer.id,name:nomeAtual}});
+        streaming=true;btn.classList.add('on');btn.textContent='✓ TRANSMITINDO';
+        $('cCard').style.display='none';$('cPill').classList.add('show');
         updateRecIndicator();
-      }catch(err){
-        btn.textContent = '🚀 AUTORIZAR E INICIAR';
-        btn.disabled = false;
-        let msg = 'Erro: ' + err.message;
-        if(err.name === 'NotAllowedError') msg = 'Você negou a permissão.';
-        if(err.name === 'NotFoundError') msg = 'Câmera/mic não encontrado.';
-        alert(msg);
-      }
+      }catch(err){btn.textContent='🚀 AUTORIZAR E INICIAR';btn.disabled=false;alert('Erro: '+err.message);}
     }
-
     function stopFullStream(){
-      if(camStream){ camStream.getTracks().forEach(function(t){ t.stop(); }); camStream = null; }
-      if(micStream){ micStream.getTracks().forEach(function(t){ t.stop(); }); micStream = null; }
-      if(camCall){ try{ camCall.close(); }catch(e){} camCall = null; }
-      if(micCall){ try{ micCall.close(); }catch(e){} micCall = null; }
-      streaming = false;
-      $('cPill').classList.remove('show');
-      $('cCard').style.display = 'block';
-      $('cBtnStart').textContent = '🚀 AUTORIZAR E INICIAR';
-      $('cBtnStart').disabled = !(conn && conn.open && nomeAtual);
+      if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;}
+      if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null;}
+      if(camCall){try{camCall.close();}catch(e){}camCall=null;}
+      if(micCall){try{micCall.close();}catch(e){}micCall=null;}
+      streaming=false;$('cPill').classList.remove('show');$('cCard').style.display='block';
+      $('cBtnStart').textContent='🚀 AUTORIZAR E INICIAR';
+      $('cBtnStart').disabled=!(conn&&conn.open&&nomeAtual);
       $('cBtnStart').classList.remove('on');
       updateRecIndicator();
     }
-
     function attachConnHandlers(){
-      if(conn && conn.open) return;
+      if(conn&&conn.open)return;
       try{
-        conn = peer.connect('sentinela-' + code, { reliable:true });
-        conn.on('open', function(){
-          $('cStatus').innerHTML = '<span class="dot"></span>Conectado';
-          if(nomeAtual) conn.send({ type:'hello', name: nomeAtual });
-          updateStartButton();
-        });
-        conn.on('data', function(data){
-          if(!data) return;
-          if(data.type === 'ping'){ try{ conn.send({ type:'pong', ts:Date.now() }); }catch(e){} }
-          if(data.type === 'alert' || data.type === 'announce'){
-            if(data.msg){
-              $('aOvIco').textContent = data.type === 'alert' ? '🚨' : '📢';
-              $('aOvMsg').textContent = data.msg;
-              $('aOvFrom').textContent = '◈ DE: ' + (data.from || 'COMANDO');
-              $('aOverlay').classList.add('show');
-            }
-          }
-        });
-        conn.on('close', function(){
-          $('cStatus').innerHTML = '<span class="dot" style="background:#ffb300"></span>Reconectando…';
-          updateStartButton();
-          setTimeout(attachConnHandlers, 3000);
-        });
-      }catch(e){ setTimeout(attachConnHandlers, 3000); }
+        conn=peer.connect('sentinela-'+code,{reliable:true});
+        conn.on('open',()=>{$('cStatus').innerHTML='<span class="dot"></span>Conectado';if(nomeAtual)conn.send({type:'hello',name:nomeAtual});updateStartButton();});
+        conn.on('data',data=>{if(!data)return;if(data.type==='ping'){try{conn.send({type:'pong',ts:Date.now()});}catch(e){}}if((data.type==='alert'||data.type==='announce')&&data.msg){$('aOvIco').textContent=data.type==='alert'?'🚨':'📢';$('aOvMsg').textContent=data.msg;$('aOvFrom').textContent='◈ DE: '+(data.from||'COMANDO');$('aOverlay').classList.add('show');}});
+        conn.on('close',()=>{$('cStatus').innerHTML='<span class="dot" style="background:#ffb300"></span>Reconectando…';updateStartButton();setTimeout(attachConnHandlers,3000);});
+      }catch(e){setTimeout(attachConnHandlers,3000);}
     }
-
-    peer.on('open', function(){
-      attachConnHandlers();
-      initBattery(); startGPSLocal(); updateStartButton();
-    });
-    peer.on('error', function(err){
-      $('cStatus').innerHTML = '<span class="dot" style="background:#ff2d55"></span>Erro: ' + (err.type || 'conexão');
-      updateStartButton();
-    });
-
-    $('aOvOk').onclick = function(){ $('aOverlay').classList.remove('show'); };
-    $('cBtnStart').onclick = startFullStream;
-    $('cPillStop').onclick = stopFullStream;
-    $('cBtnNotif').onclick = async function(){
-      if(!('Notification' in window)){ alert('Sem suporte.'); return; }
-      const p = await Notification.requestPermission();
-      if(p === 'granted'){
-        $('cNotifBanner').classList.add('on');
-        $('cNotifBanner').classList.remove('off');
-        new Notification('SENTINELA ATIVO', { body:'Notificações ativas' });
-      }
-    };
-  }catch(err){
-    console.error('[COMPANION] erro:', err);
-    window.__companion__ = false;
-    try{
-      document.getElementById('mainView').style.display = 'block';
-      document.getElementById('companionView').classList.remove('show');
-    }catch(e){}
-  }
+    peer.on('open',()=>{attachConnHandlers();initBattery();startGPSLocal();updateStartButton();});
+    peer.on('error',err=>{$('cStatus').innerHTML='<span class="dot" style="background:#ff2d55"></span>Erro: '+(err.type||'conexão');updateStartButton();});
+    $('aOvOk').onclick=()=>$('aOverlay').classList.remove('show');
+    $('cBtnStart').onclick=startFullStream;
+    $('cPillStop').onclick=stopFullStream;
+    $('cBtnNotif').onclick=async()=>{if(!('Notification'in window))return;const p=await Notification.requestPermission();if(p==='granted'){$('cNotifBanner').classList.add('on');$('cNotifBanner').classList.remove('off');}};
+  }catch(err){console.error('[COMPANION]',err);window.__companion__=false;try{document.getElementById('mainView').style.display='block';document.getElementById('companionView').classList.remove('show');}catch(e){}}
 })();
 
-/* MAIN MODE */
+/* MAIN */
 if(!window.__companion__){
 try{
+  const BRIDGE={ready:false};BRIDGE.updateBadge=p=>{let el=document.getElementById('extBadge');if(!el){el=document.createElement('div');el.id='extBadge';document.body.appendChild(el);}el.textContent=p?'◈ BRIDGE ON':'◈ BRIDGE OFF';el.style.color=p?'#00ff9d':'#ffb300';el.style.border='1px solid '+(p?'#00ff9d':'#ffb300');el.style.background='rgba(2,6,11,.85)';};BRIDGE.updateBadge(false);
 
-const BRIDGE = { ready:false, pending:new Map() };
-BRIDGE.init = function(){
-  window.addEventListener('message', function(e){
-    const d = e.data;
-    if(!d || !d.__sentinela) return;
-    if(d.type === 'READY'){ this.ready = true; }
-  });
-  this.updateBadge(false);
-};
-BRIDGE.updateBadge = function(p){
-  let el = document.getElementById('extBadge');
-  if(!el){ el = document.createElement('div'); el.id = 'extBadge'; document.body.appendChild(el); }
-  el.textContent = p ? '◈ BRIDGE ON' : '◈ BRIDGE OFF';
-  el.style.color = p ? '#00ff9d' : '#ffb300';
-  el.style.border = '1px solid ' + (p ? '#00ff9d' : '#ffb300');
-  el.style.background = 'rgba(2,6,11,.85)';
-};
-BRIDGE.init();
-
-function simulateOsint(numero){
-  const digits = numero.replace(/\D/g,'');
-  if(digits.length < 8) return null;
-  let h = 2166136261;
-  for(let i=0;i<digits.length;i++){ h ^= digits.charCodeAt(i); h = Math.imul(h, 16777619); }
-  h = Math.abs(h>>>0);
-  const prefixes = ['user','alvo','shadow','ghost','agent','zero','kilo','delta'];
-  const suffixes = ['_br','.oficial','_007','_real','_sp','_rj','_x'];
-  const base = prefixes[h % prefixes.length] + String(h % 9999).padStart(4,'0');
-  const suf = suffixes[(h>>3) % suffixes.length];
-  const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-  const codename = 'ALVO-' + letters[h % letters.length] + letters[(h>>5) % letters.length] + String(h % 900 + 100);
-  return {
-    codename: codename,
-    instagram: '@' + base + suf,
-    facebook: '/' + base + suf.replace(/[._]/g,''),
-    tiktok: '@' + base + (h%2 ? '' : '.tt'),
-    whatsapp: 'wa.me/' + digits.slice(-11),
-    kwai: '@' + base.replace(/_/g,'')
-  };
-}
-
-function loadCompanions(){
-  try{
-    const s = LS.get(COMP_KEY);
-    if(s){
-      companions = JSON.parse(s);
-      Object.keys(companions).forEach(function(k){
-        companions[k].online = false; companions[k].camActive = false; companions[k].micActive = false;
-        companions[k].camCall = null; companions[k].micCall = null;
-        companions[k].camStream = null; companions[k].micStream = null;
-        companions[k].audioEl = null;
+  function simulateOsint(numero){
+    const digits=numero.replace(/\D/g,'');if(digits.length<8)return null;
+    let h=2166136261;for(let i=0;i<digits.length;i++){h^=digits.charCodeAt(i);h=Math.imul(h,16777619);}
+    h=Math.abs(h>>>0);
+    const prefixes=['user','alvo','shadow','ghost','agent','zero','kilo','delta'];
+    const suffixes=['_br','.oficial','_007','_real','_sp','_rj','_x'];
+    const base=prefixes[h%prefixes.length]+String(h%9999).padStart(4,'0');
+    const suf=suffixes[(h>>3)%suffixes.length];
+    const letters='ABCDEFGHJKLMNPQRSTUVWXYZ';
+    const codename='ALVO-'+letters[h%letters.length]+letters[(h>>5)%letters.length]+String(h%900+100);
+    return{codename,instagram:'@'+base+suf,facebook:'/'+base+suf.replace(/[._]/g,''),tiktok:'@'+base+(h%2?'':'.tt'),whatsapp:'wa.me/'+digits.slice(-11),kwai:'@'+base.replace(/_/g,'')};
+  }
+  function loadCompanions(){try{const s=LS.get(COMP_KEY);if(s){companions=JSON.parse(s);Object.keys(companions).forEach(k=>{companions[k].online=false;companions[k].camActive=false;companions[k].micActive=false;companions[k].camCall=null;companions[k].micCall=null;companions[k].camStream=null;companions[k].micStream=null;companions[k].audioEl=null;});}}catch(e){companions={};}}
+  function saveCompanions(){try{const clean={};Object.keys(companions).forEach(k=>{const c=companions[k];clean[k]={code:c.code,name:c.name,lastLat:c.lastLat,lastLng:c.lastLng,lastTs:c.lastTs,lastAcc:c.lastAcc,positions:(c.positions||[]).slice(-30),batteryLevel:c.batteryLevel,batteryCharging:c.batteryCharging};});LS.set(COMP_KEY,JSON.stringify(clean));}catch(e){}}
+  function getOrCreateCompanion(peerId,name){
+    let c=companions[peerId];
+    if(!c){c={code:peerId,name:name||('AGENTE-'+peerId.slice(-4).toUpperCase()),lastLat:null,lastLng:null,lastTs:0,lastAcc:null,positions:[],online:false,marker:null,_alerted:false,_new:true,batteryLevel:null,batteryCharging:null,camActive:false,micActive:false,camCall:null,micCall:null,camStream:null,micStream:null,audioEl:null,_conn:null};companions[peerId]=c;saveCompanions();}
+    if(name&&name.trim())c.name=name.trim().slice(0,24);
+    return c;
+  }
+  let hostPeer=null,myShareCode=null;
+  function genCode(){const L='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let c='';for(let i=0;i<6;i++)c+=L[Math.floor(Math.random()*L.length)];return c;}
+  function startHosting(forcedCode){
+    if(hostPeer){alert('Já ativo.');return;}
+    myShareCode=forcedCode||genCode();
+    LS.set('sentinela7.hostCode',myShareCode);LS.set('sentinela7.hostActive','1');
+    hostPeer=new Peer('sentinela-'+myShareCode,{debug:0});
+    hostPeer.on('open',()=>{
+      const base=window.location.origin+window.location.pathname;
+      const url=base+'#share='+myShareCode;
+      $('shareCode').textContent=myShareCode.split('').join(' ');
+      $('shareLink').textContent=url;$('shareLink').dataset.url=url;
+      $('shareStart').style.display='none';$('shareActive').style.display='block';
+      $('shareStatus').textContent='ATIVO · '+myShareCode;$('shareStatus').style.color='var(--ok)';
+    });
+    hostPeer.on('connection',conn=>{
+      const c=getOrCreateCompanion(conn.peer);c._conn=conn;
+      conn.on('data',data=>handleShareData(conn.peer,data));
+      conn.on('close',()=>{const cc=companions[conn.peer];if(cc){cc.online=false;cc.camActive=false;cc.micActive=false;cc._conn=null;saveCompanions();renderCompanions();renderSonarBlips();renderMarkers();}});
+    });
+    hostPeer.on('call',call=>{
+      const meta=call.metadata||{};const agentId=meta.peerId;
+      if(!agentId){try{call.close();}catch(e){}return;}
+      const c=getOrCreateCompanion(agentId,meta.name);
+      call.answer();
+      call.on('stream',stream=>{
+        if(meta.type==='camera'){c.camCall=call;c.camStream=stream;c.camActive=true;c._camSince=Date.now();saveCompanions();renderCompanions();if(camModalAgent===agentId){$('camModalVideo').srcObject=stream;$('camModalVideo').play().catch(()=>{});}}
+        if(meta.type==='audio'){c.micCall=call;c.micStream=stream;c.micActive=true;saveCompanions();renderCompanions();try{const audio=new Audio();audio.srcObject=stream;audio.autoplay=true;audio.muted=!camModalAudioOn||camModalAgent!==agentId;c.audioEl=audio;}catch(e){}}}
       });
-    }
-  }catch(e){ companions = {}; }
-}
-function saveCompanions(){
-  try{
-    const clean = {};
-    Object.keys(companions).forEach(function(k){
-      const c = companions[k];
-      clean[k] = {
-        code:c.code, name:c.name, lastLat:c.lastLat, lastLng:c.lastLng,
-        lastTs:c.lastTs, lastAcc:c.lastAcc,
-        positions:(c.positions||[]).slice(-30),
-        batteryLevel:c.batteryLevel, batteryCharging:c.batteryCharging
-      };
+      call.on('close',()=>{if(meta.type==='camera'){c.camActive=false;c.camStream=null;c.camCall=null;}if(meta.type==='audio'){c.micActive=false;c.micStream=null;c.micCall=null;if(c.audioEl){try{c.audioEl.pause();}catch(e){}c.audioEl=null;}}saveCompanions();renderCompanions();if(camModalAgent===agentId&&!c.camActive)closeCamModal();});
     });
-    LS.set(COMP_KEY, JSON.stringify(clean));
-  }catch(e){}
-}
-function getOrCreateCompanion(peerId, name){
-  let c = companions[peerId];
-  if(!c){
-    c = {
-      code:peerId, name:name || ('AGENTE-' + peerId.slice(-4).toUpperCase()),
-      lastLat:null, lastLng:null, lastTs:0, lastAcc:null,
-      positions:[], online:false, marker:null,
-      _alerted:false, _new:true,
-      batteryLevel:null, batteryCharging:null,
-      camActive:false, micActive:false,
-      camCall:null, micCall:null, camStream:null, micStream:null,
-      audioEl:null, _camSince:0, _conn:null
-    };
-    companions[peerId] = c;
-    saveCompanions();
-  }
-  if(name && name.trim()) c.name = name.trim().slice(0,24);
-  return c;
-}
-
-let hostPeer = null, myShareCode = null;
-function genCode(){
-  const L = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let c = '';
-  for(let i=0;i<6;i++) c += L[Math.floor(Math.random()*L.length)];
-  return c;
-}
-
-function startHosting(forcedCode){
-  if(hostPeer){ alert('Já ativo.'); return; }
-  myShareCode = forcedCode || genCode();
-  LS.set('sentinela7.hostCode', myShareCode);
-  LS.set('sentinela7.hostActive', '1');
-  hostPeer = new Peer('sentinela-' + myShareCode, { debug:0 });
-
-  hostPeer.on('open', function(){
-    const base = window.location.origin + window.location.pathname;
-    const url = base + '#share=' + myShareCode;
-    $('shareCode').textContent = myShareCode.split('').join(' ');
-    $('shareLink').textContent = url;
-    $('shareLink').dataset.url = url;
-    $('shareStart').style.display = 'none';
-    $('shareActive').style.display = 'block';
-    $('shareStatus').textContent = 'ATIVO · ' + myShareCode;
-    $('shareStatus').style.color = 'var(--ok)';
-  });
-
-  hostPeer.on('connection', function(conn){
-    const c = getOrCreateCompanion(conn.peer);
-    c._conn = conn;
-    conn.on('data', function(data){ handleShareData(conn.peer, data); });
-    conn.on('close', function(){
-      const cc = companions[conn.peer];
-      if(cc){
-        cc.online = false; cc.camActive = false; cc.micActive = false; cc._conn = null;
-        saveCompanions(); renderCompanions(); renderSonarBlips(); renderMarkers();
+    let retries=0;
+    hostPeer.on('error',err=>{
+      if(err.type==='unavailable-id'){
+        if(forcedCode&&retries<15){retries++;try{hostPeer.destroy();}catch(e){}hostPeer=null;setTimeout(()=>startHosting(forcedCode),3000);}
+        else{LS.remove('sentinela7.hostCode');LS.remove('sentinela7.hostActive');try{hostPeer.destroy();}catch(e){}hostPeer=null;myShareCode=null;startHosting();}
       }
     });
-  });
-
-  hostPeer.on('call', function(call){
-    const meta = call.metadata || {};
-    const agentId = meta.peerId;
-    if(!agentId){ try{ call.close(); }catch(e){} return; }
-    const c = getOrCreateCompanion(agentId, meta.name);
-    call.answer();
-    call.on('stream', function(stream){
-      if(meta.type === 'camera'){
-        c.camCall = call; c.camStream = stream; c.camActive = true; c._camSince = Date.now();
-        saveCompanions(); renderCompanions();
-        if(camModalAgent === agentId){ $('camModalVideo').srcObject = stream; $('camModalVideo').play().catch(function(){}); }
-      }
-      if(meta.type === 'audio'){
-        c.micCall = call; c.micStream = stream; c.micActive = true;
-        saveCompanions(); renderCompanions();
-        try{
-          const audio = new Audio();
-          audio.srcObject = stream; audio.autoplay = true;
-          audio.muted = !camModalAudioOn || camModalAgent !== agentId;
-          c.audioEl = audio;
-        }catch(e){}
-      }
-    });
-    call.on('close', function(){
-      if(meta.type === 'camera'){ c.camActive = false; c.camStream = null; c.camCall = null; }
-      if(meta.type === 'audio'){ c.micActive = false; c.micStream = null; c.micCall = null; if(c.audioEl){ try{ c.audioEl.pause(); }catch(e){} c.audioEl = null; } }
-      saveCompanions(); renderCompanions();
-      if(camModalAgent === agentId && !c.camActive) closeCamModal();
-    });
-  });
-
-  let _hostRetries = 0;
-  hostPeer.on('error', function(err){
-    if(err.type === 'unavailable-id'){
-      if(forcedCode && _hostRetries < 15){
-        _hostRetries++;
-        try{ hostPeer.destroy(); }catch(e){}
-        hostPeer = null;
-        setTimeout(function(){ startHosting(forcedCode); }, 3000);
-      } else {
-        LS.remove('sentinela7.hostCode');
-        LS.remove('sentinela7.hostActive');
-        try{ hostPeer.destroy(); }catch(e){}
-        hostPeer = null; myShareCode = null;
-        startHosting();
-      }
-    }
-  });
-
-  hostPeer.on('disconnected', function(){
-    try{ hostPeer.reconnect(); }catch(e){}
-  });
-}
-
-function stopHosting(){
-  if(hostPeer){ try{ hostPeer.destroy(); }catch(e){} hostPeer = null; }
-  Object.keys(companions).forEach(function(k){
-    const c = companions[k];
-    c.online = false; c.camActive = false; c.micActive = false; c._conn = null;
-    if(c.marker){ map.removeLayer(c.marker); c.marker = null; }
-    if(c.camCall){ try{ c.camCall.close(); }catch(e){} c.camCall = null; }
-    if(c.micCall){ try{ c.micCall.close(); }catch(e){} c.micCall = null; }
-    if(c.audioEl){ try{ c.audioEl.pause(); }catch(e){} c.audioEl = null; }
-  });
-  saveCompanions();
-  LS.remove('sentinela7.hostActive');
-  myShareCode = null;
-  $('shareStart').style.display = 'block';
-  $('shareActive').style.display = 'none';
-  $('shareStatus').textContent = 'OFF';
-  updateAll();
-}
-
-function handleShareData(peerId, data){
-  if(!data) return;
-  if(data.type === 'pong'){
-    const c = companions[peerId];
-    if(c){ c.online = true; c.lastTs = Date.now(); saveCompanions(); renderCompanions(); }
-    return;
+    hostPeer.on('disconnected',()=>{try{hostPeer.reconnect();}catch(e){}});
   }
-  if(data.type === 'hello'){
-    const c = getOrCreateCompanion(peerId, data.name);
-    saveCompanions(); renderCompanions(); updateAlertTargets();
-    return;
+  function stopHosting(){
+    if(hostPeer){try{hostPeer.destroy();}catch(e){}hostPeer=null;}
+    Object.keys(companions).forEach(k=>{const c=companions[k];c.online=false;c.camActive=false;c.micActive=false;c._conn=null;if(c.marker){map.removeLayer(c.marker);c.marker=null;}if(c.camCall){try{c.camCall.close();}catch(e){}c.camCall=null;}if(c.micCall){try{c.micCall.close();}catch(e){}c.micCall=null;}if(c.audioEl){try{c.audioEl.pause();}catch(e){}c.audioEl=null;}});
+    saveCompanions();LS.remove('sentinela7.hostActive');myShareCode=null;
+    $('shareStart').style.display='block';$('shareActive').style.display='none';$('shareStatus').textContent='OFF';updateAll();
   }
-  if(data.type === 'battery'){
-    const c = getOrCreateCompanion(peerId);
-    c.batteryLevel = data.level; c.batteryCharging = data.charging;
-    saveCompanions(); renderCompanions();
-    return;
+  function handleShareData(peerId,data){
+    if(!data)return;
+    if(data.type==='pong'){const c=companions[peerId];if(c){c.online=true;c.lastTs=Date.now();saveCompanions();renderCompanions();}return;}
+    if(data.type==='hello'){getOrCreateCompanion(peerId,data.name);saveCompanions();renderCompanions();updateAlertTargets();return;}
+    if(data.type==='battery'){const c=getOrCreateCompanion(peerId);c.batteryLevel=data.level;c.batteryCharging=data.charging;saveCompanions();renderCompanions();return;}
+    if(data.type!=='pos')return;
+    const now=Date.now();
+    const c=getOrCreateCompanion(peerId,data.name);
+    c.online=true;
+    if(c._new){speak('Agente conectado: '+c.name);c._new=false;}
+    c.lastLat=data.lat;c.lastLng=data.lng;c.lastTs=now;c.lastAcc=data.acc;
+    c.positions=c.positions||[];c.positions.push({lat:data.lat,lng:data.lng,ts:now});
+    if(c.positions.length>60)c.positions.shift();
+    saveCompanions();renderCompanions();renderSonarBlips();renderMarkers();
   }
-  if(data.type !== 'pos') return;
-
-  const now = Date.now();
-  const c = getOrCreateCompanion(peerId, data.name);
-  c.online = true;
-  if(c._new){ speak('Agente conectado: ' + c.name); c._new = false; }
-  c.lastLat = data.lat; c.lastLng = data.lng; c.lastTs = now; c.lastAcc = data.acc;
-  c.positions = c.positions || [];
-  c.positions.push({ lat:data.lat, lng:data.lng, ts:now });
-  if(c.positions.length > 60) c.positions.shift();
-  saveCompanions(); renderCompanions(); renderSonarBlips(); renderMarkers();
-}
-
-function removeCompanion(peerId){
-  const c = companions[peerId];
-  if(!c) return;
-  if(c.marker) map.removeLayer(c.marker);
-  if(c.camCall){ try{ c.camCall.close(); }catch(e){} }
-  if(c.micCall){ try{ c.micCall.close(); }catch(e){} }
-  if(c.audioEl){ try{ c.audioEl.pause(); }catch(e){} }
-  delete companions[peerId];
-  if(camModalAgent === peerId) closeCamModal();
-  saveCompanions(); updateAll(); updateAlertTargets();
-}
-
-function renderCompanions(){
-  const keys = Object.keys(companions);
-  $('compCount').textContent = keys.length;
-  const cont = $('compList');
-  if(!keys.length){
-    cont.innerHTML = '<div class="empty-companions">NENHUM AGENTE<br>Gere o link acima.</div>';
-    return;
-  }
-  keys.sort(function(a,b){
-    const ca = companions[a], cb = companions[b];
-    if(ca.online !== cb.online) return ca.online ? -1 : 1;
-    return (cb.lastTs || 0) - (ca.lastTs || 0);
-  });
-  cont.innerHTML = keys.map(function(k){
-    const c = companions[k];
-    const d = (c.lastLat && meLatLng) ? meLatLng.distanceTo(L.latLng(c.lastLat, c.lastLng)) : null;
-    const dTxt = d == null ? '—' : (d < 1000 ? Math.round(d)+' m' : (d/1000).toFixed(2)+' km');
-    const statusCls = c.online ? '' : 'offline';
-    const badge = c.online ? '🟢 AO VIVO' : '⚪ OFFLINE';
-    const camBtn = c.camActive ? '<button class="mini cam" data-act="viewcam">🎥 CÂMERA</button>' : '';
-    const micBtn = c.micActive ? '<button class="mini mic" data-act="listen">🎤 OUVIR</button>' : '';
-    let batteryHtml = '';
-    if(c.batteryLevel != null){
-      const pct = Math.round(c.batteryLevel*100);
-      const cls = pct <= 15 ? 'low' : pct <= 30 ? 'warn' : '';
-      batteryHtml = '<span class="battery-badge ' + cls + '">🔋 ' + pct + '%' + (c.batteryCharging ? ' ⚡' : '') + '</span>';
-    }
-    return '<div class="companion-item ' + statusCls + '" data-id="' + k + '">' +
-      '<div class="r1"><div class="nm">' + escapeHtml(c.name) + '</div><div class="bdg">' + badge + '</div></div>' +
-      '<div class="r2">📍 <b>' + dTxt + '</b></div>' +
-      '<div class="r3">' + batteryHtml + ' <span>Código: <b>' + c.code + '</b></span></div>' +
-      '<div class="acts">' +
-        '<button class="mini" data-act="center">🎯</button>' +
-        camBtn + micBtn +
-        '<button class="mini" data-act="rename">✏</button>' +
-        '<button class="mini del" data-act="del">✕</button>' +
-      '</div>' +
-    '</div>';
-  }).join('');
-  cont.querySelectorAll('.mini').forEach(function(btn){
-    btn.onclick = function(e){
-      e.stopPropagation();
-      const k = btn.closest('.companion-item').dataset.id;
-      const c = companions[k];
-      if(!c) return;
-      const act = btn.dataset.act;
-      if(act === 'center' && c.lastLat != null) map.setView([c.lastLat, c.lastLng], 17);
-      if(act === 'rename'){
-        const novo = prompt('Novo nome:', c.name);
-        if(novo && novo.trim()){ c.name = novo.trim().slice(0,24); saveCompanions(); renderCompanions(); }
-      }
-      if(act === 'del' && confirm('Remover ' + c.name + '?')) removeCompanion(k);
-      if(act === 'viewcam') openCamModal(k);
-      if(act === 'listen'){ camModalAudioOn = true; openCamModal(k); if(c.audioEl){ c.audioEl.muted = false; c.audioEl.play().catch(function(){}); } }
-    };
-  });
-}
-
-function updateAlertTargets(){
-  const sel = $('alertTarget');
-  const cur = sel.value;
-  const opts = ['<option value="all">📢 TODOS OS AGENTES</option>'];
-  Object.keys(companions).forEach(function(k){
-    const c = companions[k];
-    opts.push('<option value="' + k + '">' + escapeHtml(c.name) + (c.online ? ' 🟢' : ' ⚪') + '</option>');
-  });
-  sel.innerHTML = opts.join('');
-  if([].slice.call(sel.options).some(function(o){ return o.value === cur; })) sel.value = cur;
-}
-
-function renderAlertHistory(){
-  const el = $('alertHistory');
-  if(!alertHistory.length){ el.innerHTML = '<span style="opacity:.5">⟨ histórico ⟩</span>'; return; }
-  el.innerHTML = alertHistory.slice(-30).reverse().map(function(h){
-    return '<div class="row"><b>' + (h.type === 'alert' ? '🚨' : '📢') + '</b><span>' + escapeHtml(h.msg) + ' → ' + escapeHtml(h.target) + '</span></div>';
-  }).join('');
-}
-function pushAlertHistory(type, msg, target){
-  alertHistory.push({ type:type, msg:msg, target:target, time:new Date().toLocaleTimeString('pt-BR') });
-  if(alertHistory.length > 100) alertHistory.shift();
-  renderAlertHistory();
-}
-function loadAlertHistory(){
-  try{ const s = LS.get('sentinela7.alertHistory'); if(s) alertHistory = JSON.parse(s); }catch(e){}
-}
-
-function sendMessage(type){
-  const msg = $('alertMsg').value.trim();
-  const mediaUrl = $('alertMediaUrl').value.trim();
-  if(!msg && !mediaUrl){ alert('Escreva uma mensagem.'); return; }
-  if(!hostPeer){ alert('Sessão não ativa.'); return; }
-  const targetId = $('alertTarget').value;
-  let sent = 0;
-  const payload = { type:type, msg:msg || '[mídia]', mediaUrl:mediaUrl || null, from:'COMANDO', ts:Date.now() };
-  if(targetId === 'all'){
-    Object.keys(companions).forEach(function(k){
-      const c = companions[k];
-      if(c._conn && c._conn.open){ try{ c._conn.send(payload); sent++; }catch(e){} }
-    });
-    pushAlertHistory(type, msg || '[mídia]', 'TODOS');
-  } else {
-    const c = companions[targetId];
-    if(!c){ alert('Agente não encontrado.'); return; }
-    if(c._conn && c._conn.open){ try{ c._conn.send(payload); sent = 1; }catch(e){} }
-    pushAlertHistory(type, msg || '[mídia]', c.name);
-  }
-  $('alertMsg').value = '';
-  $('alertMediaUrl').value = '';
-  $('alertStatus').textContent = sent ? 'ENVIADO ✓' : 'SEM AGENTES';
-  setTimeout(function(){ $('alertStatus').textContent = 'PRONTO'; }, 2500);
-}
-
-$('btnSendAlert').onclick = function(){ sendMessage('alert'); };
-$('btnSendAnnounce').onclick = function(){ sendMessage('announce'); };
-$('btnClearMsg').onclick = function(){ $('alertMsg').value = ''; $('alertMediaUrl').value = ''; };
-document.querySelectorAll('.preset-btn').forEach(function(btn){
-  btn.onclick = function(){ $('alertMsg').value = btn.dataset.preset; $('alertMsg').focus(); };
-});
-
-$('btnPickMedia').onclick = function(){
-  const input = document.createElement('input');
-  input.type = 'file'; input.accept = 'image/*,video/*,audio/*';
-  input.onchange = function(){
-    const f = input.files[0];
-    if(!f) return;
-    if(f.size > 200 * 1024){ alert('Máx 200KB.'); return; }
-    const reader = new FileReader();
-    reader.onload = function(){ $('alertMediaUrl').value = reader.result; };
-    reader.readAsDataURL(f);
-  };
-  input.click();
-};
-
-$('btnReconnectAgents').onclick = function(){
-  if(!hostPeer){ alert('Sessão não ativa.'); return; }
-  const keys = Object.keys(companions);
-  keys.forEach(function(k){
-    const c = companions[k];
-    if(c._conn && c._conn.open){
-      try{ c._conn.send({ type:'ping', ts:Date.now() }); }catch(e){ c.online = false; }
-    } else c.online = false;
-  });
-  setTimeout(function(){ renderCompanions(); renderSonarBlips(); renderMarkers(); }, 1500);
-};
-
-function openCamModal(agentId){
-  const c = companions[agentId];
-  if(!c) return;
-  camModalAgent = agentId;
-  $('camModal').classList.add('show');
-  $('camModalTitle').textContent = 'CÂMERA · ' + c.name;
-  const v = $('camModalVideo');
-  if(c.camStream){ v.srcObject = c.camStream; v.muted = !camModalAudioOn; v.play().catch(function(){}); }
-  else v.srcObject = null;
-}
-function closeCamModal(){
-  camModalAgent = null;
-  $('camModal').classList.remove('show');
-  try{ $('camModalVideo').srcObject = null; }catch(e){}
-  Object.values(companions).forEach(function(c){ if(c.audioEl) c.audioEl.muted = true; });
-  camModalAudioOn = false;
-}
-$('camModalClose').onclick = closeCamModal;
-$('camModalFull').onclick = function(){
-  const el = $('camModal');
-  if(document.fullscreenElement) document.exitFullscreen();
-  else el.requestFullscreen && el.requestFullscreen();
-};
-$('camToggleMute').onclick = function(){
-  camModalAudioOn = !camModalAudioOn;
-  $('camToggleMute').textContent = camModalAudioOn ? '🔊 SOM' : '🔇 MUDO';
-  if(camModalAgent){
-    const c = companions[camModalAgent];
-    if(c && c.audioEl){ c.audioEl.muted = !camModalAudioOn; if(camModalAudioOn) c.audioEl.play().catch(function(){}); }
-  }
-};
-$('camToggleMic').onclick = function(){
-  if(!camModalAgent) return;
-  camModalAudioOn = true;
-  const c = companions[camModalAgent];
-  if(c && c.audioEl){ c.audioEl.muted = false; c.audioEl.play().catch(function(){}); }
-};
-$('camSnapshot').onclick = function(){
-  const v = $('camModalVideo');
-  if(!v.videoWidth){ alert('Sem vídeo.'); return; }
-  const canvas = document.createElement('canvas');
-  canvas.width = v.videoWidth; canvas.height = v.videoHeight;
-  canvas.getContext('2d').drawImage(v, 0, 0);
-  const a = document.createElement('a');
-  a.download = 'snapshot_' + Date.now() + '.png';
-  a.href = canvas.toDataURL('image/png');
-  a.click();
-};
-
-function beepSingle(freq, dur){
-  try{
-    audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
-    const t0 = audioCtx.currentTime;
-    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-    o.type = 'sine'; o.frequency.setValueAtTime(freq, t0);
-    o.connect(g); g.connect(audioCtx.destination);
-    g.gain.setValueAtTime(0.0001, t0);
-    g.gain.exponentialRampToValueAtTime(0.12, t0 + 0.01);
-    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-    o.start(t0); o.stop(t0 + dur + 0.02);
-  }catch(e){}
-}
-
-$('btnCreateShare').onclick = function(){ startHosting(); };
-$('btnStopShare').onclick = function(){ if(confirm('Encerrar sessão?')) stopHosting(); };
-$('btnCopyLink').onclick = function(){
-  const url = $('shareLink').dataset.url;
-  if(!url) return;
-  navigator.clipboard.writeText(url).then(function(){
-    $('btnCopyLink').textContent = '✓ COPIADO';
-    setTimeout(function(){ $('btnCopyLink').textContent = '📋 COPIAR'; }, 2000);
-  });
-};
-$('btnShareWA').onclick = function(){
-  const url = $('shareLink').dataset.url;
-  if(!url) return;
-  window.open('https://wa.me/?text=' + encodeURIComponent('Abre este link: ' + url), '_blank');
-};
-
-function setDroneStatus(txt, cls){
-  const el = $('droneStatus');
-  el.textContent = txt;
-  el.style.color = cls === 'on' ? 'var(--ok)' : cls === 'warn' ? 'var(--gold)' : cls === 'danger' ? 'var(--danger)' : 'rgba(0,240,255,.4)';
-}
-function setHud(on){
-  $('droneHud').classList.toggle('on', !!on);
-  $('droneIdle').style.display = on ? 'none' : 'flex';
-}
-function stopDrone(){
-  try{ if(droneHls){ droneHls.destroy(); droneHls = null; } }catch(e){}
-  try{ if(droneStream){ droneStream.getTracks().forEach(function(t){ t.stop(); }); droneStream = null; } }catch(e){}
-  const v = $('droneVideo');
-  try{ v.pause(); v.srcObject = null; v.removeAttribute('src'); v.load(); }catch(e){}
-  setHud(false); setDroneStatus('OFF', 'off');
-}
-async function playStream(url){
-  stopDrone();
-  const v = $('droneVideo');
-  setDroneStatus('CONECTANDO…', 'warn');
-  $('droneTcSource').textContent = 'STREAM';
-  const yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/live\/)([A-Za-z0-9_-]+)/);
-  if(yt){
-    const wrap = $('dronePlayerWrap');
-    let frame = document.getElementById('droneYT');
-    if(!frame){
-      frame = document.createElement('iframe');
-      frame.id = 'droneYT';
-      frame.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:0;z-index:3;';
-      frame.allow = 'autoplay; encrypted-media';
-      wrap.appendChild(frame);
-    }
-    frame.src = 'https://www.youtube.com/embed/' + yt[1] + '?autoplay=1&mute=1&controls=1';
-    $('droneVideo').style.display = 'none';
-    setHud(true); setDroneStatus('YOUTUBE', 'on'); startDroneClock();
-    return;
-  }
-  $('droneVideo').style.display = 'block';
-  const oldYT = document.getElementById('droneYT');
-  if(oldYT) oldYT.remove();
-  if(url.indexOf('.m3u8') !== -1){
-    if(window.Hls && Hls.isSupported()){
-      droneHls = new Hls({ lowLatencyMode:true });
-      droneHls.loadSource(url); droneHls.attachMedia(v);
-      droneHls.on(Hls.Events.MANIFEST_PARSED, function(){
-        v.play().catch(function(){});
-        setHud(true); setDroneStatus('HLS · AO VIVO', 'on'); startDroneClock();
-      });
-      return;
-    }
-    if(v.canPlayType('application/vnd.apple.mpegurl')){
-      v.src = url; v.play().catch(function(){});
-      setHud(true); setDroneStatus('HLS NATIVO', 'on'); startDroneClock();
-      return;
-    }
-    setDroneStatus('NÃO SUPORTADO', 'danger'); return;
-  }
-  v.src = url;
-  v.play().then(function(){ setHud(true); setDroneStatus('ATIVO', 'on'); startDroneClock(); })
-    .catch(function(){ setDroneStatus('ERRO', 'danger'); });
-}
-async function startTestCamera(){
-  stopDrone();
-  setDroneStatus('ABRINDO…', 'warn');
-  $('droneTcSource').textContent = 'MODO TESTE';
-  const oldYT = document.getElementById('droneYT');
-  if(oldYT) oldYT.remove();
-  try{
-    droneStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal:'environment' }, width:{ ideal:1280 } }, audio:false
-    });
-    const v = $('droneVideo');
-    v.style.display = 'block';
-    v.srcObject = droneStream;
-    v.play().catch(function(){});
-    setHud(true); setDroneStatus('MODO TESTE', 'on'); startDroneClock();
-  }catch(err){
-    setDroneStatus('NEGADA', 'danger');
-    alert('Câmera indisponível: ' + err.message);
-  }
-}
-let droneClockTimer = null;
-function startDroneClock(){
-  if(droneClockTimer) clearInterval(droneClockTimer);
-  const t0 = Date.now();
-  const upd = function(){
-    const s = Math.floor((Date.now()-t0)/1000);
-    $('droneTcTime').textContent = String(Math.floor(s/3600)).padStart(2,'0') + ':' +
-      String(Math.floor((s%3600)/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0');
-  };
-  upd(); droneClockTimer = setInterval(upd, 1000);
-}
-function droneIcon(){
-  return L.divIcon({ className:'', html:'<div class="mk drone"><span>🛸</span></div>', iconSize:[16,16], iconAnchor:[8,8] });
-}
-function setDronePosition(lat, lon, label){
-  droneLatLng = L.latLng(lat, lon);
-  if(!droneMarker) droneMarker = L.marker(droneLatLng, { icon:droneIcon(), zIndexOffset:900 }).addTo(map);
-  else droneMarker.setLatLng(droneLatLng);
-  if(label) $('droneTcSource').textContent = label;
-  if(droneFollow && map) map.setView(droneLatLng, Math.max(map.getZoom(), 17));
-  renderSonarBlips(); renderMarkers();
-}
-
-$('btnDronePlay').onclick = function(){
-  const url = $('droneUrl').value.trim();
-  if(!url){ alert('Cole a URL.'); return; }
-  playStream(url);
-};
-$('btnDroneTest').onclick = startTestCamera;
-$('btnDroneStop').onclick = stopDrone;
-
-function initMap(){
-  map = L.map('map', { zoomControl:true, preferCanvas:true }).setView([-23.55,-46.63], 16);
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom:19, attribution:'© Esri' }).addTo(map);
-  thCircle = L.circle([-23.55,-46.63], { radius:threshold, color:'#ffb300', weight:1, dashArray:'6 6', fillColor:'#ffb300', fillOpacity:.05, interactive:false }).addTo(map);
-  map.on('click', function(e){
-    if(!picking) return;
-    setFormLocation(e.latlng.lat, e.latlng.lng);
-    if(pickMarker) map.removeLayer(pickMarker);
-    pickMarker = L.marker(e.latlng, { icon:L.divIcon({className:'',html:'<div class="mk hot"></div>',iconSize:[16,16],iconAnchor:[8,8]}) }).addTo(map);
-    picking = false;
-    $('btnPick').classList.remove('on');
-    map.getContainer().style.cursor = '';
-  });
-  map.on('move zoom zoomend moveend', function(){ positionSonar(); renderSonarBlips(); });
-}
-
-function startGPS(){
-  if(!('geolocation' in navigator)){ setStatus('SEM GPS','warn'); return; }
-  setStatus('BUSCANDO GPS','warn');
-  navigator.geolocation.watchPosition(
-    function(pos){
-      const lat = pos.coords.latitude, lon = pos.coords.longitude, acc = pos.coords.accuracy;
-      const first = !meLatLng;
-      meLatLng = L.latLng(lat,lon);
-      if(!meMarker){
-        meMarker = L.marker(meLatLng, { icon:L.divIcon({className:'',html:'<div class="mk-me"></div>',iconSize:[16,16],iconAnchor:[8,8]}), zIndexOffset:1000 }).addTo(map);
-      } else meMarker.setLatLng(meLatLng);
-      thCircle.setLatLng(meLatLng).setRadius(threshold);
-      $('myCoords').textContent = lat.toFixed(6)+', '+lon.toFixed(6);
-      $('myAcc').textContent = '± '+Math.round(acc)+' m';
-      $('mapInfo').textContent = 'GPS ATIVO';
-      setStatus('VARRENDO','');
-      if(first){
-        map.setView(meLatLng, 17);
-        reverseGeocode(lat,lon).then(function(g){
-          $('myAddr').textContent = g.road || g.display || 'Endereço não identificado';
-        });
-      }
-      positionSonar(); renderSonarBlips(); renderMarkers(); renderCompanions();
-    },
-    function(err){ setStatus('SEM GPS','warn'); },
-    { enableHighAccuracy:true, maximumAge:5000, timeout:8000 }
-  );
-}
-
-async function reverseGeocode(lat, lon){
-  try{
-    const r = await fetch('https://photon.komoot.io/reverse?lat=' + lat + '&lon=' + lon + '&lang=pt');
-    if(!r.ok) throw 0;
-    const j = await r.json();
-    const p = (j.features && j.features[0] && j.features[0].properties) || {};
-    const road = p.street || p.name || p.locality || p.district || '';
-    return { road: road + (p.housenumber ? ', '+p.housenumber : ''), display: [road, p.city, p.state].filter(Boolean).join(', ') };
-  }catch(e){ return { road:'', display:'' }; }
-}
-async function geocodeAddressList(q){
-  try{
-    const r = await fetch('https://photon.komoot.io/api/?q=' + encodeURIComponent(q) + '&lang=pt&limit=6');
-    if(!r.ok) throw 0;
-    const j = await r.json();
-    return (j.features || []).map(function(f){
-      const lon = f.geometry.coordinates[0], lat = f.geometry.coordinates[1];
-      const p = f.properties || {};
-      return { lat:lat, lon:lon, linha1: [p.name, p.street, p.housenumber].filter(Boolean).join(', ') || 'Sem nome', linha2: [p.district, p.city, p.state].filter(Boolean).join(', ') };
-    });
-  }catch(e){ return []; }
-}
-
-function setFormLocation(lat, lon, label){
-  formLatLng = { lat:lat, lon:lon };
-  $('fCoords').textContent = '📍 ' + lat.toFixed(6) + ', ' + lon.toFixed(6) + (label ? ' · ' + label : '');
-  $('fCoords').classList.add('ok');
-  validateForm();
-}
-function validateForm(){
-  const ok = $('fName').value.trim() && $('fNum').value.trim().replace(/\D/g,'').length>=8 && formLatLng;
-  $('btnAdd').disabled = !ok;
-}
-$('fName').addEventListener('input', validateForm);
-$('fNum').addEventListener('input', validateForm);
-
-$('btnOsint').onclick = async function(){
-  const num = $('fNum').value.trim();
-  if(num.replace(/\D/g,'').length < 8){ $('osintStatus').textContent = '⚠ Número inválido'; return; }
-  $('osintStatus').textContent = '🔎 Buscando…';
-  const data = simulateOsint(num);
-  lastOsintData = data;
-  if(!$('fName').value.trim()) $('fName').value = data.codename;
-  validateForm();
-  await new Promise(function(r){ setTimeout(r, 800); });
-  $('spFB').className = 'sp-item found'; document.querySelector('#spFB span').textContent = '✓ ' + data.facebook;
-  $('spIG').className = 'sp-item found'; document.querySelector('#spIG span').textContent = '✓ ' + data.instagram;
-  $('spTT').className = 'sp-item found'; document.querySelector('#spTT span').textContent = '✓ ' + data.tiktok;
-  $('spWA').className = 'sp-item found'; document.querySelector('#spWA span').textContent = '✓ ' + data.whatsapp;
-  $('osintStatus').textContent = '✓ 3 redes (simulação)';
-};
-
-$('btnMyLoc').onclick = function(){
-  if(!meLatLng){ alert('GPS indisponível.'); return; }
-  setFormLocation(meLatLng.lat, meLatLng.lng, 'minha posição');
-  map.setView(meLatLng, 17);
-};
-$('btnPick').onclick = function(){
-  picking = !picking;
-  this.classList.toggle('on', picking);
-  map.getContainer().style.cursor = picking ? 'crosshair' : '';
-};
-$('btnSearch').onclick = async function(){
-  const q = $('fAddr').value.trim();
-  if(!q) return;
-  const list = await geocodeAddressList(q);
-  if(!list.length){ alert('Não encontrado.'); return; }
-  setFormLocation(list[0].lat, list[0].lon, list[0].linha1);
-  map.setView([list[0].lat, list[0].lon], 17);
-};
-$('btnAdd').onclick = function(){
-  if(!lastOsintData) lastOsintData = simulateOsint($('fNum').value.trim());
-  const t = {
-    id: Date.now(),
-    codename: $('fName').value.trim().toUpperCase() || lastOsintData.codename,
-    numero: $('fNum').value.trim(),
-    lat: formLatLng.lat, lon: formLatLng.lon,
-    socials: { facebook:lastOsintData.facebook, instagram:lastOsintData.instagram, tiktok:lastOsintData.tiktok, whatsapp:lastOsintData.whatsapp },
-    _armed:false
-  };
-  targets.push(t);
-  saveTargets(); updateAll();
-  $('fName').value = ''; $('fNum').value = ''; $('fAddr').value = '';
-  formLatLng = null; lastOsintData = null;
-  $('fCoords').textContent = '📍 Nenhuma localização';
-  $('fCoords').classList.remove('ok');
-  $('btnAdd').disabled = true;
-  ['spFB','spIG','spTT','spWA'].forEach(function(id){ $(id).className = 'sp-item empty'; $(id).querySelector('span').textContent = '—'; });
-  if(pickMarker){ map.removeLayer(pickMarker); pickMarker = null; }
-  picking = false;
-  $('btnPick').classList.remove('on');
-  map.getContainer().style.cursor = '';
-  map.setView([t.lat,t.lon], 17);
-};
-
-function distTo(t){ return meLatLng ? meLatLng.distanceTo(L.latLng(t.lat,t.lon)) : Infinity; }
-function bearingTo(t){
-  if(!meLatLng) return 0;
-  const φ1 = meLatLng.lat*Math.PI/180, φ2 = t.lat*Math.PI/180;
-  const Δλ = (t.lon - meLatLng.lng)*Math.PI/180;
-  const y = Math.sin(Δλ)*Math.cos(φ2);
-  const x = Math.cos(φ1)*Math.sin(φ2) - Math.sin(φ1)*Math.cos(φ2)*Math.cos(Δλ);
-  return (Math.atan2(y,x)*180/Math.PI + 360) % 360;
-}
-function escapeHtml(s){
-  return String(s || '').replace(/[&<>"']/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; });
-}
-
-let sonarBlips = {};
-function sonarRangeMeters(){ return Math.max(threshold * 3, 500); }
-function positionSonar(){
-  if(!meLatLng || !map) return;
-  const pt = map.latLngToContainerPoint(meLatLng);
-  sonarOverlay.style.left = pt.x + 'px';
-  sonarOverlay.style.top = pt.y + 'px';
-}
-function renderSonarBlips(){
-  if(!sonarOn) return;
-  const range = sonarRangeMeters();
-  sonarRangeEl.textContent = range >= 1000 ? (range/1000).toFixed(1)+'km' : range+'m';
-  const activeIds = new Set();
-  targets.forEach(function(t){
-    activeIds.add('t-' + t.id);
-    let el = sonarBlips['t-' + t.id];
-    if(!el){ el = document.createElement('div'); el.className = 'sb'; sonarDisc.appendChild(el); sonarBlips['t-' + t.id] = el; }
-    const d = distTo(t);
-    if(!isFinite(d)){ el.style.opacity = 0; return; }
-    el.style.opacity = 1;
-    el.dataset.label = t.codename;
-    const brg = bearingTo(t);
-    const ratio = Math.min(d / range, 1) * 46;
-    const rad = (brg - 90) * Math.PI/180;
-    el.style.left = (50 + ratio * Math.cos(rad)) + '%';
-    el.style.top = (50 + ratio * Math.sin(rad)) + '%';
-    el.classList.toggle('hot', d <= threshold);
-  });
-  Object.keys(companions).forEach(function(k){
-    const c = companions[k];
-    if(c.lastLat == null) return;
-    activeIds.add('c-' + k);
-    let el = sonarBlips['c-' + k];
-    if(!el){ el = document.createElement('div'); el.className = 'sb live'; sonarDisc.appendChild(el); sonarBlips['c-' + k] = el; }
-    const d = meLatLng ? meLatLng.distanceTo(L.latLng(c.lastLat, c.lastLng)) : Infinity;
-    if(!isFinite(d)){ el.style.opacity = 0; return; }
-    el.style.opacity = c.online ? 1 : 0.45;
-    el.dataset.label = c.name;
-    const brg = bearingTo({ lat:c.lastLat, lon:c.lastLng });
-    const ratio = Math.min(d / range, 1) * 46;
-    const rad = (brg - 90) * Math.PI/180;
-    el.style.left = (50 + ratio * Math.cos(rad)) + '%';
-    el.style.top = (50 + ratio * Math.sin(rad)) + '%';
-    el.classList.toggle('hot', d <= threshold);
-    el.classList.toggle('live', c.online);
-    el.classList.toggle('offline', !c.online);
-  });
-  Object.keys(sonarBlips).forEach(function(k){
-    if(!activeIds.has(k)){ sonarBlips[k].remove(); delete sonarBlips[k]; }
-  });
-}
-
-function renderMarkers(){
-  targets.forEach(function(t){
-    const hot = distTo(t) <= threshold;
-    const latlng = [t.lat,t.lon];
-    if(!t._marker){
-      t._marker = L.marker(latlng, { icon:mkIcon(t,hot) }).addTo(map);
-      t._marker.on('click', function(){ showAlert(t,true); });
-    } else {
-      t._marker.setLatLng(latlng);
-      t._marker.setIcon(mkIcon(t,hot));
-    }
-  });
-  Object.keys(companions).forEach(function(k){
-    const c = companions[k];
-    if(c.lastLat == null) return;
-    const latlng = [c.lastLat, c.lastLng];
-    const d = meLatLng ? meLatLng.distanceTo(L.latLng(c.lastLat, c.lastLng)) : Infinity;
-    const hot = d <= threshold;
-    const html = '<div class="mk ' + (c.online ? 'live' : 'offline') + ' ' + (hot ? 'hot' : '') + '"><span>' + escapeHtml(c.name) + '</span></div>';
-    const icon = L.divIcon({ className:'', html:html, iconSize:[16,16], iconAnchor:[8,8] });
-    if(!c.marker){
-      c.marker = L.marker(latlng, { icon:icon, zIndexOffset:500 }).addTo(map);
-    } else {
-      c.marker.setLatLng(latlng);
-      c.marker.setIcon(icon);
-    }
-  });
-  if(droneLatLng && !droneMarker) droneMarker = L.marker(droneLatLng, { icon:droneIcon(), zIndexOffset:900 }).addTo(map);
-}
-function mkIcon(t,hot){
-  return L.divIcon({ className:'', html:'<div class="mk ' + (hot?'hot':'') + '"><span>' + escapeHtml(t.codename) + '</span></div>', iconSize:[16,16], iconAnchor:[8,8] });
-}
-function updateAll(){ renderCompanions(); renderMarkers(); positionSonar(); renderSonarBlips(); }
-
-setInterval(function(){
-  if(!meLatLng) return;
-  if(followGPS) map.panTo(meLatLng, { animate:true, duration:.7 });
-  let anyHot = false;
-  targets.forEach(function(t){
-    const d = distTo(t);
-    if(d <= threshold){
-      anyHot = true;
-      if(!t._armed && Date.now() > mutedUntil){ t._armed = true; showAlert(t,false,d); }
-    } else if(d > threshold*1.25) t._armed = false;
-  });
-  Object.values(companions).forEach(function(c){
-    if(c.lastLat == null) return;
-    const d = meLatLng.distanceTo(L.latLng(c.lastLat, c.lastLng));
-    if(d <= threshold) anyHot = true;
-  });
-  setStatus(anyHot ? 'ALVO PRÓXIMO' : 'VARRENDO', anyHot ? 'danger' : '');
-  updateAll();
-}, 1500);
-
-function setStatus(txt, cls){
-  const el = $('statusTxt');
-  el.textContent = txt;
-  el.className = 'status' + (cls ? ' '+cls : '');
-}
-
-function speak(text){ if(voiceOn) _speakGeneric(text); }
-function fmtDist(m){ return m<1000 ? Math.round(m)+' metros' : (m/1000).toFixed(2).replace('.',',')+' km'; }
-
-async function showAlert(t, manual, distOverride){
-  const d = (distOverride == null) ? distTo(t) : distOverride;
-  $('aName').textContent = t.codename;
-  $('aPhone').textContent = t.numero;
-  $('aDist').textContent = Math.round(d);
-  const socs = [];
-  if(t.socials && t.socials.facebook) socs.push(['Facebook',t.socials.facebook]);
-  if(t.socials && t.socials.instagram) socs.push(['Instagram',t.socials.instagram]);
-  if(t.socials && t.socials.tiktok) socs.push(['TikTok',t.socials.tiktok]);
-  if(t.socials && t.socials.whatsapp) socs.push(['WhatsApp',t.socials.whatsapp]);
-  $('aSocials').innerHTML = socs.length ? socs.map(function(p){ return '<span class="soc">' + p[0] + '<b>' + escapeHtml(p[1]) + '</b></span>'; }).join('') : '<span class="soc">SEM REDES</span>';
-  overlay.classList.add('show');
-  if(t.lat != null && t.lon != null){
-    const g = await reverseGeocode(t.lat, t.lon);
-    $('aAddr').textContent = g.road || 'Local não identificado';
-    speak(t.codename + ' a ' + fmtDist(d) + ', ' + (g.road || 'local'));
-  } else {
-    $('aAddr').textContent = 'Posição em tempo real.';
-    speak(t.codename + ' a ' + fmtDist(d));
-  }
-}
-$('aOk').onclick = function(){ overlay.classList.remove('show'); setStatus('VARRENDO',''); };
-$('aMute').onclick = function(){ mutedUntil = Date.now()+60000; overlay.classList.remove('show'); };
-
-$('threshold').addEventListener('input', function(e){
-  threshold = +e.target.value;
-  $('thVal').textContent = threshold >= 1000 ? (threshold/1000).toFixed(1)+' km' : threshold+' m';
-  if(thCircle) thCircle.setRadius(threshold);
-  updateAll();
-});
-$('tgVoice').onclick = function(){ voiceOn = !voiceOn; this.classList.toggle('on',voiceOn); };
-$('tgSound').onclick = function(){ soundOn = !soundOn; this.classList.toggle('on',soundOn); };
-$('tgSonar').onclick = function(){ sonarOn = !sonarOn; this.classList.toggle('on',sonarOn); sonarOverlay.classList.toggle('off', !sonarOn); };
-$('tgTrack').onclick = function(){ followGPS = !followGPS; this.classList.toggle('on',followGPS); };
-$('tgCenter').onclick = function(){ if(meLatLng) map.setView(meLatLng,17); };
-$('tgBeep').onclick = function(){ beepOn = !beepOn; this.classList.toggle('on',beepOn); };
-
-function saveTargets(){
-  try{
-    const clean = targets.map(function(t){ return { id:t.id, codename:t.codename, numero:t.numero, lat:t.lat, lon:t.lon, socials:t.socials }; });
-    LS.set(STORAGE_KEY, JSON.stringify(clean));
-  }catch(e){}
-}
-function loadTargets(){
-  try{ const s = LS.get(STORAGE_KEY); if(s) targets = JSON.parse(s).map(function(t){ return Object.assign({}, t, { _armed:false }); }); }catch(e){}
-}
-
-/* GRAVAÇÃO + SEGURANÇA */
-(function RecordingSecurity(){
-  const videoEl = $('droneVideo');
-  const btnRec = $('btnDroneRec');
-  const qualitySel = $('droneRecQuality');
-  const hudRec = document.querySelector('#droneHud .rec');
-  const tcTime = $('droneTcTime');
-  const secStatus = $('secStatus');
-  const secWANum = $('secWANumber');
-  const secPin = $('secPin');
-  const secLog = $('secLog');
-  const btnArm = $('btnArmSecurity');
-  const btnDisarm = $('btnDisarmSecurity');
-
-  let recorder = null, chunks = [], recTimer = null, recStart = 0, armed = false, frontStream = null;
-
-  if(LS.get('sentinela7.secWA')) secWANum.value = LS.get('sentinela7.secWA');
-  if(LS.get('sentinela7.secPin')) secPin.value = LS.get('sentinela7.secPin');
-  secWANum.addEventListener('input', function(){ LS.set('sentinela7.secWA', secWANum.value.trim()); });
-  secPin.addEventListener('input', function(){ LS.set('sentinela7.secPin', secPin.value.trim()); });
-
-  function log(msg, kind){
-    if(!secLog) return;
-    const color = kind === 'ok' ? '#00ff9d' : kind === 'danger' ? '#ff2d55' : '#ffb300';
-    const d = document.createElement('div');
-    d.className = 'ev';
-    d.innerHTML = '<span style="color:' + color + '">▸ ' + new Date().toLocaleTimeString('pt-BR') + '</span> · ' + msg;
-    secLog.insertBefore(d, secLog.firstChild);
-    while(secLog.children.length > 30) secLog.removeChild(secLog.lastChild);
-  }
-
-  function pickMime(){
-    const list = ['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm','video/mp4;codecs=h264,aac','video/mp4'];
-    for(let i=0;i<list.length;i++){ try{ if(window.MediaRecorder && MediaRecorder.isTypeSupported(list[i])) return list[i]; }catch(e){} }
-    return '';
-  }
-  function getStream(){
-    if(videoEl.srcObject && videoEl.srcObject.getVideoTracks && videoEl.srcObject.getVideoTracks().length) return videoEl.srcObject;
-    if(typeof videoEl.captureStream === 'function'){ const s = videoEl.captureStream(); return s.getVideoTracks().length ? s : null; }
-    if(typeof videoEl.mozCaptureStream === 'function'){ const s = videoEl.mozCaptureStream(); return s.getVideoTracks().length ? s : null; }
-    return null;
-  }
-  function fmtTime(ms){
-    const s = Math.floor(ms/1000);
-    return String(Math.floor(s/3600)).padStart(2,'0')+':'+String(Math.floor((s%3600)/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
-  }
-  function updateRecUI(recording){
-    if(recording){
-      btnRec.textContent = '⏹ PARAR';
-      btnRec.classList.remove('red'); btnRec.classList.add('green');
-      if(hudRec){ hudRec.classList.add('recording'); hudRec.innerHTML = '<span class="dot"></span>REC · GRAVANDO'; }
-    } else {
-      btnRec.textContent = '⏺ GRAVAR';
-      btnRec.classList.remove('green'); btnRec.classList.add('red');
-      if(hudRec){ hudRec.classList.remove('recording'); hudRec.innerHTML = '<span class="dot"></span>REC · AO VIVO'; }
-      if(recTimer){ clearInterval(recTimer); recTimer = null; }
-    }
-  }
-  function triggerDownload(blob, filename){
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = filename;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
-  }
-  function startRecording(){
-    if(recorder) return;
-    const stream = getStream();
-    if(!stream){ alert('Nenhum stream ativo.'); log('Sem stream', 'danger'); return; }
-    const mime = pickMime();
-    if(!mime){ alert('MediaRecorder não suportado.'); return; }
-    const bitrate = parseInt(qualitySel.value || '5000000', 10);
-    try{ recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: bitrate }); }
-    catch(err){ alert('Falha: ' + err.message); return; }
-    chunks = [];
-    recorder.ondataavailable = function(e){ if(e.data && e.data.size > 0) chunks.push(e.data); };
-    recorder.onstop = function(){
-      const type = recorder.mimeType || 'video/webm';
-      const blob = new Blob(chunks, { type: type });
-      const ext = type.indexOf('mp4') !== -1 ? 'mp4' : 'webm';
-      const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-      const filename = 'drone_' + stamp + '.' + ext;
-      const duration = Date.now() - recStart;
-
-      window.dispatchEvent(new CustomEvent('sentinela7-recording-done', {
-        detail: { blob: blob, filename: filename, mimeType: type, duration: duration }
-      }));
-
-      triggerDownload(blob, filename);
-      log('Vídeo salvo (' + (blob.size/1024/1024).toFixed(2) + ' MB)', 'ok');
-
-      setTimeout(function(){
-        if(confirm('Vídeo salvo em Downloads!\n\nDeseja abrir WhatsApp?')){ openWhatsAppSend(filename); }
-      }, 500);
-      chunks = [];
-      recorder = null;
-    };
-    recorder.start(1000);
-    recStart = Date.now();
-    recTimer = setInterval(function(){ if(tcTime) tcTime.textContent = fmtTime(Date.now() - recStart); }, 250);
-    updateRecUI(true);
-    log('Gravação iniciada', 'ok');
-  }
-  function stopRecording(){
-    if(!recorder) return;
-    if(recorder.state !== 'inactive') recorder.stop();
-    updateRecUI(false);
-  }
-  function openWhatsAppSend(filename){
-    const num = secWANum.value.replace(/\D/g, '');
-    const texto = '🎥 SENTINELA-7\n📅 ' + new Date().toLocaleString('pt-BR') + '\n📎 ' + filename;
-    const url = num ? 'https://wa.me/' + num + '?text=' + encodeURIComponent(texto) : 'https://wa.me/?text=' + encodeURIComponent(texto);
-    window.open(url, '_blank');
-  }
-
-  function grabFrameFromStream(stream){
-    return new Promise(function(resolve){
-      const v = document.createElement('video');
-      v.srcObject = stream; v.muted = true; v.autoplay = true;
-      let done = false;
-      const finish = function(blob){ if(done) return; done = true; try{ v.pause(); v.srcObject = null; }catch(e){} resolve(blob); };
-      v.onloadedmetadata = function(){
-        v.play().then(function(){
-          setTimeout(function(){
-            try{
-              const c = document.createElement('canvas');
-              c.width = v.videoWidth; c.height = v.videoHeight;
-              c.getContext('2d').drawImage(v, 0, 0);
-              c.toBlob(finish, 'image/jpeg', 0.92);
-            }catch(e){ finish(null); }
-          }, 300);
-        }).catch(function(){ finish(null); });
-      };
-      setTimeout(function(){ finish(null); }, 4000);
-    });
-  }
-  async function captureSuspectPhoto(){
-    try{
-      if(frontStream && frontStream.getVideoTracks()[0] && frontStream.getVideoTracks()[0].readyState === 'live'){
-        const b = await grabFrameFromStream(frontStream);
-        if(b) return b;
-      }
-      try{
-        frontStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode:'user', width:{ideal:640}, height:{ideal:480} }, audio:false });
-        await new Promise(function(r){ setTimeout(r, 400); });
-        const b = await grabFrameFromStream(frontStream);
-        if(b) return b;
-      }catch(e){}
-      if(videoEl.videoWidth && videoEl.videoHeight){
-        const c = document.createElement('canvas');
-        c.width = videoEl.videoWidth; c.height = videoEl.videoHeight;
-        c.getContext('2d').drawImage(videoEl, 0, 0);
-        return await new Promise(function(res){ c.toBlob(res, 'image/jpeg', 0.9); });
-      }
-    }catch(e){}
-    return null;
-  }
-  async function triggerPanic(reason){
-    log('🚨 PÂNICO: ' + reason, 'danger');
-    if(navigator.vibrate) try{ navigator.vibrate([200,100,200,100,400]); }catch(e){}
-    const fotoBlob = await captureSuspectPhoto();
-    if(fotoBlob){
-      triggerDownload(fotoBlob, 'suspeito_' + Date.now() + '.jpg');
-      log('📸 Foto do suspeito salva', 'ok');
-    }
-    if(recorder && recorder.state !== 'inactive'){ try{ recorder.stop(); }catch(e){} updateRecUI(false); }
-    setTimeout(function(){
-      const num = secWANum.value.replace(/\D/g, '');
-      const msg = '🚨 ALERTA SENTINELA-7\nMotivo: ' + reason + '\n' + new Date().toLocaleString('pt-BR');
-      const url = num ? 'https://wa.me/' + num + '?text=' + encodeURIComponent(msg) : 'https://wa.me/?text=' + encodeURIComponent(msg);
-      window.open(url, '_blank');
-    }, 2200);
-  }
-  function setArmedUI(on){
-    if(on){
-      secStatus.textContent = 'ARMADO';
-      secStatus.classList.add('armed');
-      btnArm.classList.remove('gold'); btnArm.classList.add('green');
-      btnDisarm.style.display = 'block';
-    } else {
-      secStatus.textContent = 'DESARMADO';
-      secStatus.classList.remove('armed');
-      btnArm.classList.add('gold'); btnArm.classList.remove('green');
-      btnDisarm.style.display = 'none';
-    }
-  }
-  btnArm.addEventListener('click', function(){
-    if(!secWANum.value.trim()){ alert('Configure WhatsApp destino.'); return; }
-    let pin = secPin.value.trim();
-    if(!/^\d{4}$/.test(pin)){
-      pin = prompt('Defina PIN de 4 dígitos:');
-      if(!pin || !/^\d{4}$/.test(pin)){ alert('PIN inválido.'); return; }
-      secPin.value = pin; LS.set('sentinela7.secPin', pin);
-    }
-    armed = true;
-    setArmedUI(true);
-    log('Sistema ARMADO', 'danger');
-    if(!recorder) setTimeout(startRecording, 300);
-  });
-  btnDisarm.addEventListener('click', function(){
-    const pin = prompt('PIN para desarmar:');
-    if(pin !== secPin.value.trim()){
-      alert('PIN incorreto!');
-      if(armed) triggerPanic('PIN errado ao desarmar');
-      return;
-    }
-    armed = false;
-    setArmedUI(false);
-    log('Sistema desarmado', 'ok');
-  });
-  btnRec.addEventListener('click', function(){
-    if(recorder){
-      if(armed){
-        const pin = prompt('Sistema armado. PIN para parar:');
-        if(pin !== secPin.value.trim()){ triggerPanic('PIN errado'); return; }
-      }
-      stopRecording();
-    } else startRecording();
-  });
-  document.addEventListener('keydown', function(e){
-    if(armed && e.key === 'Escape' && recorder && recorder.state === 'recording'){ triggerPanic('ESC'); }
-  });
-  window.addEventListener('beforeunload', function(e){
-    if(armed && recorder && recorder.state === 'recording'){
-      e.preventDefault();
-      e.returnValue = '⚠ Sistema armado!';
-      try{ triggerPanic('Fechar página'); }catch(err){}
-      return e.returnValue;
-    }
-  });
-  window.droneSecurity = { startRecording:startRecording, stopRecording:stopRecording, triggerPanic:triggerPanic, isArmed:function(){ return armed; } };
-})();
-
-/* GRAVAÇÕES SALVAS + MOVIMENTO + ROSTO */
-(function SmartCameraAndRecordings(){
-  const DB_NAME = 'sentinela7-recordings';
-  const DB_VER = 1;
-  const STORE = 'videos';
-  let dbPromise = null;
-
-  function getDB(){
-    if(dbPromise) return dbPromise;
-    dbPromise = new Promise(function(resolve, reject){
-      const req = indexedDB.open(DB_NAME, DB_VER);
-      req.onupgradeneeded = function(){
-        const db = req.result;
-        if(!db.objectStoreNames.contains(STORE)){
-          db.createObjectStore(STORE, { keyPath: 'id', autoIncrement: true });
-        }
-      };
-      req.onsuccess = function(){ resolve(req.result); };
-      req.onerror = function(){ reject(req.error); };
-    });
-    return dbPromise;
-  }
-  async function dbAdd(rec){
-    const db = await getDB();
-    return new Promise(function(res, rej){
-      const tx = db.transaction(STORE, 'readwrite');
-      const r = tx.objectStore(STORE).add(rec);
-      tx.oncomplete = function(){ res(r.result); };
-      tx.onerror = function(){ rej(tx.error); };
-    });
-  }
-  async function dbGetAll(){
-    const db = await getDB();
-    return new Promise(function(res, rej){
-      const tx = db.transaction(STORE, 'readonly');
-      const r = tx.objectStore(STORE).getAll();
-      r.onsuccess = function(){ res(r.result); };
-      r.onerror = function(){ rej(r.error); };
-    });
-  }
-  async function dbDelete(id){
-    const db = await getDB();
-    return new Promise(function(res, rej){
-      const tx = db.transaction(STORE, 'readwrite');
-      tx.objectStore(STORE).delete(id);
-      tx.oncomplete = function(){ res(); };
-      tx.onerror = function(){ rej(tx.error); };
-    });
-  }
-  async function dbClear(){
-    const db = await getDB();
-    return new Promise(function(res, rej){
-      const tx = db.transaction(STORE, 'readwrite');
-      tx.objectStore(STORE).clear();
-      tx.oncomplete = function(){ res(); };
-      tx.onerror = function(){ rej(tx.error); };
-    });
-  }
-
-  function fmtSize(b){
-    if(b < 1024) return b + ' B';
-    if(b < 1048576) return (b/1024).toFixed(1) + ' KB';
-    return (b/1048576).toFixed(2) + ' MB';
-  }
-  function fmtDate(ts){ return new Date(ts).toLocaleString('pt-BR'); }
-  function fmtDur(ms){
-    const s = Math.floor(ms/1000), m = Math.floor(s/60), hh = Math.floor(m/60);
-    return hh > 0 ? hh + 'h ' + String(m%60).padStart(2,'0') + 'm' : String(m).padStart(2,'0') + ':' + String(s%60).padStart(2,'0');
-  }
-
-  window.addEventListener('sentinela7-recording-done', async function(ev){
-    const d = ev.detail || {};
-    if(!d.blob) return;
-    try{
-      await dbAdd({
-        filename: d.filename || ('rec_' + Date.now() + '.webm'),
-        mimeType: d.mimeType || 'video/webm',
-        size: d.blob.size,
-        duration: d.duration || 0,
-        date: Date.now(),
-        blob: d.blob
-      });
-      if(recModal && recModal.style.display === 'flex') renderRecList();
-    }catch(e){ console.error('[REC] Erro:', e); }
-  });
-
-  const recModal = document.getElementById('recModal');
-  const recList = document.getElementById('recList');
-  const recCount = document.getElementById('recCount');
-  const recPreviewBox = document.getElementById('recPreviewBox');
-  const recPreviewVideo = document.getElementById('recPreviewVideo');
-  let previewURL = null;
-
-  function openRecModal(){
-    if(!recModal) return;
-    recModal.style.display = 'flex';
-    renderRecList();
-  }
-  function closeRecModal(){
-    if(!recModal) return;
-    recModal.style.display = 'none';
-    if(previewURL){ try{ URL.revokeObjectURL(previewURL); }catch(e){} previewURL = null; }
-    if(recPreviewVideo){ try{ recPreviewVideo.pause(); recPreviewVideo.src = ''; }catch(e){} }
-    if(recPreviewBox){ recPreviewBox.style.display = 'none'; }
-  }
-
-  async function renderRecList(){
-    if(!recList) return;
-    let recs = [];
-    try{ recs = await dbGetAll(); }catch(e){ console.warn(e); }
-    recs.sort(function(a,b){ return b.date - a.date; });
-    if(recCount) recCount.textContent = '(' + recs.length + ')';
-
-    if(!recs.length){
-      recList.innerHTML = '<div style="text-align:center;padding:30px 10px;opacity:.5;line-height:2">📭 Nenhuma gravação salva.<br>Clique em ⏺ GRAVAR.</div>';
-      return;
-    }
-
-    recList.innerHTML = recs.map(function(r){
-      return '<div style="display:flex;gap:10px;align-items:center;padding:10px;border:1px solid rgba(0,255,157,.2);background:rgba(0,255,157,.03);margin-bottom:8px;flex-wrap:wrap">' +
-        '<div style="flex:1;min-width:200px">' +
-          '<div style="font-size:11px;color:#fff;font-weight:600">🎥 ' + r.filename + '</div>' +
-          '<div style="font-size:9px;color:rgba(0,240,255,.6);margin-top:3px">📅 ' + fmtDate(r.date) + ' · 💾 ' + fmtSize(r.size) + (r.duration ? ' · ⏱ ' + fmtDur(r.duration) : '') + '</div>' +
-        '</div>' +
-        '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
-          '<button class="rec-play" data-id="' + r.id + '" style="padding:6px 10px;font-family:inherit;font-size:9px;border:1px solid var(--gold);background:rgba(255,179,0,.08);color:var(--gold);cursor:pointer">▶ VER</button>' +
-          '<button class="rec-dl" data-id="' + r.id + '" style="padding:6px 10px;font-family:inherit;font-size:9px;border:1px solid var(--ok);background:rgba(0,255,157,.08);color:var(--ok);cursor:pointer">⬇ BAIXAR</button>' +
-          '<button class="rec-wa" data-id="' + r.id + '" style="padding:6px 10px;font-family:inherit;font-size:9px;border:1px solid #25d366;background:rgba(37,211,102,.08);color:#25d366;cursor:pointer">💬 WA</button>' +
-          '<button class="rec-del" data-id="' + r.id + '" style="padding:6px 10px;font-family:inherit;font-size:9px;border:1px solid var(--danger);background:rgba(255,45,85,.08);color:var(--danger);cursor:pointer">🗑</button>' +
-        '</div>' +
-      '</div>';
+  function removeCompanion(peerId){const c=companions[peerId];if(!c)return;if(c.marker)map.removeLayer(c.marker);if(c.camCall){try{c.camCall.close();}catch(e){}}if(c.micCall){try{c.micCall.close();}catch(e){}}if(c.audioEl){try{c.audioEl.pause();}catch(e){}}delete companions[peerId];if(camModalAgent===peerId)closeCamModal();saveCompanions();updateAll();updateAlertTargets();}
+  function renderCompanions(){
+    const keys=Object.keys(companions);$('compCount').textContent=keys.length;
+    const cont=$('compList');
+    if(!keys.length){cont.innerHTML='<div class="empty-companions">NENHUM AGENTE<br>Gere o link acima.</div>';return;}
+    keys.sort((a,b)=>{const ca=companions[a],cb=companions[b];if(ca.online!==cb.online)return ca.online?-1:1;return (cb.lastTs||0)-(ca.lastTs||0);});
+    cont.innerHTML=keys.map(k=>{
+      const c=companions[k];
+      const d=(c.lastLat&&meLatLng)?meLatLng.distanceTo(L.latLng(c.lastLat,c.lastLng)):null;
+      const dTxt=d==null?'—':(d<1000?Math.round(d)+' m':(d/1000).toFixed(2)+' km');
+      const statusCls=c.online?'':'offline';
+      const badge=c.online?'🟢 AO VIVO':'⚪ OFFLINE';
+      const camBtn=c.camActive?'<button class="mini cam" data-act="viewcam">🎥 CÂMERA</button>':'';
+      const micBtn=c.micActive?'<button class="mini mic" data-act="listen">🎤 OUVIR</button>':'';
+      let bH='';if(c.batteryLevel!=null){const pct=Math.round(c.batteryLevel*100);const cls=pct<=15?'low':pct<=30?'warn':'';bH='<span class="battery-badge '+cls+'">🔋 '+pct+'%'+(c.batteryCharging?' ⚡':'')+'</span>';}
+      return '<div class="companion-item '+statusCls+'" data-id="'+k+'"><div class="r1"><div class="nm">'+escapeHtml(c.name)+'</div><div class="bdg">'+badge+'</div></div><div class="r2">📍 <b>'+dTxt+'</b></div><div class="r3">'+bH+' <span>Código: <b>'+c.code+'</b></span></div><div class="acts"><button class="mini" data-act="center">🎯</button>'+camBtn+micBtn+'<button class="mini" data-act="rename">✏</button><button class="mini del" data-act="del">✕</button></div></div>';
     }).join('');
+    cont.querySelectorAll('.mini').forEach(btn=>{
+      btn.onclick=e=>{e.stopPropagation();const k=btn.closest('.companion-item').dataset.id;const c=companions[k];if(!c)return;const act=btn.dataset.act;
+        if(act==='center'&&c.lastLat!=null)map.setView([c.lastLat,c.lastLng],17);
+        if(act==='rename'){const n=prompt('Novo nome:',c.name);if(n&&n.trim()){c.name=n.trim().slice(0,24);saveCompanions();renderCompanions();}}
+        if(act==='del'&&confirm('Remover '+c.name+'?'))removeCompanion(k);
+        if(act==='viewcam')openCamModal(k);
+        if(act==='listen'){camModalAudioOn=true;openCamModal(k);if(c.audioEl){c.audioEl.muted=false;c.audioEl.play().catch(()=>{});}}};
+    });
+  }
+  function updateAlertTargets(){const sel=$('alertTarget');const cur=sel.value;const opts=['<option value="all">📢 TODOS OS AGENTES</option>'];Object.keys(companions).forEach(k=>{const c=companions[k];opts.push('<option value="'+k+'">'+escapeHtml(c.name)+(c.online?' 🟢':' ⚪')+'</option>');});sel.innerHTML=opts.join('');if([].slice.call(sel.options).some(o=>o.value===cur))sel.value=cur;}
+  function renderAlertHistory(){const el=$('alertHistory');if(!alertHistory.length){el.innerHTML='<span style="opacity:.5">⟨ histórico ⟩</span>';return;}el.innerHTML=alertHistory.slice(-30).reverse().map(h=>'<div class="row"><b>'+(h.type==='alert'?'🚨':'📢')+'</b><span>'+escapeHtml(h.msg)+' → '+escapeHtml(h.target)+'</span></div>').join('');}
+  function pushAlertHistory(type,msg,target){alertHistory.push({type,msg,target,time:new Date().toLocaleTimeString('pt-BR')});if(alertHistory.length>100)alertHistory.shift();renderAlertHistory();}
+  function loadAlertHistory(){try{const s=LS.get('sentinela7.alertHistory');if(s)alertHistory=JSON.parse(s);}catch(e){}}
+  function sendMessage(type){
+    const msg=$('alertMsg').value.trim(),mediaUrl=$('alertMediaUrl').value.trim();
+    if(!msg&&!mediaUrl){alert('Escreva uma mensagem.');return;}
+    if(!hostPeer){alert('Sessão não ativa.');return;}
+    const targetId=$('alertTarget').value;let sent=0;
+    const payload={type,msg:msg||'[mídia]',mediaUrl:mediaUrl||null,from:'COMANDO',ts:Date.now()};
+    if(targetId==='all'){Object.keys(companions).forEach(k=>{const c=companions[k];if(c._conn&&c._conn.open){try{c._conn.send(payload);sent++;}catch(e){}}});pushAlertHistory(type,msg||'[mídia]','TODOS');}
+    else{const c=companions[targetId];if(!c){alert('Não encontrado.');return;}if(c._conn&&c._conn.open){try{c._conn.send(payload);sent=1;}catch(e){}}pushAlertHistory(type,msg||'[mídia]',c.name);}
+    $('alertMsg').value='';$('alertMediaUrl').value='';
+    $('alertStatus').textContent=sent?'ENVIADO ✓':'SEM AGENTES';
+    setTimeout(()=>$('alertStatus').textContent='PRONTO',2500);
+  }
+  $('btnSendAlert').onclick=()=>sendMessage('alert');
+  $('btnSendAnnounce').onclick=()=>sendMessage('announce');
+  $('btnClearMsg').onclick=()=>{$('alertMsg').value='';$('alertMediaUrl').value='';};
+  document.querySelectorAll('.preset-btn').forEach(btn=>{btn.onclick=()=>{$('alertMsg').value=btn.dataset.preset;$('alertMsg').focus();};});
+  $('btnPickMedia').onclick=()=>{const inp=document.createElement('input');inp.type='file';inp.accept='image/*,video/*,audio/*';inp.onchange=()=>{const f=inp.files[0];if(!f)return;if(f.size>204800){alert('Máx 200KB.');return;}const r=new FileReader();r.onload=()=>{$('alertMediaUrl').value=r.result;};r.readAsDataURL(f);};inp.click();};
+  $('btnReconnectAgents').onclick=()=>{if(!hostPeer){alert('Sessão não ativa.');return;}Object.keys(companions).forEach(k=>{const c=companions[k];if(c._conn&&c._conn.open){try{c._conn.send({type:'ping',ts:Date.now()});}catch(e){c.online=false;}}else c.online=false;});setTimeout(()=>{renderCompanions();renderSonarBlips();renderMarkers();},1500);};
 
-    recList.querySelectorAll('.rec-play').forEach(function(b){ b.onclick = function(){ playRec(+b.dataset.id, recs); }; });
-    recList.querySelectorAll('.rec-dl').forEach(function(b){ b.onclick = function(){ downloadRec(+b.dataset.id, recs); }; });
-    recList.querySelectorAll('.rec-wa').forEach(function(b){ b.onclick = function(){ shareRecWA(+b.dataset.id, recs); }; });
-    recList.querySelectorAll('.rec-del').forEach(function(b){
-      b.onclick = async function(){
-        if(!confirm('Apagar esta gravação?')) return;
-        try{ await dbDelete(+b.dataset.id); renderRecList(); }catch(e){ alert('Erro: ' + e.message); }
+  function openCamModal(agentId){const c=companions[agentId];if(!c)return;camModalAgent=agentId;$('camModal').classList.add('show');$('camModalTitle').textContent='CÂMERA · '+c.name;const v=$('camModalVideo');if(c.camStream){v.srcObject=c.camStream;v.muted=!camModalAudioOn;v.play().catch(()=>{});}else v.srcObject=null;}
+  function closeCamModal(){camModalAgent=null;$('camModal').classList.remove('show');try{$('camModalVideo').srcObject=null;}catch(e){}Object.values(companions).forEach(c=>{if(c.audioEl)c.audioEl.muted=true;});camModalAudioOn=false;}
+  $('camModalClose').onclick=closeCamModal;
+  $('camModalFull').onclick=()=>{const el=$('camModal');if(document.fullscreenElement)document.exitFullscreen();else el.requestFullscreen&&el.requestFullscreen();};
+  $('camToggleMute').onclick=()=>{camModalAudioOn=!camModalAudioOn;$('camToggleMute').textContent=camModalAudioOn?'🔊 SOM':'🔇 MUDO';if(camModalAgent){const c=companions[camModalAgent];if(c&&c.audioEl){c.audioEl.muted=!camModalAudioOn;if(camModalAudioOn)c.audioEl.play().catch(()=>{});}}};
+  $('camToggleMic').onclick=()=>{if(!camModalAgent)return;camModalAudioOn=true;const c=companions[camModalAgent];if(c&&c.audioEl){c.audioEl.muted=false;c.audioEl.play().catch(()=>{});}};
+  $('camSnapshot').onclick=()=>{const v=$('camModalVideo');if(!v.videoWidth){alert('Sem vídeo.');return;}const c=document.createElement('canvas');c.width=v.videoWidth;c.height=v.videoHeight;c.getContext('2d').drawImage(v,0,0);const a=document.createElement('a');a.download='snapshot_'+Date.now()+'.png';a.href=c.toDataURL('image/png');a.click();};
+
+  function beepSingle(freq,dur){try{audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();const t0=audioCtx.currentTime;const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='sine';o.frequency.setValueAtTime(freq,t0);o.connect(g);g.connect(audioCtx.destination);g.gain.setValueAtTime(0.0001,t0);g.gain.exponentialRampToValueAtTime(0.12,t0+0.01);g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);o.start(t0);o.stop(t0+dur+0.02);}catch(e){}}
+
+  $('btnCreateShare').onclick=()=>startHosting();
+  $('btnStopShare').onclick=()=>{if(confirm('Encerrar sessão?'))stopHosting();};
+  $('btnCopyLink').onclick=()=>{const url=$('shareLink').dataset.url;if(!url)return;navigator.clipboard.writeText(url).then(()=>{$('btnCopyLink').textContent='✓ COPIADO';setTimeout(()=>$('btnCopyLink').textContent='📋 COPIAR',2000);});};
+  $('btnShareWA').onclick=()=>{const url=$('shareLink').dataset.url;if(!url)return;window.open('https://wa.me/?text='+encodeURIComponent('Abre este link: '+url),'_blank');};
+
+  function setDroneStatus(txt,cls){const el=$('droneStatus');el.textContent=txt;el.style.color=cls==='on'?'var(--ok)':cls==='warn'?'var(--gold)':cls==='danger'?'var(--danger)':'rgba(0,240,255,.4)';}
+  function setHud(on){$('droneHud').classList.toggle('on',!!on);$('droneIdle').style.display=on?'none':'flex';}
+  function stopDrone(){try{if(droneHls){droneHls.destroy();droneHls=null;}}catch(e){}try{if(droneStream){droneStream.getTracks().forEach(t=>t.stop());droneStream=null;}}catch(e){}const v=$('droneVideo');try{v.pause();v.srcObject=null;v.removeAttribute('src');v.load();}catch(e){}setHud(false);setDroneStatus('OFF','off');}
+  async function playStream(url){
+    stopDrone();
+    const v=$('droneVideo');
+    setDroneStatus('CONECTANDO…','warn');$('droneTcSource').textContent='STREAM';
+    const yt=url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/live\/)([A-Za-z0-9_-]+)/);
+    if(yt){const wrap=$('dronePlayerWrap');let frame=document.getElementById('droneYT');if(!frame){frame=document.createElement('iframe');frame.id='droneYT';frame.style.cssText='position:absolute;inset:0;width:100%;height:100%;border:0;z-index:3;';frame.allow='autoplay; encrypted-media';wrap.appendChild(frame);}frame.src='https://www.youtube.com/embed/'+yt[1]+'?autoplay=1&mute=1&controls=1';$('droneVideo').style.display='none';setHud(true);setDroneStatus('YOUTUBE','on');startDroneClock();return;}
+    $('droneVideo').style.display='block';
+    const oldYT=document.getElementById('droneYT');if(oldYT)oldYT.remove();
+    if(url.indexOf('.m3u8')!==-1){
+      if(window.Hls&&Hls.isSupported()){droneHls=new Hls({lowLatencyMode:true});droneHls.loadSource(url);droneHls.attachMedia(v);droneHls.on(Hls.Events.MANIFEST_PARSED,()=>{v.play().catch(()=>{});setHud(true);setDroneStatus('HLS · AO VIVO','on');startDroneClock();});return;}
+      if(v.canPlayType('application/vnd.apple.mpegurl')){v.src=url;v.play().catch(()=>{});setHud(true);setDroneStatus('HLS NATIVO','on');startDroneClock();return;}
+      setDroneStatus('NÃO SUPORTADO','danger');return;
+    }
+    v.src=url;
+    v.play().then(()=>{setHud(true);setDroneStatus('ATIVO','on');startDroneClock();}).catch(()=>setDroneStatus('ERRO','danger'));
+  }
+  async function startTestCamera(){
+    stopDrone();setDroneStatus('ABRINDO…','warn');$('droneTcSource').textContent='MODO TESTE';
+    const oldYT=document.getElementById('droneYT');if(oldYT)oldYT.remove();
+    try{
+      droneStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280}},audio:false});
+      const v=$('droneVideo');v.style.display='block';v.srcObject=droneStream;v.play().catch(()=>{});
+      setHud(true);setDroneStatus('MODO TESTE','on');startDroneClock();
+    }catch(err){setDroneStatus('NEGADA','danger');alert('Câmera indisponível: '+err.message);}
+  }
+  let droneClockTimer=null;
+  function startDroneClock(){if(droneClockTimer)clearInterval(droneClockTimer);const t0=Date.now();const upd=()=>{const s=Math.floor((Date.now()-t0)/1000);$('droneTcTime').textContent=String(Math.floor(s/3600)).padStart(2,'0')+':'+String(Math.floor((s%3600)/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');};upd();droneClockTimer=setInterval(upd,1000);}
+  function droneIcon(){return L.divIcon({className:'',html:'<div class="mk drone"><span>🛸</span></div>',iconSize:[16,16],iconAnchor:[8,8]});}
+  function setDronePosition(lat,lon,label){droneLatLng=L.latLng(lat,lon);if(!droneMarker)droneMarker=L.marker(droneLatLng,{icon:droneIcon(),zIndexOffset:900}).addTo(map);else droneMarker.setLatLng(droneLatLng);if(label)$('droneTcSource').textContent=label;if(droneFollow&&map)map.setView(droneLatLng,Math.max(map.getZoom(),17));renderSonarBlips();renderMarkers();}
+  $('btnDronePlay').onclick=()=>{const url=$('droneUrl').value.trim();if(!url){alert('Cole a URL.');return;}playStream(url);};
+  $('btnDroneTest').onclick=startTestCamera;
+  $('btnDroneStop').onclick=stopDrone;
+
+  function initMap(){
+    map=L.map('map',{zoomControl:true,preferCanvas:true}).setView([-23.55,-46.63],16);
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'© Esri'}).addTo(map);
+    thCircle=L.circle([-23.55,-46.63],{radius:threshold,color:'#ffb300',weight:1,dashArray:'6 6',fillColor:'#ffb300',fillOpacity:.05,interactive:false}).addTo(map);
+    map.on('click',e=>{if(!picking)return;setFormLocation(e.latlng.lat,e.latlng.lng);if(pickMarker)map.removeLayer(pickMarker);pickMarker=L.marker(e.latlng,{icon:L.divIcon({className:'',html:'<div class="mk hot"></div>',iconSize:[16,16],iconAnchor:[8,8]})}).addTo(map);picking=false;$('btnPick').classList.remove('on');map.getContainer().style.cursor='';});
+    map.on('move zoom zoomend moveend',()=>{positionSonar();renderSonarBlips();});
+  }
+  function startGPS(){
+    if(!('geolocation'in navigator)){setStatus('SEM GPS','warn');return;}
+    setStatus('BUSCANDO GPS','warn');
+    navigator.geolocation.watchPosition(
+      pos=>{
+        const lat=pos.coords.latitude,lon=pos.coords.longitude,acc=pos.coords.accuracy;
+        const first=!meLatLng;
+        meLatLng=L.latLng(lat,lon);
+        if(!meMarker)meMarker=L.marker(meLatLng,{icon:L.divIcon({className:'',html:'<div class="mk-me"></div>',iconSize:[16,16],iconAnchor:[8,8]}),zIndexOffset:1000}).addTo(map);
+        else meMarker.setLatLng(meLatLng);
+        thCircle.setLatLng(meLatLng).setRadius(threshold);
+        $('myCoords').textContent=lat.toFixed(6)+', '+lon.toFixed(6);
+        $('myAcc').textContent='± '+Math.round(acc)+' m';
+        $('mapInfo').textContent='GPS ATIVO';
+        setStatus('VARRENDO','');
+        if(first){map.setView(meLatLng,17);reverseGeocode(lat,lon).then(g=>$('myAddr').textContent=g.road||g.display||'—');}
+        positionSonar();renderSonarBlips();renderMarkers();renderCompanions();
+      },
+      err=>setStatus('SEM GPS','warn'),
+      {enableHighAccuracy:true,maximumAge:5000,timeout:8000}
+    );
+  }
+  async function reverseGeocode(lat,lon){
+    try{
+      const r=await fetch('https://photon.komoot.io/reverse?lat='+lat+'&lon='+lon+'&lang=pt');
+      if(!r.ok)throw 0;
+      const j=await r.json();
+      const p=(j.features&&j.features[0]&&j.features[0].properties)||{};
+      const road=p.street||p.name||p.locality||p.district||'';
+      return{road:road+(p.housenumber?', '+p.housenumber:''),display:[road,p.city,p.state].filter(Boolean).join(', ')};
+    }catch(e){return{road:'',display:''};}
+  }
+  async function geocodeAddressList(q){
+    try{
+      const r=await fetch('https://photon.komoot.io/api/?q='+encodeURIComponent(q)+'&lang=pt&limit=6');
+      if(!r.ok)throw 0;
+      const j=await r.json();
+      return(j.features||[]).map(f=>{
+        const lon=f.geometry.coordinates[0],lat=f.geometry.coordinates[1],p=f.properties||{};
+        return{lat,lon,linha1:[p.name,p.street,p.housenumber].filter(Boolean).join(', ')||'Sem nome',linha2:[p.district,p.city,p.state].filter(Boolean).join(', ')};
+      });
+    }catch(e){return[];}
+  }
+  function setFormLocation(lat,lon,label){formLatLng={lat,lon};$('fCoords').textContent='📍 '+lat.toFixed(6)+', '+lon.toFixed(6)+(label?' · '+label:'');$('fCoords').classList.add('ok');validateForm();}
+  function validateForm(){const ok=$('fName').value.trim()&&$('fNum').value.trim().replace(/\D/g,'').length>=8&&formLatLng;$('btnAdd').disabled=!ok;}
+  $('fName').addEventListener('input',validateForm);
+  $('fNum').addEventListener('input',validateForm);
+  $('btnOsint').onclick=async()=>{
+    const num=$('fNum').value.trim();
+    if(num.replace(/\D/g,'').length<8){$('osintStatus').textContent='⚠ Número inválido';return;}
+    $('osintStatus').textContent='🔎 Buscando…';
+    const data=simulateOsint(num);lastOsintData=data;
+    if(!$('fName').value.trim())$('fName').value=data.codename;
+    validateForm();
+    await new Promise(r=>setTimeout(r,800));
+    $('spFB').className='sp-item found';document.querySelector('#spFB span').textContent='✓ '+data.facebook;
+    $('spIG').className='sp-item found';document.querySelector('#spIG span').textContent='✓ '+data.instagram;
+    $('spTT').className='sp-item found';document.querySelector('#spTT span').textContent='✓ '+data.tiktok;
+    $('spWA').className='sp-item found';document.querySelector('#spWA span').textContent='✓ '+data.whatsapp;
+    $('osintStatus').textContent='✓ 3 redes (simulação)';
+  };
+  $('btnMyLoc').onclick=()=>{if(!meLatLng){alert('GPS indisponível.');return;}setFormLocation(meLatLng.lat,meLatLng.lng,'minha posição');map.setView(meLatLng,17);};
+  $('btnPick').onclick=function(){picking=!picking;this.classList.toggle('on',picking);map.getContainer().style.cursor=picking?'crosshair':'';};
+  $('btnSearch').onclick=async()=>{const q=$('fAddr').value.trim();if(!q)return;const list=await geocodeAddressList(q);if(!list.length){alert('Não encontrado.');return;}setFormLocation(list[0].lat,list[0].lon,list[0].linha1);map.setView([list[0].lat,list[0].lon],17);};
+  $('btnAdd').onclick=()=>{
+    if(!lastOsintData)lastOsintData=simulateOsint($('fNum').value.trim());
+    const t={id:Date.now(),codename:$('fName').value.trim().toUpperCase()||lastOsintData.codename,numero:$('fNum').value.trim(),lat:formLatLng.lat,lon:formLatLng.lon,socials:{facebook:lastOsintData.facebook,instagram:lastOsintData.instagram,tiktok:lastOsintData.tiktok,whatsapp:lastOsintData.whatsapp},_armed:false};
+    targets.push(t);saveTargets();updateAll();
+    $('fName').value='';$('fNum').value='';$('fAddr').value='';
+    formLatLng=null;lastOsintData=null;
+    $('fCoords').textContent='📍 Nenhuma localização';$('fCoords').classList.remove('ok');
+    $('btnAdd').disabled=true;
+    ['spFB','spIG','spTT','spWA'].forEach(id=>{$(id).className='sp-item empty';$(id).querySelector('span').textContent='—';});
+    if(pickMarker){map.removeLayer(pickMarker);pickMarker=null;}
+    picking=false;$('btnPick').classList.remove('on');map.getContainer().style.cursor='';
+    map.setView([t.lat,t.lon],17);
+  };
+  function distTo(t){return meLatLng?meLatLng.distanceTo(L.latLng(t.lat,t.lon)):Infinity;}
+  function bearingTo(t){if(!meLatLng)return 0;const φ1=meLatLng.lat*Math.PI/180,φ2=t.lat*Math.PI/180,Δλ=(t.lon-meLatLng.lng)*Math.PI/180;const y=Math.sin(Δλ)*Math.cos(φ2);const x=Math.cos(φ1)*Math.sin(φ2)-Math.sin(φ1)*Math.cos(φ2)*Math.cos(Δλ);return(Math.atan2(y,x)*180/Math.PI+360)%360;}
+  function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);}
+  let sonarBlips={};
+  function sonarRangeMeters(){return Math.max(threshold*3,500);}
+  function positionSonar(){if(!meLatLng||!map)return;const pt=map.latLngToContainerPoint(meLatLng);sonarOverlay.style.left=pt.x+'px';sonarOverlay.style.top=pt.y+'px';}
+  function renderSonarBlips(){
+    if(!sonarOn)return;
+    const range=sonarRangeMeters();
+    sonarRangeEl.textContent=range>=1000?(range/1000).toFixed(1)+'km':range+'m';
+    const activeIds=new Set();
+    targets.forEach(t=>{activeIds.add('t-'+t.id);let el=sonarBlips['t-'+t.id];if(!el){el=document.createElement('div');el.className='sb';sonarDisc.appendChild(el);sonarBlips['t-'+t.id]=el;}const d=distTo(t);if(!isFinite(d)){el.style.opacity=0;return;}el.style.opacity=1;el.dataset.label=t.codename;const brg=bearingTo(t);const ratio=Math.min(d/range,1)*46;const rad=(brg-90)*Math.PI/180;el.style.left=(50+ratio*Math.cos(rad))+'%';el.style.top=(50+ratio*Math.sin(rad))+'%';el.classList.toggle('hot',d<=threshold);});
+    Object.keys(companions).forEach(k=>{const c=companions[k];if(c.lastLat==null)return;activeIds.add('c-'+k);let el=sonarBlips['c-'+k];if(!el){el=document.createElement('div');el.className='sb live';sonarDisc.appendChild(el);sonarBlips['c-'+k]=el;}const d=meLatLng?meLatLng.distanceTo(L.latLng(c.lastLat,c.lastLng)):Infinity;if(!isFinite(d)){el.style.opacity=0;return;}el.style.opacity=c.online?1:0.45;el.dataset.label=c.name;const brg=bearingTo({lat:c.lastLat,lon:c.lastLng});const ratio=Math.min(d/range,1)*46;const rad=(brg-90)*Math.PI/180;el.style.left=(50+ratio*Math.cos(rad))+'%';el.style.top=(50+ratio*Math.sin(rad))+'%';el.classList.toggle('hot',d<=threshold);el.classList.toggle('live',c.online);el.classList.toggle('offline',!c.online);});
+    Object.keys(sonarBlips).forEach(k=>{if(!activeIds.has(k)){sonarBlips[k].remove();delete sonarBlips[k];}});
+  }
+  function renderMarkers(){
+    targets.forEach(t=>{const hot=distTo(t)<=threshold;const latlng=[t.lat,t.lon];if(!t._marker){t._marker=L.marker(latlng,{icon:mkIcon(t,hot)}).addTo(map);t._marker.on('click',()=>showAlert(t,true));}else{t._marker.setLatLng(latlng);t._marker.setIcon(mkIcon(t,hot));}});
+    Object.keys(companions).forEach(k=>{const c=companions[k];if(c.lastLat==null)return;const latlng=[c.lastLat,c.lastLng];const d=meLatLng?meLatLng.distanceTo(L.latLng(c.lastLat,c.lastLng)):Infinity;const hot=d<=threshold;const html='<div class="mk '+(c.online?'live':'offline')+' '+(hot?'hot':'')+'"><span>'+escapeHtml(c.name)+'</span></div>';const icon=L.divIcon({className:'',html,iconSize:[16,16],iconAnchor:[8,8]});if(!c.marker){c.marker=L.marker(latlng,{icon,zIndexOffset:500}).addTo(map);}else{c.marker.setLatLng(latlng);c.marker.setIcon(icon);}});
+    if(droneLatLng&&!droneMarker)droneMarker=L.marker(droneLatLng,{icon:droneIcon(),zIndexOffset:900}).addTo(map);
+  }
+  function mkIcon(t,hot){return L.divIcon({className:'',html:'<div class="mk '+(hot?'hot':'')+'"><span>'+escapeHtml(t.codename)+'</span></div>',iconSize:[16,16],iconAnchor:[8,8]});}
+  function updateAll(){renderCompanions();renderMarkers();positionSonar();renderSonarBlips();}
+  setInterval(()=>{
+    if(!meLatLng)return;
+    if(followGPS)map.panTo(meLatLng,{animate:true,duration:.7});
+    let anyHot=false;
+    targets.forEach(t=>{const d=distTo(t);if(d<=threshold){anyHot=true;if(!t._armed&&Date.now()>mutedUntil){t._armed=true;showAlert(t,false,d);}}else if(d>threshold*1.25)t._armed=false;});
+    Object.values(companions).forEach(c=>{if(c.lastLat==null)return;const d=meLatLng.distanceTo(L.latLng(c.lastLat,c.lastLng));if(d<=threshold)anyHot=true;});
+    setStatus(anyHot?'ALVO PRÓXIMO':'VARRENDO',anyHot?'danger':'');
+    updateAll();
+  },1500);
+  function setStatus(txt,cls){const el=$('statusTxt');el.textContent=txt;el.className='status'+(cls?' '+cls:'');}
+  function speak(text){if(voiceOn)_speakGeneric(text);}
+  function fmtDist(m){return m<1000?Math.round(m)+' metros':(m/1000).toFixed(2).replace('.',',')+' km';}
+  async function showAlert(t,manual,distOverride){
+    const d=(distOverride==null)?distTo(t):distOverride;
+    $('aName').textContent=t.codename;$('aPhone').textContent=t.numero;$('aDist').textContent=Math.round(d);
+    const socs=[];
+    if(t.socials&&t.socials.facebook)socs.push(['Facebook',t.socials.facebook]);
+    if(t.socials&&t.socials.instagram)socs.push(['Instagram',t.socials.instagram]);
+    if(t.socials&&t.socials.tiktok)socs.push(['TikTok',t.socials.tiktok]);
+    if(t.socials&&t.socials.whatsapp)socs.push(['WhatsApp',t.socials.whatsapp]);
+    $('aSocials').innerHTML=socs.length?socs.map(p=>'<span class="soc">'+p[0]+'<b>'+escapeHtml(p[1])+'</b></span>').join(''):'<span class="soc">SEM REDES</span>';
+    overlay.classList.add('show');
+    if(t.lat!=null&&t.lon!=null){const g=await reverseGeocode(t.lat,t.lon);$('aAddr').textContent=g.road||'Local não identificado';speak(t.codename+' a '+fmtDist(d));}
+    else{$('aAddr').textContent='Posição em tempo real.';speak(t.codename+' a '+fmtDist(d));}
+  }
+  $('aOk').onclick=()=>{overlay.classList.remove('show');setStatus('VARRENDO','');};
+  $('aMute').onclick=()=>{mutedUntil=Date.now()+60000;overlay.classList.remove('show');};
+  $('threshold').addEventListener('input',e=>{threshold=+e.target.value;$('thVal').textContent=threshold>=1000?(threshold/1000).toFixed(1)+' km':threshold+' m';if(thCircle)thCircle.setRadius(threshold);updateAll();});
+  $('tgVoice').onclick=function(){voiceOn=!voiceOn;this.classList.toggle('on',voiceOn);};
+  $('tgSound').onclick=function(){soundOn=!soundOn;this.classList.toggle('on',soundOn);};
+  $('tgSonar').onclick=function(){sonarOn=!sonarOn;this.classList.toggle('on',sonarOn);sonarOverlay.classList.toggle('off',!sonarOn);};
+  $('tgTrack').onclick=function(){followGPS=!followGPS;this.classList.toggle('on',followGPS);};
+  $('tgCenter').onclick=()=>{if(meLatLng)map.setView(meLatLng,17);};
+  $('tgBeep').onclick=function(){beepOn=!beepOn;this.classList.toggle('on',beepOn);};
+  function saveTargets(){try{const clean=targets.map(t=>({id:t.id,codename:t.codename,numero:t.numero,lat:t.lat,lon:t.lon,socials:t.socials}));LS.set(STORAGE_KEY,JSON.stringify(clean));}catch(e){}}
+  function loadTargets(){try{const s=LS.get(STORAGE_KEY);if(s)targets=JSON.parse(s).map(t=>Object.assign({},t,{_armed:false}));}catch(e){}}
+
+  /* ▓▓▓ RECORDING + SEGURANÇA (com salvamento em Gravações) ▓▓▓ */
+  (function RecordingSecurity(){
+    const videoEl=$('droneVideo'),btnRec=$('btnDroneRec'),qualitySel=$('droneRecQuality'),hudRec=document.querySelector('#droneHud .rec'),tcTime=$('droneTcTime');
+    const secStatus=$('secStatus'),secWANum=$('secWANumber'),secPin=$('secPin'),secLog=$('secLog'),btnArm=$('btnArmSecurity'),btnDisarm=$('btnDisarmSecurity');
+    let recorder=null,chunks=[],recTimer=null,recStart=0,armed=false,frontStream=null;
+    if(LS.get('sentinela7.secWA'))secWANum.value=LS.get('sentinela7.secWA');
+    if(LS.get('sentinela7.secPin'))secPin.value=LS.get('sentinela7.secPin');
+    secWANum.addEventListener('input',()=>LS.set('sentinela7.secWA',secWANum.value.trim()));
+    secPin.addEventListener('input',()=>LS.set('sentinela7.secPin',secPin.value.trim()));
+    function log(msg,kind){
+      if(!secLog)return;
+      const color=kind==='ok'?'#00ff9d':kind==='danger'?'#ff2d55':'#ffb300';
+      const d=document.createElement('div');d.className='ev';
+      d.innerHTML='<span style="color:'+color+'">▸ '+new Date().toLocaleTimeString('pt-BR')+'</span> · '+msg;
+      secLog.insertBefore(d,secLog.firstChild);
+      while(secLog.children.length>30)secLog.removeChild(secLog.lastChild);
+    }
+    function showSecToast(msg,kind){
+      const wrap=document.getElementById('toastWrap');if(!wrap)return;
+      const t=document.createElement('div');t.className='toast';
+      if(kind==='ok')t.style.borderColor='var(--ok)';
+      if(kind==='warn')t.style.borderColor='var(--gold)';
+      if(kind==='danger')t.style.borderColor='var(--danger)';
+      t.textContent=msg;wrap.appendChild(t);
+      setTimeout(()=>{t.style.transition='opacity .3s, transform .3s';t.style.opacity=0;t.style.transform='translateY(20px)';setTimeout(()=>t.remove(),350);},5000);
+    }
+    function pickMime(){const list=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm','video/mp4;codecs=h264,aac','video/mp4'];for(let i=0;i<list.length;i++){try{if(window.MediaRecorder&&MediaRecorder.isTypeSupported(list[i]))return list[i];}catch(e){}}return'';}
+    function getStream(){if(videoEl.srcObject&&videoEl.srcObject.getVideoTracks&&videoEl.srcObject.getVideoTracks().length)return videoEl.srcObject;if(typeof videoEl.captureStream==='function'){const s=videoEl.captureStream();return s.getVideoTracks().length?s:null;}if(typeof videoEl.mozCaptureStream==='function'){const s=videoEl.mozCaptureStream();return s.getVideoTracks().length?s:null;}return null;}
+    function fmtTime(ms){const s=Math.floor(ms/1000);return String(Math.floor(s/3600)).padStart(2,'0')+':'+String(Math.floor((s%3600)/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+    function updateRecUI(recording){
+      if(recording){btnRec.textContent='⏹ PARAR';btnRec.classList.remove('red');btnRec.classList.add('green');if(hudRec){hudRec.classList.add('recording');hudRec.innerHTML='<span class="dot"></span>REC · GRAVANDO';}}
+      else{btnRec.textContent='⏺ GRAVAR';btnRec.classList.remove('green');btnRec.classList.add('red');if(hudRec){hudRec.classList.remove('recording');hudRec.innerHTML='<span class="dot"></span>REC · AO VIVO';}if(recTimer){clearInterval(recTimer);recTimer=null;}}
+    }
+    function triggerDownload(blob,filename){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);}
+    function startRecording(){
+      if(recorder)return;
+      const stream=getStream();
+      if(!stream){alert('Nenhum stream ativo.');log('Sem stream','danger');return;}
+      const mime=pickMime();
+      if(!mime){alert('MediaRecorder não suportado.');return;}
+      const bitrate=parseInt(qualitySel.value||'5000000',10);
+      try{recorder=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:bitrate});}
+      catch(err){alert('Falha: '+err.message);return;}
+      chunks=[];
+      recorder.ondataavailable=e=>{if(e.data&&e.data.size>0)chunks.push(e.data);};
+      recorder.onstop=async function(){
+        const type=recorder.mimeType||'video/webm';
+        const blob=new Blob(chunks,{type});
+        const ext=type.indexOf('mp4')!==-1?'mp4':'webm';
+        const stamp=new Date().toISOString().replace(/[:.]/g,'-').slice(0,19);
+        const filename='drone_'+stamp+'.'+ext;
+        const duration=Date.now()-recStart;
+        const sizeMB=(blob.size/1024/1024).toFixed(2);
+        // 1) Salvar em Gravações
+        let savedToDB=false;
+        try{
+          if(typeof window.sentinela7SaveRecording==='function'){
+            await window.sentinela7SaveRecording({blob,filename,mimeType:type,duration,type:'video'});
+            savedToDB=true;
+            log('💾 Salvo em Gravações ('+sizeMB+' MB)','ok');
+          }else{log('⚠ Módulo de gravações não carregado','danger');}
+        }catch(e){console.error('[REC] Erro save:',e);log('❌ Erro ao salvar: '+e.message,'danger');}
+        // 2) Baixar para PC
+        try{triggerDownload(blob,filename);log('⬇ Baixado para Downloads','ok');}catch(e){}
+        // 3) Toast
+        if(savedToDB)showSecToast('💾 Vídeo salvo em Gravações: '+filename,'ok');
+        else showSecToast('⚠ Vídeo baixado, mas não salvou em Gravações','warn');
+        chunks=[];recorder=null;
       };
-    });
-  }
-
-  function playRec(id, recs){
-    const r = recs.find(function(x){ return x.id === id; });
-    if(!r || !recPreviewVideo) return;
-    if(previewURL){ try{ URL.revokeObjectURL(previewURL); }catch(e){} }
-    previewURL = URL.createObjectURL(r.blob);
-    recPreviewVideo.src = previewURL;
-    recPreviewVideo.play().catch(function(){});
-    recPreviewBox.style.display = 'block';
-    recPreviewBox.scrollIntoView({ behavior:'smooth', block:'nearest' });
-  }
-  function downloadRec(id, recs){
-    const r = recs.find(function(x){ return x.id === id; });
-    if(!r) return;
-    const url = URL.createObjectURL(r.blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = r.filename;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
-  }
-  function shareRecWA(id, recs){
-    const r = recs.find(function(x){ return x.id === id; });
-    if(!r) return;
-    const waNumEl = document.getElementById('secWANumber');
-    const waNum = (waNumEl ? waNumEl.value : '').replace(/\D/g, '');
-    const msg = '🎥 SENTINELA-7\n📅 ' + fmtDate(r.date) + '\n📎 ' + r.filename + '\n(anexe o arquivo baixado)';
-    downloadRec(id, recs);
-    setTimeout(function(){
-      const url = waNum ? 'https://wa.me/' + waNum + '?text=' + encodeURIComponent(msg) : 'https://wa.me/?text=' + encodeURIComponent(msg);
-      window.open(url, '_blank');
-    }, 600);
-  }
-
-  document.getElementById('btnOpenRecordings') && (document.getElementById('btnOpenRecordings').onclick = openRecModal);
-  document.getElementById('recModalClose') && (document.getElementById('recModalClose').onclick = closeRecModal);
-  document.getElementById('recModalClearAll') && (document.getElementById('recModalClearAll').onclick = async function(){
-    if(!confirm('Apagar TODAS as gravações?')) return;
-    try{ await dbClear(); renderRecList(); }catch(e){ alert('Erro: ' + e.message); }
-  });
-  recModal && recModal.addEventListener('click', function(e){ if(e.target === recModal) closeRecModal(); });
-
-  /* MOVIMENTO */
-  const video = document.getElementById('droneVideo');
-  const tgMotion = document.getElementById('tgMotion');
-  const tgFaceFocus = document.getElementById('tgFaceFocus');
-  const camSmartStatus = document.getElementById('camSmartStatus');
-
-  let motionOn = false, motionCanvas = null, motionCtx = null, motionPrev = null;
-  let motionRAF = null, lastMotionTs = 0;
-
-  function startMotion(){
-    if(motionOn) return;
-    motionOn = true;
-    motionCanvas = document.createElement('canvas');
-    motionCanvas.width = 80; motionCanvas.height = 60;
-    motionCtx = motionCanvas.getContext('2d', { willReadFrequently: true });
-    motionPrev = null;
-    tgMotion.classList.add('on');
-    updateSmartStatus();
-    loopMotion();
-  }
-  function stopMotion(){
-    motionOn = false;
-    if(motionRAF) cancelAnimationFrame(motionRAF);
-    motionRAF = null;
-    tgMotion.classList.remove('on');
-    updateSmartStatus();
-  }
-  function loopMotion(){
-    if(!motionOn) return;
-    motionRAF = requestAnimationFrame(loopMotion);
-    if(!video || video.readyState < 2 || video.paused) return;
-    try{
-      motionCtx.drawImage(video, 0, 0, 80, 60);
-      const curr = motionCtx.getImageData(0, 0, 80, 60).data;
-      if(motionPrev){
-        let diff = 0;
-        for(let i = 0; i < curr.length; i += 16){
-          diff += Math.abs(curr[i] - motionPrev[i]);
-          diff += Math.abs(curr[i+1] - motionPrev[i+1]);
-          diff += Math.abs(curr[i+2] - motionPrev[i+2]);
-        }
-        const avgDiff = diff / (80 * 60 / 4 * 3);
-        if(avgDiff > 18){
-          const now = Date.now();
-          if(now - lastMotionTs > 500){
-            lastMotionTs = now;
-            onMotionDetected(avgDiff);
-          }
-        }
-      }
-      motionPrev = new Uint8ClampedArray(curr);
-    }catch(e){
-      if(!window.__motionCorsWarned){
-        window.__motionCorsWarned = true;
-        console.warn('[MOTION] CORS bloqueado. Use MODO TESTE.');
-        updateSmartStatus();
-      }
+      recorder.start(1000);
+      recStart=Date.now();
+      recTimer=setInterval(()=>{if(tcTime)tcTime.textContent=fmtTime(Date.now()-recStart);},250);
+      updateRecUI(true);log('Gravação iniciada','ok');
     }
-  }
-  function onMotionDetected(intensity){
-    const wrap = document.getElementById('dronePlayerWrap');
-    if(wrap){
-      wrap.style.boxShadow = 'inset 0 0 40px rgba(255,179,0,.7)';
-      wrap.style.transition = 'box-shadow .1s';
-      setTimeout(function(){ wrap.style.boxShadow = ''; }, 280);
-    }
-    updateSmartStatus('🎯 MOVIMENTO (int ' + intensity.toFixed(1) + ')');
-  }
-  tgMotion.addEventListener('click', function(){ if(motionOn) stopMotion(); else startMotion(); });
-
-  /* ROSTO */
-  let faceOn = false, faceDetector = null, faceLoading = false, faceLoopTimer = null, faceLossTimer = null;
-
-  function loadScript(src){
-    return new Promise(function(res, rej){
-      if(document.querySelector('script[src="' + src + '"]')) return res();
-      const s = document.createElement('script');
-      s.src = src;
-      s.onload = function(){ res(); };
-      s.onerror = function(){ rej(new Error('CDN: ' + src)); };
-      document.head.appendChild(s);
-    });
-  }
-  async function loadFaceModel(){
-    if(faceDetector) return faceDetector;
-    if(faceLoading) return null;
-    faceLoading = true;
-    updateSmartStatus();
-    try{
-      await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js');
-      await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow-models/face-detection@1.0.2/dist/face-detection.min.js');
-      if(typeof tf === 'undefined' || typeof faceDetection === 'undefined') throw new Error('TF.js não carregou');
-      await tf.setBackend('webgl');
-      await tf.ready();
-      const model = faceDetection.SupportedModels.MediaPipeFaceDetector;
-      faceDetector = await faceDetection.createDetector(model, { runtime:'tfjs', maxFaces:1 });
-      faceLoading = false;
-      updateSmartStatus();
-      return faceDetector;
-    }catch(e){
-      console.error('[FACE] Erro:', e);
-      faceLoading = false;
-      updateSmartStatus();
-      alert('Detector de rosto falhou.\n\n' + e.message);
+    function stopRecording(){if(!recorder)return;if(recorder.state!=='inactive')recorder.stop();updateRecUI(false);}
+    function grabFrameFromStream(stream){return new Promise(resolve=>{const v=document.createElement('video');v.srcObject=stream;v.muted=true;v.autoplay=true;let done=false;const finish=blob=>{if(done)return;done=true;try{v.pause();v.srcObject=null;}catch(e){}resolve(blob);};v.onloadedmetadata=()=>{v.play().then(()=>{setTimeout(()=>{try{const c=document.createElement('canvas');c.width=v.videoWidth;c.height=v.videoHeight;c.getContext('2d').drawImage(v,0,0);c.toBlob(finish,'image/jpeg',0.92);}catch(e){finish(null);}},300);}).catch(()=>finish(null));};setTimeout(()=>finish(null),4000);});}
+    async function captureSuspectPhoto(){
+      try{
+        if(frontStream&&frontStream.getVideoTracks()[0]&&frontStream.getVideoTracks()[0].readyState==='live'){const b=await grabFrameFromStream(frontStream);if(b)return b;}
+        try{frontStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:640},height:{ideal:480}},audio:false});await new Promise(r=>setTimeout(r,400));const b=await grabFrameFromStream(frontStream);if(b)return b;}catch(e){}
+        if(videoEl.videoWidth&&videoEl.videoHeight){const c=document.createElement('canvas');c.width=videoEl.videoWidth;c.height=videoEl.videoHeight;c.getContext('2d').drawImage(videoEl,0,0);return await new Promise(res=>c.toBlob(res,'image/jpeg',0.9));}
+      }catch(e){}
       return null;
     }
-  }
-  function startFaceFocus(){
-    if(faceOn) return;
-    faceOn = true;
-    tgFaceFocus.classList.add('on');
-    updateSmartStatus();
-    if(!faceDetector){ loadFaceModel().then(function(){ if(faceOn) loopFace(); }); }
-    else loopFace();
-  }
-  function stopFaceFocus(){
-    faceOn = false;
-    if(faceLoopTimer){ clearTimeout(faceLoopTimer); faceLoopTimer = null; }
-    tgFaceFocus.classList.remove('on');
-    resetZoom();
-    updateSmartStatus();
-  }
-  async function loopFace(){
-    if(!faceOn || !faceDetector) return;
-    if(video && video.readyState >= 2 && !video.paused){
+    async function triggerPanic(reason){
+      log('🚨 PÂNICO: '+reason,'danger');
+      if(navigator.vibrate)try{navigator.vibrate([200,100,200,100,400]);}catch(e){}
+      const fotoBlob=await captureSuspectPhoto();
+      if(fotoBlob){try{await window.sentinela7SaveRecording({blob:fotoBlob,filename:'suspeito_'+Date.now()+'.jpg',mimeType:'image/jpeg',duration:0,type:'photo'});triggerDownload(fotoBlob,'suspeito_'+Date.now()+'.jpg');log('📸 Foto do suspeito salva','ok');}catch(e){log('❌ Erro foto','danger');}}
+      if(recorder&&recorder.state!=='inactive'){try{recorder.stop();}catch(e){}updateRecUI(false);}
+      setTimeout(()=>{const num=secWANum.value.replace(/\D/g,'');const msg='🚨 ALERTA SENTINELA-7\nMotivo: '+reason+'\n'+new Date().toLocaleString('pt-BR');const url=num?'https://wa.me/'+num+'?text='+encodeURIComponent(msg):'https://wa.me/?text='+encodeURIComponent(msg);window.open(url,'_blank');},2200);
+    }
+    function setArmedUI(on){if(on){secStatus.textContent='ARMADO';secStatus.classList.add('armed');btnArm.classList.remove('gold');btnArm.classList.add('green');btnDisarm.style.display='block';}else{secStatus.textContent='DESARMADO';secStatus.classList.remove('armed');btnArm.classList.add('gold');btnArm.classList.remove('green');btnDisarm.style.display='none';}}
+    btnArm.addEventListener('click',()=>{
+      if(!secWANum.value.trim()){alert('Configure WhatsApp destino.');return;}
+      let pin=secPin.value.trim();
+      if(!/^\d{4}$/.test(pin)){pin=prompt('Defina PIN de 4 dígitos:');if(!pin||!/^\d{4}$/.test(pin)){alert('PIN inválido.');return;}secPin.value=pin;LS.set('sentinela7.secPin',pin);}
+      armed=true;setArmedUI(true);log('Sistema ARMADO','danger');
+      if(!recorder)setTimeout(startRecording,300);
+    });
+    btnDisarm.addEventListener('click',()=>{
+      const pin=prompt('PIN para desarmar:');
+      if(pin!==secPin.value.trim()){alert('PIN incorreto!');if(armed)triggerPanic('PIN errado ao desarmar');return;}
+      armed=false;setArmedUI(false);log('Sistema desarmado','ok');
+    });
+    btnRec.addEventListener('click',()=>{
+      if(recorder){if(armed){const pin=prompt('Sistema armado. PIN para parar:');if(pin!==secPin.value.trim()){triggerPanic('PIN errado');return;}}stopRecording();}
+      else startRecording();
+    });
+    document.addEventListener('keydown',e=>{if(armed&&e.key==='Escape'&&recorder&&recorder.state==='recording'){triggerPanic('ESC');}});
+    window.addEventListener('beforeunload',e=>{if(armed&&recorder&&recorder.state==='recording'){e.preventDefault();e.returnValue='⚠ Sistema armado!';try{triggerPanic('Fechar página');}catch(err){}return e.returnValue;}});
+    window.droneSecurity={startRecording,stopRecording,triggerPanic,isArmed:()=>armed};
+  })();
+
+  /* ▓▓▓ SMART (Gravações + Movimento + Rosto v2) ▓▓▓ */
+  (function SmartCameraAndRecordings(){
+    const DB_NAME='sentinela7-recordings',DB_VER=1,STORE='videos';let dbPromise=null;
+    function getDB(){if(dbPromise)return dbPromise;dbPromise=new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,DB_VER);req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains(STORE)){db.createObjectStore(STORE,{keyPath:'id',autoIncrement:true});}};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});return dbPromise;}
+    async function dbAdd(rec){const db=await getDB();return new Promise((res,rej)=>{const tx=db.transaction(STORE,'readwrite');const r=tx.objectStore(STORE).add(rec);tx.oncomplete=()=>res(r.result);tx.onerror=()=>rej(tx.error);});}
+    async function dbGetAll(){const db=await getDB();return new Promise((res,rej)=>{const tx=db.transaction(STORE,'readonly');const r=tx.objectStore(STORE).getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
+    async function dbDelete(id){const db=await getDB();return new Promise((res,rej)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).delete(id);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});}
+    async function dbClear(){const db=await getDB();return new Promise((res,rej)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).clear();tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});}
+    const recModal=document.getElementById('recModal'),recList=document.getElementById('recList'),recCount=document.getElementById('recCount'),recPreviewBox=document.getElementById('recPreviewBox'),recPreviewVideo=document.getElementById('recPreviewVideo');
+    let previewURL=null;
+    async function updateRecBadge(){try{const recs=await dbGetAll();const btn=document.getElementById('btnOpenRecordings');if(btn){const label='📼 GRAVAÇÕES SALVAS ('+recs.length+')';if(btn.textContent!==label)btn.textContent=label;}}catch(e){}}
+    window.sentinela7SaveRecording=async function(data){
+      if(!data||!data.blob)throw new Error('blob ausente');
+      const id=await dbAdd({filename:data.filename||('rec_'+Date.now()+'.webm'),mimeType:data.mimeType||'video/webm',size:data.blob.size,duration:data.duration||0,date:Date.now(),type:data.type||'video',blob:data.blob});
+      await updateRecBadge();
+      if(recModal&&recModal.style.display==='flex')renderRecList();
+      console.log('[REC] Salvo em Gravações: '+data.filename+' (id='+id+')');
+      return id;
+    };
+    function fmtSize(b){if(b<1024)return b+' B';if(b<1048576)return (b/1024).toFixed(1)+' KB';return (b/1048576).toFixed(2)+' MB';}
+    function fmtDate(ts){return new Date(ts).toLocaleString('pt-BR');}
+    function fmtDur(ms){const s=Math.floor(ms/1000),m=Math.floor(s/60),hh=Math.floor(m/60);return hh>0?hh+'h '+String(m%60).padStart(2,'0')+'m':String(m).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+    function openRecModal(){if(!recModal)return;recModal.style.display='flex';renderRecList();}
+    function closeRecModal(){if(!recModal)return;recModal.style.display='none';if(previewURL){try{URL.revokeObjectURL(previewURL);}catch(e){}previewURL=null;}if(recPreviewVideo){try{recPreviewVideo.pause();recPreviewVideo.src='';}catch(e){}}const img=document.getElementById('recPreviewImg');if(img){img.src='';img.style.display='none';}if(recPreviewBox){recPreviewBox.style.display='none';}}
+    async function renderRecList(){
+      if(!recList)return;
+      let recs=[];try{recs=await dbGetAll();}catch(e){console.warn(e);}
+      recs.sort((a,b)=>b.date-a.date);
+      if(recCount)recCount.textContent='('+recs.length+')';
+      if(!recs.length){recList.innerHTML='<div style="text-align:center;padding:30px 10px;opacity:.5;line-height:2">📭 Nenhuma gravação ou foto salva.<br>Use ⏺ GRAVAR ou 👤 FOCO NO ROSTO.</div>';return;}
+      recList.innerHTML=recs.map(r=>{
+        const isPhoto=r.type==='photo';
+        const icon=isPhoto?'📸':'🎥';
+        const border=isPhoto?'rgba(0,240,255,.3)':'rgba(0,255,157,.2)';
+        const bg=isPhoto?'rgba(0,240,255,.03)':'rgba(0,255,157,.03)';
+        const playBtn=isPhoto?'':'<button class="rec-play" data-id="'+r.id+'" style="padding:6px 10px;font-family:inherit;font-size:9px;border:1px solid var(--gold);background:rgba(255,179,0,.08);color:var(--gold);cursor:pointer">▶ VER</button>';
+        return '<div style="display:flex;gap:10px;align-items:center;padding:10px;border:1px solid '+border+';background:'+bg+';margin-bottom:8px;flex-wrap:wrap"><div style="flex:1;min-width:200px"><div style="font-size:11px;color:#fff;font-weight:600">'+icon+' '+r.filename+'</div><div style="font-size:9px;color:rgba(0,240,255,.6);margin-top:3px">📅 '+fmtDate(r.date)+' · 💾 '+fmtSize(r.size)+(!isPhoto&&r.duration?' · ⏱ '+fmtDur(r.duration):'')+'</div></div><div style="display:flex;gap:6px;flex-wrap:wrap">'+playBtn+'<button class="rec-dl" data-id="'+r.id+'" style="padding:6px 10px;font-family:inherit;font-size:9px;border:1px solid var(--ok);background:rgba(0,255,157,.08);color:var(--ok);cursor:pointer">⬇ BAIXAR</button><button class="rec-wa" data-id="'+r.id+'" style="padding:6px 10px;font-family:inherit;font-size:9px;border:1px solid #25d366;background:rgba(37,211,102,.08);color:#25d366;cursor:pointer">💬 WA</button><button class="rec-del" data-id="'+r.id+'" style="padding:6px 10px;font-family:inherit;font-size:9px;border:1px solid var(--danger);background:rgba(255,45,85,.08);color:var(--danger);cursor:pointer">🗑</button></div></div>';
+      }).join('');
+      recList.querySelectorAll('.rec-play').forEach(b=>b.onclick=()=>playRec(+b.dataset.id,recs));
+      recList.querySelectorAll('.rec-dl').forEach(b=>b.onclick=()=>downloadRec(+b.dataset.id,recs));
+      recList.querySelectorAll('.rec-wa').forEach(b=>b.onclick=()=>shareRecWA(+b.dataset.id,recs));
+      recList.querySelectorAll('.rec-del').forEach(b=>b.onclick=async()=>{if(!confirm('Apagar?'))return;try{await dbDelete(+b.dataset.id);renderRecList();updateRecBadge();}catch(e){alert('Erro: '+e.message);}});
+    }
+    function playRec(id,recs){
+      const r=recs.find(x=>x.id===id);if(!r||!recPreviewVideo)return;
+      if(previewURL){try{URL.revokeObjectURL(previewURL);}catch(e){}}
+      previewURL=URL.createObjectURL(r.blob);
+      let img=document.getElementById('recPreviewImg');
+      if(r.type==='photo'){
+        if(!img){img=document.createElement('img');img.id='recPreviewImg';img.style.cssText='width:100%;max-height:40vh;display:block';recPreviewBox.appendChild(img);}
+        recPreviewVideo.style.display='none';img.src=previewURL;img.style.display='block';
+      }else{
+        if(img)img.style.display='none';
+        recPreviewVideo.style.display='block';recPreviewVideo.src=previewURL;recPreviewVideo.play().catch(()=>{});
+      }
+      recPreviewBox.style.display='block';
+    }
+    function downloadRec(id,recs){const r=recs.find(x=>x.id===id);if(!r)return;const url=URL.createObjectURL(r.blob);const a=document.createElement('a');a.href=url;a.download=r.filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);}
+    function shareRecWA(id,recs){const r=recs.find(x=>x.id===id);if(!r)return;const waNumEl=document.getElementById('secWANumber');const waNum=(waNumEl?waNumEl.value:'').replace(/\D/g,'');const msg='SENTINELA-7\n'+fmtDate(r.date)+'\n'+r.filename;downloadRec(id,recs);setTimeout(()=>{const url=waNum?'https://wa.me/'+waNum+'?text='+encodeURIComponent(msg):'https://wa.me/?text='+encodeURIComponent(msg);window.open(url,'_blank');},600);}
+    if(document.getElementById('btnOpenRecordings'))document.getElementById('btnOpenRecordings').onclick=openRecModal;
+    if(document.getElementById('recModalClose'))document.getElementById('recModalClose').onclick=closeRecModal;
+    if(document.getElementById('recModalClearAll'))document.getElementById('recModalClearAll').onclick=async()=>{if(!confirm('Apagar TODAS?'))return;try{await dbClear();renderRecList();updateRecBadge();}catch(e){alert('Erro: '+e.message);}};
+    if(recModal)recModal.addEventListener('click',e=>{if(e.target===recModal)closeRecModal();});
+
+    /* MOVIMENTO */
+    const video=document.getElementById('droneVideo'),tgMotion=document.getElementById('tgMotion'),tgFaceFocus=document.getElementById('tgFaceFocus'),camSmartStatus=document.getElementById('camSmartStatus');
+    let motionOn=false,motionCanvas=null,motionCtx=null,motionPrev=null,motionRAF=null,lastMotionTs=0;
+    function startMotion(){if(motionOn)return;motionOn=true;motionCanvas=document.createElement('canvas');motionCanvas.width=80;motionCanvas.height=60;motionCtx=motionCanvas.getContext('2d',{willReadFrequently:true});motionPrev=null;tgMotion.classList.add('on');updateSmartStatus();loopMotion();}
+    function stopMotion(){motionOn=false;if(motionRAF)cancelAnimationFrame(motionRAF);motionRAF=null;tgMotion.classList.remove('on');updateSmartStatus();}
+    function loopMotion(){
+      if(!motionOn)return;
+      motionRAF=requestAnimationFrame(loopMotion);
+      if(!video||video.readyState<2||video.paused)return;
       try{
-        const faces = await faceDetector.estimateFaces(video);
-        if(faces && faces.length > 0){
-          applyFaceZoom(faces[0].box);
-          if(faceLossTimer){ clearTimeout(faceLossTimer); faceLossTimer = null; }
-        } else if(!faceLossTimer){
-          faceLossTimer = setTimeout(function(){ resetZoom(); faceLossTimer = null; }, 1500);
+        motionCtx.drawImage(video,0,0,80,60);
+        const curr=motionCtx.getImageData(0,0,80,60).data;
+        if(motionPrev){
+          let diff=0;
+          for(let i=0;i<curr.length;i+=16){diff+=Math.abs(curr[i]-motionPrev[i]);diff+=Math.abs(curr[i+1]-motionPrev[i+1]);diff+=Math.abs(curr[i+2]-motionPrev[i+2]);}
+          const avg=diff/(80*60/4*3);
+          if(avg>18){const now=Date.now();if(now-lastMotionTs>500){lastMotionTs=now;onMotionDetected(avg);}}
         }
-      }catch(e){
-        if(!window.__faceCorsWarned){
-          window.__faceCorsWarned = true;
-          console.warn('[FACE] CORS:', e.message);
-          updateSmartStatus();
-        }
+        motionPrev=new Uint8ClampedArray(curr);
+      }catch(e){if(!window.__motionCorsWarned){window.__motionCorsWarned=true;console.warn('[MOTION] CORS');updateSmartStatus();}}
+    }
+    function onMotionDetected(intensity){
+      const wrap=document.getElementById('dronePlayerWrap');
+      if(wrap){wrap.style.boxShadow='inset 0 0 40px rgba(255,179,0,.7)';wrap.style.transition='box-shadow .1s';setTimeout(()=>wrap.style.boxShadow='',280);}
+      updateSmartStatus('🎯 MOVIMENTO ('+intensity.toFixed(1)+')');
+    }
+    if(tgMotion)tgMotion.addEventListener('click',()=>{if(motionOn)stopMotion();else startMotion();});
+
+    /* ROSTO v2 */
+    let faceOn=false,faceDetector=null,faceLoading=false,faceLoopTimer=null,faceLastSnapshotTs=0,facePrevCount=0,lastStatusText='';
+    let faceOverlayCanvas=null,faceOverlayCtx=null;
+    const FACE_SNAPSHOT_THROTTLE=8000;
+    function ensureFaceOverlay(){
+      if(faceOverlayCanvas&&faceOverlayCanvas.parentNode)return faceOverlayCanvas;
+      const wrap=document.getElementById('dronePlayerWrap');if(!wrap)return null;
+      faceOverlayCanvas=document.createElement('canvas');faceOverlayCanvas.id='faceOverlay';
+      faceOverlayCanvas.style.cssText='position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:6;transform-origin:0 0;';
+      wrap.appendChild(faceOverlayCanvas);
+      faceOverlayCtx=faceOverlayCanvas.getContext('2d');
+      resizeFaceOverlay();
+      window.addEventListener('resize',resizeFaceOverlay);
+      return faceOverlayCanvas;
+    }
+    function resizeFaceOverlay(){if(!faceOverlayCanvas)return;const wrap=document.getElementById('dronePlayerWrap');if(!wrap)return;faceOverlayCanvas.width=wrap.clientWidth;faceOverlayCanvas.height=wrap.clientHeight;}
+    function clearFaceOverlay(){if(!faceOverlayCtx||!faceOverlayCanvas)return;faceOverlayCtx.clearRect(0,0,faceOverlayCanvas.width,faceOverlayCanvas.height);}
+    function mapVideoToDisplay(box){
+      if(!video||!video.videoWidth)return null;
+      const vw=video.videoWidth,vh=video.videoHeight;
+      const ew=video.clientWidth,eh=video.clientHeight;
+      if(!ew||!eh)return null;
+      const s=Math.max(ew/vw,eh/vh);
+      const dispW=vw*s,dispH=vh*s;
+      const offX=(dispW-ew)/2,offY=(dispH-eh)/2;
+      return{x:box.xMin*s-offX,y:box.yMin*s-offY,w:box.width*s,h:box.height*s};
+    }
+    function estimatePersonBox(f){
+      const w=f.w*2.4,h=f.h*6.5;
+      return{x:f.x+f.w/2-w/2,y:f.y-f.h*0.3,w,h};
+    }
+    function drawFaceOverlays(faces){
+      if(!faceOverlayCtx||!faceOverlayCanvas)return;
+      const ctx=faceOverlayCtx,cw=faceOverlayCanvas.width,ch=faceOverlayCanvas.height;
+      ctx.clearRect(0,0,cw,ch);
+      if(!faces||!faces.length){ctx.fillStyle='rgba(0,240,255,.55)';ctx.font='bold 10px monospace';ctx.fillText('👤 NENHUM ROSTO',10,20);return;}
+      faces.forEach((face,idx)=>{
+        const d=mapVideoToDisplay(face.box);if(!d)return;
+        ctx.strokeStyle='#00ff9d';ctx.lineWidth=2;ctx.strokeRect(d.x,d.y,d.w,d.h);
+        const cl=Math.min(d.w,d.h)*0.28;ctx.lineWidth=3;
+        ctx.beginPath();ctx.moveTo(d.x,d.y+cl);ctx.lineTo(d.x,d.y);ctx.lineTo(d.x+cl,d.y);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(d.x+d.w-cl,d.y);ctx.lineTo(d.x+d.w,d.y);ctx.lineTo(d.x+d.w,d.y+cl);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(d.x,d.y+d.h-cl);ctx.lineTo(d.x,d.y+d.h);ctx.lineTo(d.x+cl,d.y+d.h);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(d.x+d.w-cl,d.y+d.h);ctx.lineTo(d.x+d.w,d.y+d.h);ctx.lineTo(d.x+d.w,d.y+d.h-cl);ctx.stroke();
+        ctx.fillStyle='#00ff9d';ctx.font='bold 11px monospace';
+        ctx.fillText('ROSTO '+(idx+1),d.x,Math.max(d.y-6,12));
+        const p=estimatePersonBox(d);
+        ctx.strokeStyle='rgba(0,240,255,.85)';ctx.lineWidth=1.5;ctx.setLineDash([6,4]);
+        ctx.strokeRect(p.x,p.y,p.w,p.h);ctx.setLineDash([]);
+        ctx.fillStyle='rgba(0,240,255,.9)';ctx.font='bold 10px monospace';
+        ctx.fillText('PESSOA '+(idx+1),p.x,Math.min(p.y+p.h+12,ch-4));
+      });
+      const count=faces.length;
+      const label='👥 '+count+' PESSOA'+(count!==1?'S':'');
+      ctx.font='bold 12px monospace';
+      const tw=ctx.measureText(label).width;
+      ctx.fillStyle='rgba(0,0,0,.75)';ctx.fillRect(cw-tw-20,8,tw+14,24);
+      ctx.strokeStyle='#00ff9d';ctx.lineWidth=1;ctx.strokeRect(cw-tw-20,8,tw+14,24);
+      ctx.fillStyle='#00ff9d';ctx.fillText(label,cw-tw-13,24);
+    }
+    async function captureFacePhoto(faces){
+      if(!faces||!faces.length)return;
+      const now=Date.now();
+      const countChanged=faces.length!==facePrevCount;
+      if(!countChanged&&now-faceLastSnapshotTs<FACE_SNAPSHOT_THROTTLE)return;
+      facePrevCount=faces.length;faceLastSnapshotTs=now;
+      try{
+        const vw=video.videoWidth,vh=video.videoHeight,ew=video.clientWidth,eh=video.clientHeight;
+        if(!vw||!vh||!ew||!eh)return;
+        const s=Math.max(ew/vw,eh/vh);
+        const dispW=vw*s,dispH=vh*s;
+        const offX=(dispW-ew)/2,offY=(dispH-eh)/2;
+        const srcX=offX/s,srcY=offY/s,srcW=ew/s,srcH=eh/s;
+        const c=document.createElement('canvas');c.width=ew;c.height=eh;
+        const cx=c.getContext('2d');
+        cx.drawImage(video,srcX,srcY,srcW,srcH,0,0,ew,eh);
+        faces.forEach((face,idx)=>{
+          const d=mapVideoToDisplay(face.box);if(!d)return;
+          cx.strokeStyle='#00ff9d';cx.lineWidth=3;cx.strokeRect(d.x,d.y,d.w,d.h);
+          cx.fillStyle='#00ff9d';cx.font='bold 14px monospace';
+          cx.fillText('ROSTO '+(idx+1),d.x,Math.max(d.y-8,18));
+          const p=estimatePersonBox(d);
+          cx.strokeStyle='rgba(0,240,255,.85)';cx.lineWidth=2;cx.setLineDash([8,5]);
+          cx.strokeRect(p.x,p.y,p.w,p.h);cx.setLineDash([]);
+          cx.fillStyle='rgba(0,240,255,.9)';cx.font='bold 12px monospace';
+          cx.fillText('PESSOA '+(idx+1),p.x,Math.min(p.y+p.h+14,eh-4));
+        });
+        const label='👥 '+faces.length+' PESSOA'+(faces.length!==1?'S':'');
+        cx.font='bold 16px monospace';
+        const tw=cx.measureText(label).width;
+        cx.fillStyle='rgba(0,0,0,.75)';cx.fillRect(ew-tw-24,8,tw+18,28);
+        cx.fillStyle='#00ff9d';cx.fillText(label,ew-tw-15,28);
+        cx.font='11px monospace';
+        cx.fillStyle='rgba(0,0,0,.75)';cx.fillRect(8,eh-26,220,20);
+        cx.fillStyle='#00f0ff';cx.fillText(new Date().toLocaleString('pt-BR'),12,eh-11);
+        const blob=await new Promise(res=>c.toBlob(res,'image/jpeg',0.9));
+        if(!blob)return;
+        const ts=new Date().toISOString().replace(/[:.]/g,'-').slice(0,19);
+        const filename='rosto_'+ts+'.jpg';
+        try{await window.sentinela7SaveRecording({blob,filename,mimeType:'image/jpeg',duration:0,type:'photo'});console.log('[FACE] Foto: '+filename);}catch(e){console.warn('[FACE] Erro save:',e);}
+      }catch(e){console.warn('[FACE] Erro captura:',e);}
+    }
+    function loadScript(src){return new Promise((res,rej)=>{if(document.querySelector('script[src="'+src+'"]'))return res();const s=document.createElement('script');s.src=src;s.onload=()=>res();s.onerror=()=>rej(new Error('CDN: '+src));document.head.appendChild(s);});}
+    async function loadFaceModel(){
+      if(faceDetector)return faceDetector;
+      if(faceLoading)return null;
+      faceLoading=true;updateSmartStatus();
+      try{
+        await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js');
+        await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow-models/face-detection@1.0.2/dist/face-detection.min.js');
+        if(typeof tf==='undefined'||typeof faceDetection==='undefined')throw new Error('TF.js não carregou');
+        await tf.setBackend('webgl');await tf.ready();
+        faceDetector=await faceDetection.createDetector(faceDetection.SupportedModels.MediaPipeFaceDetector,{runtime:'tfjs',maxFaces:5});
+        faceLoading=false;updateSmartStatus();return faceDetector;
+      }catch(e){console.error('[FACE]',e);faceLoading=false;updateSmartStatus();alert('Detector de rosto falhou: '+e.message);return null;}
+    }
+    function startFaceFocus(){if(faceOn)return;faceOn=true;tgFaceFocus.classList.add('on');ensureFaceOverlay();resizeFaceOverlay();updateSmartStatus();if(!faceDetector){loadFaceModel().then(()=>{if(faceOn)loopFace();});}else loopFace();}
+    function stopFaceFocus(){faceOn=false;if(faceLoopTimer){clearTimeout(faceLoopTimer);faceLoopTimer=null;}tgFaceFocus.classList.remove('on');resetZoom();clearFaceOverlay();facePrevCount=0;updateSmartStatus();}
+    async function loopFace(){
+      if(!faceOn||!faceDetector)return;
+      if(video&&video.readyState>=2&&!video.paused){
+        try{
+          const faces=await faceDetector.estimateFaces(video);
+          drawFaceOverlays(faces);
+          if(faces&&faces.length>0){applyFaceZoom(faces[0].box);captureFacePhoto(faces);updateSmartStatus('👥 '+faces.length+' rosto(s)');}
+          else{resetZoom();}
+        }catch(e){if(!window.__faceCorsWarned){window.__faceCorsWarned=true;console.warn('[FACE] CORS');updateSmartStatus();}}
       }
+      if(faceOn)faceLoopTimer=setTimeout(loopFace,150);
     }
-    if(faceOn) faceLoopTimer = setTimeout(loopFace, 160);
-  }
-  function applyFaceZoom(box){
-    if(!video || !video.videoWidth) return;
-    const vw = video.videoWidth, vh = video.videoHeight;
-    const ew = video.clientWidth, eh = video.clientHeight;
-    if(!ew || !eh) return;
-    const fcX = box.xMin + box.width / 2;
-    const fcY = box.yMin + box.height / 2;
-    const scale = Math.max(ew / vw, eh / vh);
-    const dispW = vw * scale, dispH = vh * scale;
-    const offX = (dispW - ew) / 2, offY = (dispH - eh) / 2;
-    const elX = fcX * scale - offX;
-    const elY = fcY * scale - offY;
-    const pctX = Math.max(0, Math.min(100, (elX / ew) * 100));
-    const pctY = Math.max(0, Math.min(100, (elY / eh) * 100));
-    const facePxW = box.width * scale;
-    const facePxH = box.height * scale;
-    const targetPx = Math.min(ew, eh) * 0.6;
-    const zoom = Math.min(3, Math.max(1, targetPx / Math.min(facePxW, facePxH)));
-    video.style.willChange = 'transform';
-    video.style.transformOrigin = pctX + '% ' + pctY + '%';
-    video.style.transform = 'scale(' + zoom.toFixed(2) + ')';
-    video.style.transition = 'transform 0.2s linear';
-  }
-  function resetZoom(){
-    if(!video) return;
-    video.style.transform = '';
-    video.style.transformOrigin = '';
-    video.style.transition = 'transform 0.4s ease-out';
-  }
-  tgFaceFocus.addEventListener('click', function(){ if(faceOn) stopFaceFocus(); else startFaceFocus(); });
-
-  function updateSmartStatus(extra){
-    if(!camSmartStatus) return;
-    const parts = [];
-    if(motionOn) parts.push('👁 Mov: ' + (window.__motionCorsWarned ? '⚠ CORS' : 'ATIVO'));
-    if(faceOn) parts.push('👤 Rosto: ' + (faceLoading ? '⏳ carregando…' : (faceDetector ? 'ATIVO' : 'OFF')));
-    if(extra) parts.push(extra);
-    camSmartStatus.innerHTML = parts.length ? parts.join(' · ') : '';
-    if(extra) setTimeout(function(){ updateSmartStatus(); }, 2500);
-  }
-
-  document.getElementById('btnDroneStop') && document.getElementById('btnDroneStop').addEventListener('click', function(){
-    resetZoom();
-    motionPrev = null;
-  });
-
-  updateSmartStatus();
-  window.sentinela7Smart = { openRecordings:openRecModal, startMotion:startMotion, stopMotion:stopMotion, startFaceFocus:startFaceFocus, stopFaceFocus:stopFaceFocus };
-})();
-
-/* BOOT */
-(function boot(){
-  try{
-    initMap();
-    loadTargets();
-    loadCompanions();
-    loadAlertHistory();
-    updateAlertTargets();
-    renderAlertHistory();
-    updateAll();
-    startGPS();
-    setTimeout(function(){ if(!meLatLng) setStatus('SEM GPS','warn'); }, 4000);
-    window.addEventListener('resize', function(){ positionSonar(); renderSonarBlips(); });
-    document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && camModalAgent) closeCamModal(); });
-
-    const savedHostCode = LS.get('sentinela7.hostCode');
-    const wasActive = LS.get('sentinela7.hostActive') === '1';
-    const rbtn = document.getElementById('btnResumeShare');
-    if(rbtn){
-      rbtn.onclick = function(){
-        const saved = LS.get('sentinela7.hostCode');
-        if(!saved){ alert('Nenhuma sessão.'); return; }
-        startHosting(saved);
-      };
+    function applyFaceZoom(box){
+      if(!video||!video.videoWidth)return;
+      const vw=video.videoWidth,vh=video.videoHeight,ew=video.clientWidth,eh=video.clientHeight;
+      if(!ew||!eh)return;
+      const fcX=box.xMin+box.width/2,fcY=box.yMin+box.height/2;
+      const s=Math.max(ew/vw,eh/vh);
+      const dispW=vw*s,dispH=vh*s;
+      const offX=(dispW-ew)/2,offY=(dispH-eh)/2;
+      const px=fcX*s-offX,py=fcY*s-offY;
+      const faceW=box.width*s,faceH=box.height*s;
+      const targetSize=Math.min(ew,eh)*0.55;
+      const Z=Math.min(3,Math.max(1.2,targetSize/Math.min(faceW,faceH)));
+      const tx=ew/2-px*Z,ty=eh/2-py*Z;
+      const transformValue='translate('+tx.toFixed(2)+'px, '+ty.toFixed(2)+'px) scale('+Z.toFixed(2)+')';
+      video.style.transformOrigin='0 0';video.style.transform=transformValue;video.style.transition='transform 0.2s linear';
+      if(faceOverlayCanvas){faceOverlayCanvas.style.transformOrigin='0 0';faceOverlayCanvas.style.transform=transformValue;faceOverlayCanvas.style.transition='transform 0.2s linear';}
     }
-    if(savedHostCode){
-      if(wasActive){ setTimeout(function(){ try{ startHosting(savedHostCode); }catch(e){} }, 800); }
-      else {
-        if(rbtn){ rbtn.style.display = 'block'; rbtn.textContent = '▶ REATIVAR ' + savedHostCode; }
-        const badge = document.getElementById('sessionBadge');
-        if(badge){ badge.textContent = 'ÚLTIMA SESSÃO: ' + savedHostCode; badge.classList.add('show'); }
+    function resetZoom(){
+      if(!video)return;
+      video.style.transform='';video.style.transformOrigin='';video.style.transition='transform 0.4s ease-out';
+      if(faceOverlayCanvas){faceOverlayCanvas.style.transform='';faceOverlayCanvas.style.transformOrigin='';faceOverlayCanvas.style.transition='transform 0.4s ease-out';}
+    }
+    if(tgFaceFocus)tgFaceFocus.addEventListener('click',()=>{if(faceOn)stopFaceFocus();else startFaceFocus();});
+    function updateSmartStatus(extra){
+      if(!camSmartStatus)return;
+      const parts=[];
+      if(motionOn)parts.push('👁 Mov: '+(window.__motionCorsWarned?'⚠ CORS':'ATIVO'));
+      if(faceOn)parts.push('👤 Rosto: '+(faceLoading?'⏳ carregando…':(faceDetector?'ATIVO':'OFF')));
+      if(extra)parts.push(extra);
+      const txt=parts.length?parts.join(' · '):'';
+      if(txt!==lastStatusText){camSmartStatus.innerHTML=txt;lastStatusText=txt;}
+      if(extra)setTimeout(()=>updateSmartStatus(),2500);
+    }
+    if(document.getElementById('btnDroneStop'))document.getElementById('btnDroneStop').addEventListener('click',()=>{resetZoom();clearFaceOverlay();motionPrev=null;});
+    updateSmartStatus();updateRecBadge();
+    window.sentinela7Smart={openRecordings:openRecModal,startMotion,stopMotion,startFaceFocus,stopFaceFocus};
+  })();
+
+  /* BOOT */
+  (function boot(){
+    try{
+      initMap();
+      loadTargets();
+      loadCompanions();
+      loadAlertHistory();
+      updateAlertTargets();
+      renderAlertHistory();
+      updateAll();
+      startGPS();
+      setTimeout(()=>{if(!meLatLng)setStatus('SEM GPS','warn');},4000);
+      window.addEventListener('resize',()=>{positionSonar();renderSonarBlips();});
+      document.addEventListener('keydown',e=>{if(e.key==='Escape'&&camModalAgent)closeCamModal();});
+      const savedHostCode=LS.get('sentinela7.hostCode');
+      const wasActive=LS.get('sentinela7.hostActive')==='1';
+      const rbtn=document.getElementById('btnResumeShare');
+      if(rbtn){rbtn.onclick=()=>{const saved=LS.get('sentinela7.hostCode');if(!saved){alert('Nenhuma sessão.');return;}startHosting(saved);};}
+      if(savedHostCode){
+        if(wasActive){setTimeout(()=>{try{startHosting(savedHostCode);}catch(e){}},800);}
+        else{if(rbtn){rbtn.style.display='block';rbtn.textContent='▶ REATIVAR '+savedHostCode;}const badge=document.getElementById('sessionBadge');if(badge){badge.textContent='ÚLTIMA SESSÃO: '+savedHostCode;badge.classList.add('show');}}
       }
+      window.addEventListener('beforeunload',()=>{if(hostPeer){try{hostPeer.destroy();}catch(e){}}});
+    }catch(err){
+      console.error('[BOOT]',err);
+      try{setStatus('ERRO BOOT','danger');}catch(e){}
+      const d=document.getElementById('fatalErr');if(d){d.style.display='block';d.innerHTML='❌ Boot: '+err.message;}
     }
-    window.addEventListener('beforeunload', function(){ if(hostPeer){ try{ hostPeer.destroy(); }catch(e){} } });
-  }catch(err){
-    console.error('[BOOT] erro:', err);
-    try{ setStatus('ERRO BOOT','danger'); }catch(e){}
-    const d = document.getElementById('fatalErr');
-    if(d){ d.style.display = 'block'; d.innerHTML = '❌ Boot: ' + err.message; }
-  }
-})();
-
+  })();
 }catch(outerErr){
-  console.error('[MAIN] erro:', outerErr);
-  const d = document.getElementById('fatalErr');
-  if(d){ d.style.display = 'block'; d.innerHTML = '❌ Script principal: ' + outerErr.message; }
+  console.error('[MAIN]',outerErr);
+  const d=document.getElementById('fatalErr');if(d){d.style.display='block';d.innerHTML='❌ Script: '+outerErr.message;}
 }
-
 }
 </script>
 </body>
